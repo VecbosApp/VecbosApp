@@ -1,8 +1,9 @@
-setenv SCRAM_ARCH slc5_amd64_gcc462
+export SCRAM_ARCH=slc5_amd64_gcc462
 cmsrel CMSSW_5_3_3_patch3
 cd CMSSW_5_3_3_patch3/src
-eval `scramv1 runtime -csh`
-cd -
+eval `scramv1 runtime -sh`
+git clone git@github.com:VecbosApp/VecbosApp.git
+cd VecbosApp
 git clone git@github.com:VecbosApp/CommonTools.git
 git clone git@github.com:VecbosApp/EgammaAnalysisTools.git
 git clone git@github.com:VecbosApp/VecbosSamples.git
