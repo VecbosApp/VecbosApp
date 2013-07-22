@@ -31,6 +31,7 @@ public:
   vector<Jet> FastJetAlgorithmForceTwo(vector<TLorentzVector> InputCollection, double Rparam=0.5, double thePtMin=1.);
   vector<TLorentzVector> CombineJetsTs(vector<TLorentzVector> myjets, vector<TLorentzVector> Ts);
   double shat3D(TLorentzVector TOT, TVector3 P);
+  double CalcBetaMRStarMag(TLorentzVector ja, TLorentzVector jb); 
   TVector3 Boost_type1(TLorentzVector H1, TLorentzVector H2);
   TVector3 BetaTR(TLorentzVector TOT, TVector3 MET);
   double shatR(TLorentzVector TOT, TVector3 MET);
