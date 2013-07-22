@@ -179,18 +179,18 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     //Variable Arrays
     //Index 0 is Hybrid, Index 1 is pT-corrected (Rogan)
     //Index 2 is Canonical
-    double TotalHemMass1List[3] = {-9999.,-9999.,-9999.};
-    double TotalHemMass2List[3] = {-9999.,-9999.,-9999.};
-    double TopHemMass1List[3] = {-9999.,-9999.,-9999.};
-    double TopHemMass2List[3] = {-9999.,-9999.,-9999.};
-    double MR1List[3] = {-9999.,-9999.,-9999.};
-    double MR2List[3] = {-9999.,-9999.,-9999.};
-    double pTNMagList[3] = {-9999.,-9999.,-9999.};
-    double CosThetaB1List[3] = {-9999.,-9999.,-9999.};
-    double CosThetaB2List[3] = {-9999.,-9999.,-9999.};
-    double CosThetaL1List[3] = {-9999.,-9999.,-9999.};
-    double CosThetaL2List[3] = {-9999.,-9999.,-9999.};
-    double gammaRList[3] = {-9999.,-9999.,-9999.};
+    double TotalHemMass1List[3];
+    double TotalHemMass2List[3];
+    double TopHemMass1List[3];
+    double TopHemMass2List[3];
+    double MR1List[3];
+    double MR2List[3];
+    double pTNMagList[3];
+    double CosThetaB1List[3];
+    double CosThetaB2List[3];
+    double CosThetaL1List[3];
+    double CosThetaL2List[3];
+    double gammaRList[3];
     
     //Hybrid Razor Approach
     double TotalHemMass1;
@@ -797,8 +797,23 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
         MR1Trans = -9999.;
         MR2Trans = -9999.;
         TotalNMagTrans = -9999.;
-        
-        
+	
+	int j = 2;
+	if (j >= 0){
+	  TotalHemMass1List[j] = -9999.;
+	  TotalHemMass2List[j] = -9999.;
+	  TopHemMass1List[j] = -9999.;
+	  TopHemMass2List[j] = -9999.;
+	  MR1List[j] = -9999.;
+	  MR2List[j] = -9999.;
+	  pTNMagList[j] = -9999.;
+	  CosThetaB1List[j] = -9999.;
+	  CosThetaB2List[j] = -9999.;
+	  CosThetaL1List[j] = -9999.;
+	  CosThetaL2List[j] = -9999.;
+	  gammaRList[j] = -9999.;
+	  j = j-1;
+        }
         //dummy var
         double thisjet_x;
         double thisjet_y;
