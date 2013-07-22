@@ -799,7 +799,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
         TotalNMagTrans = -9999.;
 	
 	int j = 2;
-	if (j >= 0){
+	while (j >= 0){
 	  TotalHemMass1List[j] = -9999.;
 	  TotalHemMass2List[j] = -9999.;
 	  TopHemMass1List[j] = -9999.;
