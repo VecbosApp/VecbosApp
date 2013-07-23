@@ -196,6 +196,9 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     double CosThetaL1List[3];
     double CosThetaL2List[3];
     double gammaRList[3];
+	
+	//check btag efficiencies
+    float BDiscList[2];
     
     //Hybrid Razor Approach
     double TotalHemMass1;
@@ -299,6 +302,11 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     outTree->Branch("CosThetaL2List", CosThetaL2List, "CosThetaL2List[3]/D");
     outTree->Branch("gammaRList", gammaRList, "gammaRList[3]/D");
     
+	
+	//b tag discriminators
+    outTree->Branch("BDiscList", BDiscList, "BDiscList[2]/F");
+	
+	
     // New Razor Variables
     outTree->Branch("MR_pTcorr", &MR_pTcorr, "MR_pTcorr/D");
     outTree->Branch("gammaR", &gammaR, "gammaR/D");
@@ -710,12 +718,14 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
         
         
         // create vector of b-jets
-        vector<TLorentzVector> BJets;
-        vector<float> discBJets;
-        vector<int> iBJets;
+        vector<TLorentzVector> tBJets;
+        vector<float> tdiscBJets;
+        vector<int> tiBJets;
         vector<TLorentzVector> otherJets;
         vector<int> iotherJets;
-        
+		
+		
+		
         for(int b=0; b < iIsolatedPFJet.size(); b++){
             int n = iIsolatedPFJet.at(b);
             float disc = combinedSecondaryVertexBJetTagsAK5PFNoPUJet[n];
@@ -723,37 +733,61 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             tempvector.SetPxPyPzE(pxAK5PFNoPUJet[n],pyAK5PFNoPUJet[n],pzAK5PFNoPUJet[n],energyAK5PFNoPUJet[n]);
             
             if (disc > 0.244) {
-                iBJets.push_back(n);
-                discBJets.push_back(disc);
-                BJets.push_back(tempvector);
+                tiBJets.push_back(n);
+                tdiscBJets.push_back(disc);
+                tBJets.push_back(tempvector);
             }
         }
         
         
         // bubble sort the b-jets by CSV b-tag discrimator values
         flag = 1;
-        for(int i=0; (i < iBJets.size()) && flag; i++){
+        for(int i=0; (i < tiBJets.size()) && flag; i++){
             TLorentzVector tempvector;
             int tempi;
             float tempdisc;
             flag = 0;
-            for (int j=0; j < (iBJets.size()-1); j++){
-                if (discBJets.at(j+1) > discBJets.at(j)){
-                    tempvector  = BJets.at(j);
-                    BJets.at(j) = BJets.at(j+1);
-                    BJets.at(j+1) = tempvector;
+            for (int j=0; j < (tiBJets.size()-1); j++){
+                if (tdiscBJets.at(j+1) > tdiscBJets.at(j)){
+                    tempvector  = tBJets.at(j);
+                    tBJets.at(j) = tBJets.at(j+1);
+                    tBJets.at(j+1) = tempvector;
                     
-                    tempi = iBJets.at(j);
-                    iBJets.at(j) = iBJets.at(j+1);
-                    iBJets.at(j+1) = tempi;
+                    tempi = tiBJets.at(j);
+                    tiBJets.at(j) = tiBJets.at(j+1);
+                    tiBJets.at(j+1) = tempi;
                     
-                    tempdisc = discBJets.at(j);
-                    discBJets.at(j) = discBJets.at(j+1);
-                    discBJets.at(j+1) = tempdisc;
+                    tempdisc = tdiscBJets.at(j);
+                    tdiscBJets.at(j) = tdiscBJets.at(j+1);
+                    tdiscBJets.at(j+1) = tempdisc;
                     flag = 1;
                 }
             }
         }
+        
+        
+		//here have a routine to just use best 2 jets if condition is set appropriately
+		int UseBestBJets;
+		UseBestBJets = 1;
+		
+		vector<TLorentzVector> BJets;
+		vector<float> discBJets;
+		vector<int> iBJets;
+		
+        if (UseBestBJets == 1){
+            if (tBJets.size() > 0)BJets.push_back(tBJets.front());
+            if (tBJets.size() > 1) BJets.push_back(tBJets[1]);
+            if (tiBJets.size() > 0)iBJets.push_back(tiBJets.front());
+            if (tiBJets.size() > 1) iBJets.push_back(tiBJets[1]);
+            if (tdiscBJets.size() > 0)discBJets.push_back(tdiscBJets.front());
+            if (tdiscBJets.size() > 1) discBJets.push_back(tdiscBJets[1]);         
+        }
+		else {
+			BJets = tBJets;
+			discBJets = tdiscBJets;
+			iBJets = tiBJets;
+		}
+		
         
         // New Razor Variables
         // dummy values
@@ -812,7 +846,12 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
         MR1Trans = -9999.;
         MR2Trans = -9999.;
         TotalNMagTrans = -9999.;
-	
+		
+		//BDisc initialization
+        BDiscList[0] = -9999. ; 
+	    BDiscList[1] = -9999. ;
+		
+		
 	int j = 2;
 	while (j >= 0){
 	  TotalHemMass1List[j] = -9999.;
@@ -873,13 +912,15 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
                 TLorentzVector testB1 = BJets[i];
                 for (int j=i+1; j < BJets.size(); j++) {
                     TLorentzVector testB2 = BJets[j];
-                    float M2 =  std::min( (B1+L1).M2() + (B2+L2).M2(), (B1+L2).M2() + (B2+L1).M2() );
+                    float M2 =  std::min( (testB1+L1).M2() + (testB2+L2).M2(), (testB1+L2).M2() + (testB2+L1).M2() );
                     if (M2 <= smallestM2) {
                         smallestM2 = M2;
                         B1 = testB1;
                         iB1 = iBJets[i];
                         B2 = testB2;
                         iB2 = iBJets[j];
+						BDiscList[0] = std::max( discBJets[i], discBJets[j] );
+                        BDiscList[1] = std::min( discBJets[i], discBJets[j] );
                     }
                 }
             }
