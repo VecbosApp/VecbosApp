@@ -124,8 +124,13 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     
     // gen level info
     double pT1, pT2, eta1, eta2, phi1, phi2;
-    int idMc1, idMothMc1, idGrandMothMc1;
-    int idMc2, idMothMc2, idGrandMothMc2;
+    int idMcL1, idMothMcL1, idGrandMothMcL1;
+    int idMcL2, idMothMcL2, idGrandMothMcL2;
+    //int idMcB1, idMothMcB1, idGrandMothMcB1;
+    //int idMcB2, idMothMcB2, idGrandMothMcB2;
+    double genH1Mass, genH2Mass;
+    double genGammaCM, genshat;
+
     // ttbar decay: 0 = nolep, 1 = semilep; 2 = fully lep
     int nLepTopDecay;
     int nNeutrino;
@@ -355,21 +360,31 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     
     
     //Gen-Level
-    outTree->Branch("idMc1", &idMc1, "idMc1/I");
-    outTree->Branch("idMothMc1", &idMothMc1, "idMothMc1/I");
-    outTree->Branch("idGrandMothMc1", &idGrandMothMc1, "idGrandMothMc1/I");
+    outTree->Branch("idMcL1", &idMcL1, "idMcL1/I");
+    outTree->Branch("idMothMcL1", &idMothMcL1, "idMothMcL1/I");
+    outTree->Branch("idGrandMothMcL1", &idGrandMothMcL1, "idGrandMothMcL1/I");
+    // outTree->Branch("idMcB1", &idMcB1, "idMcB1/I");
+    //outTree->Branch("idMothMcB1", &idMothMcB1, "idMothMcB1/I");
+    //outTree->Branch("idGrandMothMcB1", &idGrandMothMcB1, "idGrandMothMcB1/I");    
     outTree->Branch("pT1", &pT1, "pT1/D");
     outTree->Branch("eta1", &eta1, "eta1/D");
     outTree->Branch("phi1", &phi1, "phi1/D");
-    outTree->Branch("idMc2", &idMc2, "idMc2/I");
-    outTree->Branch("idMothMc2", &idMothMc2, "idMothMc2/I");
-    outTree->Branch("idGrandMothMc2", &idGrandMothMc2, "idGrandMothMc2/I");
+    outTree->Branch("idMcL2", &idMcL2, "idMcL2/I");
+    outTree->Branch("idMothMcL2", &idMothMcL2, "idMothMcL2/I");
+    outTree->Branch("idGrandMothMcL2", &idGrandMothMcL2, "idGrandMothMcL2/I");
+    //outTree->Branch("idMcB2", &idMcB2, "idMcB2/I");
+    //outTree->Branch("idMothMcB2", &idMothMcB2, "idMothMcB2/I");
+    //outTree->Branch("idGrandMothMcB2", &idGrandMothMcB2, "idGrandMothMcB2/I");
     outTree->Branch("pT2", &pT2, "pT2/D");
     outTree->Branch("eta2", &eta2, "eta2/D");
     outTree->Branch("phi2", &phi2, "phi2/D");
     outTree->Branch("nLepTopDecay",&nLepTopDecay,"nLepTopDecay/I");
     outTree->Branch("nNeutrino",&nNeutrino,"nNeutrino/I");
     outTree->Branch("pTNeutrinoMag",&pTNeutrinoMag,"pTNeutrinoMag/D");
+    outTree->Branch("genH1Mass", &genH1Mass, "genH1Mass/D");
+    outTree->Branch("genH2Mass", &genH2Mass, "genH2Mass/D");
+    outTree->Branch("genGammaCM", &genGammaCM, "genGammaCM/D");
+    outTree->Branch("genshat", &genshat, "genshat/D");
     
     //Selection
     outTree->Branch("nIsolatedPFJets", &nIsolatedPFJets, "nIsolatedPFJets/I");
@@ -1409,16 +1424,39 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
         pT2 = -999;
         eta2 = -999;
         phi2 = -999;
-        idMc1 = -99;
-        idMc2 = -99;
+        idMcL1 = -99;
+        idMcL2 = -99;
         if(!_isData) {
             nLepTopDecay = 0;
             nNeutrino = 0;
             pTNeutrino.SetXYZT(0.,0.,0.,0.);
             pTNeutrinoMag = 0.;
+
             int iL1 = -99;
             int iL2 = -99;
-            
+            int iB_t = -99;
+	    int iB_tb = -99;
+	    double pXL1 = -99;
+	    double pYL1 = -99;
+	    double pZL1 = -99;
+	    double energyL1 = -99;
+	    double pXL2 = -99;
+	    double pYL2 = -99;
+	    double pZL2 = -99;
+	    double energyL2 = -99;
+	    double pXB_t = -99;
+	    double pYB_t = -99;
+	    double pZB_t = -99;
+	    double energyB_t = -99;
+	    double pXB_tb = -99;
+	    double pYB_tb = -99;
+	    double pZB_tb = -99;
+	    double energyB_tb = -99;
+	    TLorentzVector genH1 = -99;
+	    TLorentzVector genH2 = -99;
+
+	    TLorentzVector genTop = -99;
+	    TLorentzVector genTopBar = -99;
             
             double deltaRGen1;
             double deltaEGen1 = 999999999;
@@ -1445,6 +1483,20 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
                         nLepTopDecay ++;
                     }
                 }
+       		
+		// For ttbar b + top variables:
+		
+		// b associated with t
+		if(idMc[mothMc[i]] == 6 &&
+		   idMc[i] == 5){
+		  iB_t = i;
+		}
+		// b associated with tbar
+		if(idMc[mothMc[i]] == -6 &&
+		   idMc[i] == -5){
+		  iB_tb = i;
+		}
+
                 pTNeutrinoMag = pTNeutrino.Pt();
                 // Delta R 0.2 window of selecton dileptons
                 double tempDeltaEGen;
@@ -1474,18 +1526,101 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
                 pT1 = pMc[iL1]*sin(thetaMc[iL1]);
                 eta1 = etaMc[iL1];
                 phi1 = phiMc[iL1];
-                idMc1 = idMc[iL1];
-                idMothMc1 = idMc[mothMc[iL1]];
-                idGrandMothMc1 = idMc[mothMc[mothMc[iL1]]];
+                idMcL1 = idMc[iL1];
+                idMothMcL1 = idMc[mothMc[iL1]];
+                idGrandMothMcL1 = idMc[mothMc[mothMc[iL1]]];
+		pXL1 = pMc[iL1]*cos(phiMc[iL1])*sin(thetaMc[iL1]);
+		pYL1 = pMc[iL1]*sin(phiMc[iL1])*sin(thetaMc[iL1]);
+		pZL1 = pMc[iL1]*cos(thetaMc[iL1]);
+		energyL1 = energyMc[iL1];
             }
             if(iL2>=0) {
                 pT2 = pMc[iL2]*sin(thetaMc[iL2]);
                 eta2 = etaMc[iL2];
                 phi2 = phiMc[iL2];
-                idMc2 = idMc[iL2];
-                idMothMc2 = idMc[mothMc[iL2]];
-                idGrandMothMc2 = idMc[mothMc[mothMc[iL2]]];
+                idMcL2 = idMc[iL2];
+                idMothMcL2 = idMc[mothMc[iL2]];
+                idGrandMothMcL2 = idMc[mothMc[mothMc[iL2]]];
+		pXL2 = pMc[iL2]*cos(phiMc[iL2])*sin(thetaMc[iL2]);
+		pYL2 = pMc[iL2]*sin(phiMc[iL2])*sin(thetaMc[iL2]);
+		pZL2 = pMc[iL2]*cos(thetaMc[iL2]);
+		energyL2 = energyMc[iL2];
             }
+	    if(iB_t>=0) {
+	      pXB_t = pMc[iB_t]*cos(phiMc[iB_t])*sin(thetaMc[iB_t]);
+	      pYB_t = pMc[iB_t]*sin(phiMc[iB_t])*sin(thetaMc[iB_t]);
+	      pXB_t = pMc[iB_t]*cos(thetaMc[iB_t]);
+	      energyB_t = energyMc[iB_t];
+
+	    }
+	    if(iB_tb>=0) {
+	      pXB_tb = pMc[iB_tb]*cos(phiMc[iB_tb])*sin(thetaMc[iB_tb]);
+	      pYB_tb = pMc[iB_tb]*sin(phiMc[iB_tb])*sin(thetaMc[iB_tb]);
+	      pZB_tb = pMc[iB_tb]*cos(thetaMc[iB_tb]);
+	      energyB_tb = energyMc[iB_tb];
+	    }
+	    // for ttbar background, calculate four-vectors of two hemispheres with B's and L's
+	    
+	    if ((idGrandMothMcL1 == 6 && idGrandMothMcL2 == -6)) {
+	      genH1.SetPxPyPzE( pXL1 + pXB_t,
+				pYL1 + pYB_t,
+				pZL1 + pZB_t,
+			        energyL1 + energyB_t);
+	      genH2.SetPxPyPzE( pXL2 + pXB_tb,
+				pYL2 + pYB_tb,
+				pZL2 + pZB_tb,
+			        energyL2 + energyB_tb);
+	    }
+	    else if ((idGrandMothMcL1 == -6 && idGrandMothMcL2 == 6)) {
+	      genH1.SetPxPyPzE( pXL2 + pXB_t,
+				pYL2 + pYB_t,
+				pZL2 + pZB_t,
+			        energyL2 + energyB_t );
+	      genH2.SetPxPyPzE( pXL1 + pXB_tb,
+				pYL1 + pYB_tb,
+				pZL1 + pZB_tb,
+			        energyL1 + energyB_tb );
+	    }
+	    // set genH1Mass to smaller of the two masses
+	      if (genH2.M() >= genH1.M()){
+	      genH2Mass = genH2.M();
+	      genH1Mass = genH1.M();
+	    }
+	    else {
+	      genH1Mass = genH2.M();
+	      genH2Mass = genH1.M();
+	    }
+	    // for ttbar background, calculate gammaCM-gen level
+	    // first find four-vectors for the top and antitop
+	    if (iB_t>0){
+	      double pX_t = pMc[mothMc[iB_t]]*cos(phiMc[mothMc[iB_t]])*sin(thetaMc[mothMc[iB_t]]);
+	      double pY_t = pMc[mothMc[iB_t]]*sin(phiMc[mothMc[iB_t]])*sin(thetaMc[mothMc[iB_t]]);
+	      double pZ_t = pMc[mothMc[iB_t]]*cos(thetaMc[mothMc[iB_t]]);
+	      double energy_t = energyMc[mothMc[iB_t]];
+	      genTop.SetPxPyPzE( pX_t, pY_t, pZ_t, energy_t);
+	    }
+	    if (iB_tb>0){
+	      double pX_tb = pMc[mothMc[iB_tb]]*cos(phiMc[mothMc[iB_tb]])*sin(thetaMc[mothMc[iB_tb]]);
+	      double pY_tb = pMc[mothMc[iB_tb]]*sin(phiMc[mothMc[iB_tb]])*sin(thetaMc[mothMc[iB_tb]]);
+	      double pZ_tb = pMc[mothMc[iB_tb]]*cos(thetaMc[mothMc[iB_tb]]);
+	      double energy_tb = energyMc[mothMc[iB_tb]];
+	      genTopBar.SetPxPyPzE( pX_tb, pY_tb, pZ_tb, energy_tb);
+	    }
+	    // boost to CM frame
+	    TVector3 genBoostL = genTop.Vect() + genTopBar.Vect();
+	    genBoostL = (1./(genTop.E()+genTopBar.E())) * genBoostL;
+	    genTop.Boost(-genBoostL);
+	    genTopBar.Boost(-genBoostL);
+	    
+	    // boost to top rest frames
+	    TVector3 genBoostCM = genTop.Vect();
+	    genBoostCM = (1./genTop.E()) * genBoostCM;
+	    genTop.Boost(-genBoostCM);
+	    genTopBar.Boost(genBoostCM);
+	    // gammaCM and shat for gen-level
+	    genGammaCM = 1./sqrt(1.-genBoostCM.Mag2());
+	    genshat = 4 * genGammaCM * genGammaCM * genTop.M()* genTop.M();
+	    			     	      
         }
         
         
