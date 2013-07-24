@@ -51,8 +51,10 @@ RazorMultiB::RazorMultiB(TTree *tree, string jsonFile, bool goodRunLS, bool isDa
     _isData = isData;
     _weight=1.0;
     _isSMS = false;
-    if (smsName!="none") _isSMS = true;
-    
+    SMS_temp = smsName;
+    if (smsName!="none") {
+      _isSMS = true;
+    }
     //To read good run list!
     if (goodRunLS && isData) {
         setJsonGoodRunList(jsonFile);
@@ -739,7 +741,6 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             }
         }
         
-        
         // bubble sort the b-jets by CSV b-tag discrimator values
         flag = 1;
         for(int i=0; (i < tiBJets.size()) && flag; i++){
@@ -764,7 +765,6 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
                 }
             }
         }
-        
         
 		//here have a routine to just use best 2 jets if condition is set appropriately
 		int UseBestBJets;
@@ -1528,7 +1528,8 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 		// For ttbar b + top variables:
 		
 		// b associated with t
-		if(idMc[mothMc[i]] == 6 &&
+		if ((SMS_temp == "none")){
+	 	if(idMc[mothMc[i]] == 6 &&
 		   idMc[i] == 5){
 		  iB_t = i;
 		}
@@ -1536,6 +1537,19 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 		if(idMc[mothMc[i]] == -6 &&
 		   idMc[i] == -5){
 		  iB_tb = i;
+		}
+		}
+
+		// For T2bw b + stop variables:
+		if ((SMS_temp == "T2bw")){
+		  if(idMc[mothMc[i]] == 1000006 &&
+		     idMc[i] == 5){
+		    iB_t = i;
+		  }
+		  if(idMc[mothMc[i]] == -1000006 &&
+		     idMc[i] == -5){
+		    iB_tb = i;
+		  }
 		}
 
                 pTNeutrinoMag = pTNeutrino.Pt();
@@ -1569,7 +1583,9 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
                 phi1 = phiMc[iL1];
                 idMcL1 = idMc[iL1];
                 idMothMcL1 = idMc[mothMc[iL1]];
-                idGrandMothMcL1 = idMc[mothMc[mothMc[iL1]]];
+                if (SMS_temp == "none") idGrandMothMcL1 = idMc[mothMc[mothMc[iL1]]];
+		// For T2bw, idGrandMothMcL1 stores great grandmother 
+		if (SMS_temp == "T2bw") idGrandMothMcL1 = idMc[mothMc[mothMc[mothMc[iL1]]]];
 		pXL1 = pMc[iL1]*cos(phiMc[iL1])*sin(thetaMc[iL1]);
 		pYL1 = pMc[iL1]*sin(phiMc[iL1])*sin(thetaMc[iL1]);
 		pZL1 = pMc[iL1]*cos(thetaMc[iL1]);
@@ -1581,7 +1597,8 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
                 phi2 = phiMc[iL2];
                 idMcL2 = idMc[iL2];
                 idMothMcL2 = idMc[mothMc[iL2]];
-                idGrandMothMcL2 = idMc[mothMc[mothMc[iL2]]];
+                if (SMS_temp == "none") idGrandMothMcL2 = idMc[mothMc[mothMc[iL2]]];
+                if (SMS_temp == "T2bw") idGrandMothMcL2 = idMc[mothMc[mothMc[mothMc[iL2]]]];
 		pXL2 = pMc[iL2]*cos(phiMc[iL2])*sin(thetaMc[iL2]);
 		pYL2 = pMc[iL2]*sin(phiMc[iL2])*sin(thetaMc[iL2]);
 		pZL2 = pMc[iL2]*cos(thetaMc[iL2]);
@@ -1601,8 +1618,9 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 	      energyB_tb = energyMc[iB_tb];
 	    }
 	    // for ttbar background, calculate four-vectors of two hemispheres with B's and L's
-	    
-	    if ((idGrandMothMcL1 == 6 && idGrandMothMcL2 == -6)) {
+	    // for T2bw, calculate four-vectors of two hemispheres with B's and L's, ignoring chargino 
+            if ((idGrandMothMcL1 == 6 && idGrandMothMcL2 == -6)||
+		(idGrandMothMcL1 == 1000006 && idGrandMothMcL2 == -1000006)) {
 	      genH1.SetPxPyPzE( pXL1 + pXB_t,
 				pYL1 + pYB_t,
 				pZL1 + pZB_t,
@@ -1612,7 +1630,8 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 				pZL2 + pZB_tb,
 			        energyL2 + energyB_tb);
 	    }
-	    else if ((idGrandMothMcL1 == -6 && idGrandMothMcL2 == 6)) {
+	    else if ((idGrandMothMcL1 == -6 && idGrandMothMcL2 == 6)||
+		     (idGrandMothMcL1 == -1000006 && idGrandMothMcL2 == 1000006)) {
 	      genH1.SetPxPyPzE( pXL2 + pXB_t,
 				pYL2 + pYB_t,
 				pZL2 + pZB_t,
@@ -1623,15 +1642,15 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 			        energyL1 + energyB_tb );
 	    }
 	    // set genH1Mass to smaller of the two masses
-	      if (genH2.M() >= genH1.M()){
-	      genH2Mass = genH2.M();
-	      genH1Mass = genH1.M();
+	    if (abs(genH2.M()) >= abs(genH1.M())){
+	      genH2Mass = abs(genH2.M());
+	      genH1Mass = abs(genH1.M());
 	    }
 	    else {
-	      genH1Mass = genH2.M();
-	      genH2Mass = genH1.M();
+	      genH1Mass = abs(genH2.M());
+	      genH2Mass = abs(genH1.M());
 	    }
-	    // for ttbar background, calculate gammaCM-gen level
+	    // for ttbar background or T2bw, calculate gammaCM-gen level
 	    // first find four-vectors for the top and antitop
 	    if (iB_t>0){
 	      double pX_t = pMc[mothMc[iB_t]]*cos(phiMc[mothMc[iB_t]])*sin(thetaMc[mothMc[iB_t]]);
