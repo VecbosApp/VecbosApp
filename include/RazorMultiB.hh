@@ -51,6 +51,6 @@ private:
   struct EventIndex;
   map<EventIndex, int> EventCounts;
   JetConfig *theJetConfig;
-  
+  string SMS_temp;
 };
 #endif
