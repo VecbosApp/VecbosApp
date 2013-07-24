@@ -1551,6 +1551,21 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 		    iB_tb = i;
 		  }
 		}
+				
+				
+				
+		// For T2tt b + stop variables:
+		if ((SMS_temp == "T2tt")){
+			if(idMc[mothMc[i]] == 6 &&
+			   idMc[i] == 5){
+				iB_t = i;
+			}
+			// b associated with tbar
+			if(idMc[mothMc[i]] == -6 &&
+			   idMc[i] == -5){
+				iB_tb = i;
+			}
+		}
 
                 pTNeutrinoMag = pTNeutrino.Pt();
                 // Delta R 0.2 window of selecton dileptons
@@ -1584,12 +1599,17 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
                 idMcL1 = idMc[iL1];
                 idMothMcL1 = idMc[mothMc[iL1]];
                 if (SMS_temp == "none") idGrandMothMcL1 = idMc[mothMc[mothMc[iL1]]];
-		// For T2bw, idGrandMothMcL1 stores great grandmother 
-		if (SMS_temp == "T2bw") idGrandMothMcL1 = idMc[mothMc[mothMc[mothMc[iL1]]]];
-		pXL1 = pMc[iL1]*cos(phiMc[iL1])*sin(thetaMc[iL1]);
-		pYL1 = pMc[iL1]*sin(phiMc[iL1])*sin(thetaMc[iL1]);
-		pZL1 = pMc[iL1]*cos(thetaMc[iL1]);
-		energyL1 = energyMc[iL1];
+				
+				// For T2bw, idGrandMothMcL1 stores great grandmother , stop
+				if (SMS_temp == "T2bw") idGrandMothMcL1 = idMc[mothMc[mothMc[mothMc[iL1]]]];
+				
+				//For T2tt, idGrandMothMcL1 stores great grandmother , stop
+				if (SMS_temp == "T2tt") idGrandMothMcL1 = idMc[mothMc[mothMc[mothMc[iL1]]]];
+				
+				pXL1 = pMc[iL1]*cos(phiMc[iL1])*sin(thetaMc[iL1]);
+				pYL1 = pMc[iL1]*sin(phiMc[iL1])*sin(thetaMc[iL1]);
+				pZL1 = pMc[iL1]*cos(thetaMc[iL1]);
+				energyL1 = energyMc[iL1];
             }
             if(iL2>=0) {
                 pT2 = pMc[iL2]*sin(thetaMc[iL2]);
