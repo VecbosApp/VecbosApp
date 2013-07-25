@@ -201,6 +201,11 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 	
 	//check btag efficiencies
     float BDiscList[2];
+
+    //pT-corrected MTR, RSQ
+    double MRT_bl;
+    double RSQ_bl;
+
     
     //Hybrid Razor Approach
     double TotalHemMass1;
@@ -277,6 +282,10 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     outTree->Branch("mg", &mg, "mg/F");
     outTree->Branch("mchi", &mchi, "mchi/F");
     outTree->Branch("nPV", &nPV, "nPV/I");
+    
+    // pT-corr RSQ, MRT
+    outTree->Branch("RSQ_bl", &RSQ_bl, "RSQ_bl/D");
+    outTree->Branch("MRT_bl", &MRT_bl, "MRT_bl/D");
     
     // fast-hemispheres
     outTree->Branch("FJR", &FJR, "FJR/D");
@@ -847,10 +856,13 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
         MR2Trans = -9999.;
         TotalNMagTrans = -9999.;
 		
-		//BDisc initialization
+	//BDisc initialization
         BDiscList[0] = -9999. ; 
-	    BDiscList[1] = -9999. ;
-		
+	BDiscList[1] = -9999. ;
+	
+        //pT-corr MRT, RSQ
+	MRT_bl = -9999.;
+	RSQ_bl = -9999.;
 		
 	int j = 2;
 	while (j >= 0){
@@ -1250,15 +1262,17 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             L1.Boost(-BL);
             B2.Boost(-BL);
             L2.Boost(-BL);
-            
+            H1.Boost(-BL);
+	    H2.Boost(-BL);
+
             // Now, we will perform a transverse boost from the CMz frame to our
             // approximation of the CM rest frame
             
-            
-            
             shatR_bl = shatR(H1+H2,MET);
             TVector3 betaTR = BetaTR(H1+H2,MET);
-            
+	    MRT_bl = CalcMTR(H1,H2,MET);
+	    RSQ_bl = (MRT_bl * MRT_bl) / (shatR_bl * shatR_bl);
+
             // Boost to ~CM frame
             B1.Boost(-betaTR);
             B2.Boost(-betaTR);
