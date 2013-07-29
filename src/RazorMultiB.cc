@@ -1357,7 +1357,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             shatR_bl = shatR(H1+H2,MET);
             TVector3 betaTR = BetaTR(H1+H2,MET);
 	    MRT_bl = CalcMTR(H1,H2,MET);
-	    RSQ_bl = (MRT_bl * MRT_bl) / (shatR_bl * shatR_bl);
+	    RSQ_bl = (MRT_bl * MRT_bl) / ((shatR_bl/2.) * (shatR_bl/2.));
 
             // Boost to ~CM frame
             B1.Boost(-betaTR);
@@ -1727,6 +1727,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
                 idMothMcL2 = idMc[mothMc[iL2]];
                 if (SMS_temp == "none") idGrandMothMcL2 = idMc[mothMc[mothMc[iL2]]];
                 if (SMS_temp == "T2bw") idGrandMothMcL2 = idMc[mothMc[mothMc[mothMc[iL2]]]];
+				if (SMS_temp == "T2tt") idGrandMothMcL1 = idMc[mothMc[mothMc[mothMc[iL1]]]];
 		gpXL2 = pMc[iL2]*cos(phiMc[iL2])*sin(thetaMc[iL2]);
 		gpYL2 = pMc[iL2]*sin(phiMc[iL2])*sin(thetaMc[iL2]);
 		gpZL2 = pMc[iL2]*cos(thetaMc[iL2]);
@@ -1780,20 +1781,52 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 	    }
 	    // for ttbar background or T2bw, calculate gammaCM-gen level
 	    // first find four-vectors for the top and antitop
-	    if (iB_t>0){
-	      double pX_t = pMc[mothMc[iB_t]]*cos(phiMc[mothMc[iB_t]])*sin(thetaMc[mothMc[iB_t]]);
-	      double pY_t = pMc[mothMc[iB_t]]*sin(phiMc[mothMc[iB_t]])*sin(thetaMc[mothMc[iB_t]]);
-	      double pZ_t = pMc[mothMc[iB_t]]*cos(thetaMc[mothMc[iB_t]]);
-	      double energy_t = energyMc[mothMc[iB_t]];
-	      genTop.SetPxPyPzE( pX_t, pY_t, pZ_t, energy_t);
-	    }
-	    if (iB_tb>0){
-	      double pX_tb = pMc[mothMc[iB_tb]]*cos(phiMc[mothMc[iB_tb]])*sin(thetaMc[mothMc[iB_tb]]);
-	      double pY_tb = pMc[mothMc[iB_tb]]*sin(phiMc[mothMc[iB_tb]])*sin(thetaMc[mothMc[iB_tb]]);
-	      double pZ_tb = pMc[mothMc[iB_tb]]*cos(thetaMc[mothMc[iB_tb]]);
-	      double energy_tb = energyMc[mothMc[iB_tb]];
-	      genTopBar.SetPxPyPzE( pX_tb, pY_tb, pZ_tb, energy_tb);
-	    }
+			
+		if (SMS_temp == "none" || SMS_temp == "T2bw"){
+			
+			
+			if (iB_t>0){
+				
+				double pX_t = pMc[mothMc[iB_t]]*cos(phiMc[mothMc[iB_t]])*sin(thetaMc[mothMc[iB_t]]);
+				double pY_t = pMc[mothMc[iB_t]]*sin(phiMc[mothMc[iB_t]])*sin(thetaMc[mothMc[iB_t]]);
+				double pZ_t = pMc[mothMc[iB_t]]*cos(thetaMc[mothMc[iB_t]]);
+				double energy_t = energyMc[mothMc[iB_t]];
+				genTop.SetPxPyPzE( pX_t, pY_t, pZ_t, energy_t);
+			}
+			if (iB_tb>0){
+				double pX_tb = pMc[mothMc[iB_tb]]*cos(phiMc[mothMc[iB_tb]])*sin(thetaMc[mothMc[iB_tb]]);
+				double pY_tb = pMc[mothMc[iB_tb]]*sin(phiMc[mothMc[iB_tb]])*sin(thetaMc[mothMc[iB_tb]]);
+				double pZ_tb = pMc[mothMc[iB_tb]]*cos(thetaMc[mothMc[iB_tb]]);
+				double energy_tb = energyMc[mothMc[iB_tb]];
+				genTopBar.SetPxPyPzE( pX_tb, pY_tb, pZ_tb, energy_tb);
+			}
+		}
+			
+			
+		//Here we do the same for T2tt, using the grandmother stop particle instead though. 	
+		else if (SMS_temp == "T2tt"){
+			
+			if (iB_t>0){
+				
+				double pX_t = pMc[mothMc[mothMc[iB_t]]]*cos(phiMc[mothMc[mothMc[iB_t]]])*sin(thetaMc[mothMc[mothMc[iB_t]]]);
+				double pY_t = pMc[mothMc[mothMc[iB_t]]]*sin(phiMc[mothMc[mothMc[iB_t]]])*sin(thetaMc[mothMc[mothMc[iB_t]]]);
+				double pZ_t = pMc[mothMc[mothMc[iB_t]]]*cos(thetaMc[mothMc[mothMc[iB_t]]]);
+				double energy_t = energyMc[mothMc[mothMc[iB_t]]];
+				genTop.SetPxPyPzE( pX_t, pY_t, pZ_t, energy_t);
+			}
+			if (iB_tb>0){
+				double pX_tb = pMc[mothMc[mothMc[iB_tb]]]*cos(phiMc[mothMc[mothMc[iB_tb]]])*sin(thetaMc[mothMc[mothMc[iB_tb]]]);
+				double pY_tb = pMc[mothMc[mothMc[iB_tb]]]*sin(phiMc[mothMc[mothMc[iB_tb]]])*sin(thetaMc[mothMc[mothMc[iB_tb]]]);
+				double pZ_tb = pMc[mothMc[mothMc[iB_tb]]]*cos(thetaMc[mothMc[mothMc[iB_tb]]]);
+				double energy_tb = energyMc[mothMc[mothMc[iB_tb]]];
+				genTopBar.SetPxPyPzE( pX_tb, pY_tb, pZ_tb, energy_tb);
+			}
+			
+			
+			
+		}
+			
+			
 	    // boost to CM frame
 	    TVector3 genBoostL = genTop.Vect() + genTopBar.Vect();
 	    genBoostL = (1./(genTop.E()+genTopBar.E())) * genBoostL;
@@ -1807,7 +1840,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 	    genTopBar.Boost(genBoostCM);
 	    // gammaCM and shat for gen-level
 	    genGammaCM = 1./sqrt(1.-genBoostCM.Mag2());
-	    genshat = 4 * genGammaCM * genGammaCM * genTop.M()* genTop.M();
+	    genshat = sqrt(4 * genGammaCM * genGammaCM * genTop.M()* genTop.M());
 	    			     	      
         }
         
