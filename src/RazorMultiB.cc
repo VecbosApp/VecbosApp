@@ -133,6 +133,19 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     double genH1Mass, genH2Mass;
     double genGammaCM, genshat;
 
+    // gen-level lepton and b-quark 4-vectors
+    double gpXL1, gpYL1, gpZL1, genergyL1;
+    double gpXL2, gpYL2, gpZL2, genergyL2;
+    double gpXB_t, gpYB_t, gpZB_t, genergyB_t;
+    double gpXB_tb, gpYB_tb, gpZB_tb, genergyB_tb;
+
+    // selected MC lepton and b-quark 4-vectors
+    double pXL1, pYL1, pZL1, energyL1;
+    double pXL2, pYL2, pZL2, energyL2;
+    double pXB1, pYB1, pZB1, energyB1;
+    double pXB2, pYB2, pZB2, energyB2;
+    
+
     // ttbar decay: 0 = nolep, 1 = semilep; 2 = fully lep
     int nLepTopDecay;
     int nNeutrino;
@@ -140,6 +153,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     double pXMc;
     double pYMc;
     double pTNeutrinoMag;
+
     // PFElectron Block
     double pfElectron_pt;
     double pfElectron_eta;
@@ -154,6 +168,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     double pfMuon_energy;
     double pfMuon_mass = 105.7/1000;
     
+    // Counters
     int nIsolatedPFJets;
     int nPFJets;
     int nBtag_lead4jets;
@@ -163,7 +178,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     int nBtag_TCHPT_lead4jets;
     double Mll;
     
-    // New Razor Variables
+    // New Razor Variables RPV 
     double MR_pTcorr;
     double gammaR;
     double shatR_bl;
@@ -199,7 +214,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     double CosThetaL2List[3];
     double gammaRList[3];
 	
-	//check btag efficiencies
+    //check btag efficiencies
     float BDiscList[2];
 
     //pT-corrected MTR, RSQ
@@ -215,6 +230,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     double MR1;
     double MR2;
     double TotalNMag;
+
     //pT-corrected (Rogan) Razor Approach
     double TotalHemMass1Raz;
     double TotalHemMass2Raz;
@@ -313,11 +329,9 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     outTree->Branch("CosThetaL2List", CosThetaL2List, "CosThetaL2List[3]/D");
     outTree->Branch("gammaRList", gammaRList, "gammaRList[3]/D");
     
-	
-	//b tag discriminators
+    //b tag discriminators
     outTree->Branch("BDiscList", BDiscList, "BDiscList[2]/F");
-	
-	
+		
     // New Razor Variables
     outTree->Branch("MR_pTcorr", &MR_pTcorr, "MR_pTcorr/D");
     outTree->Branch("gammaR", &gammaR, "gammaR/D");
@@ -378,11 +392,11 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     outTree->Branch("MHT_y", &MHT_y, "MHT_y/D");
     
     
-    //Gen-Level
+    // Gen-Level
     outTree->Branch("idMcL1", &idMcL1, "idMcL1/I");
     outTree->Branch("idMothMcL1", &idMothMcL1, "idMothMcL1/I");
     outTree->Branch("idGrandMothMcL1", &idGrandMothMcL1, "idGrandMothMcL1/I");
-    // outTree->Branch("idMcB1", &idMcB1, "idMcB1/I");
+    //outTree->Branch("idMcB1", &idMcB1, "idMcB1/I");
     //outTree->Branch("idMothMcB1", &idMothMcB1, "idMothMcB1/I");
     //outTree->Branch("idGrandMothMcB1", &idGrandMothMcB1, "idGrandMothMcB1/I");    
     outTree->Branch("pT1", &pT1, "pT1/D");
@@ -404,7 +418,42 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     outTree->Branch("genH2Mass", &genH2Mass, "genH2Mass/D");
     outTree->Branch("genGammaCM", &genGammaCM, "genGammaCM/D");
     outTree->Branch("genshat", &genshat, "genshat/D");
+    outTree->Branch("gpXL1", &gpXL1, "gpXL1/D");
+    outTree->Branch("gpYL1", &gpYL1, "gpYL1/D");
+    outTree->Branch("gpZL1", &gpZL1, "gpZL1/D");
+    outTree->Branch("genergyL1", &genergyL1, "genergyL1/D");
+    outTree->Branch("gpXL2", &gpXL2, "gpXL2/D");
+    outTree->Branch("gpYL2", &gpYL2, "gpYL2/D");
+    outTree->Branch("gpZL2", &gpZL2, "gpZL2/D");
+    outTree->Branch("genergyL2", &genergyL2, "genergyL2/D");
+    outTree->Branch("gpXB_t", &gpXB_t, "gpXB_t/D");
+    outTree->Branch("gpYB_t", &gpYB_t, "gpYB_t/D");
+    outTree->Branch("gpZB_t", &gpZB_t, "gpZB_t/D");
+    outTree->Branch("genergyB_t", &genergyB_t, "genergyB_t/D");
+    outTree->Branch("gpXB_tb", &gpXB_tb, "gpXB_tb/D");
+    outTree->Branch("gpYB_tb", &gpYB_tb, "gpYB_tb/D");
+    outTree->Branch("gpZB_tb", &gpZB_tb, "gpZB_tb/D");
+    outTree->Branch("energyB_tb", &genergyB_tb, "genergyB_tb/D");
     
+
+    //MC b's and l's
+    outTree->Branch("pXL1", &pXL1, "pXL1/D");
+    outTree->Branch("pYL1", &pYL1, "pYL1/D");
+    outTree->Branch("pZL1", &pZL1, "pZL1/D");
+    outTree->Branch("energyL1", &energyL1, "energyL1/D");
+    outTree->Branch("pXL2", &pXL2, "pXL2/D");
+    outTree->Branch("pYL2", &pYL2, "pYL2/D");
+    outTree->Branch("pZL2", &pZL2, "pZL2/D");
+    outTree->Branch("energyL2", &energyL2, "energyL2/D");
+    outTree->Branch("pXB1", &pXB1, "pXB1/D");
+    outTree->Branch("pYB1", &pYB1, "pYB1/D");
+    outTree->Branch("pZB1", &pZB1, "pZB1/D");
+    outTree->Branch("energyB1", &energyB1, "energyB1/D");
+    outTree->Branch("pXB2", &pXB2, "pXB2/D");
+    outTree->Branch("pYB2", &pYB2, "pYB2/D");
+    outTree->Branch("pZB2", &pZB2, "pZB2/D");
+    outTree->Branch("energyB2", &energyB2, "energyB2/D");
+
     //Selection
     outTree->Branch("nIsolatedPFJets", &nIsolatedPFJets, "nIsolatedPFJets/I");
     outTree->Branch("nPFJets", &nPFJets, "nPFJets/I");
@@ -621,6 +670,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             if(pfJetPassCSVT(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[n])) nBtag_tight++;
             if(trackCountingHighPurBJetTagsAK5PFNoPUJet[n] > 3.41) nBtag_TCHPT++;
         }
+
         // 1b requirement
         //if(nBtag == 0) continue;
         Npassed_1b+=weightII;
@@ -863,8 +913,27 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
         //pT-corr MRT, RSQ
 	MRT_bl = -9999.;
 	RSQ_bl = -9999.;
+	
+	// MC B and L values
+	pXL1 = -9999.;
+	pYL1 = -9999.;
+	pZL1 = -9999.;
+	energyL1 = -9999.;
+	pXL2 = -9999.;
+	pYL2 = -9999.;
+	pZL2 = -9999.;
+	energyL2 = -9999.;
+	pXB1 = -9999.;
+	pYB1 = -9999.;
+	pZB1 = -9999.;
+	energyB1 = -9999.;
+	pXB2 = -9999.;
+	pYB2 = -9999.;
+	pZB2 = -9999.;
+	energyB2 = -9999.;
 		
 	int j = 2;
+	//Array var
 	while (j >= 0){
 	  TotalHemMass1List[j] = -9999.;
 	  TotalHemMass2List[j] = -9999.;
@@ -951,6 +1020,23 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
                 B2 = temp;
             }
             
+	    pXL1 = L1.Px();
+	    pYL1 = L1.Py();
+	    pZL1 = L1.Pz();
+	    energyL1 = L1.E();
+	    pXL2 = L2.Px();
+	    pYL2 = L2.Py();
+	    pZL2 = L2.Pz();
+	    energyL2 = L2.E();
+	    pXB1 = B1.Px();
+	    pYB1 = B1.Py();
+	    pZB1 = B1.Pz();
+	    energyB1 = B1.E();
+	    pXB2 = B2.Px();
+	    pYB2 = B2.Py();
+	    pZB2 = B2.Pz();
+	    energyB2 = B2.E();
+
             // HYBRID RAZOR APPROACH
             // Combine jets keeping the Tops (b+l) together and in separate hemispheres:
             vector<TLorentzVector> Tops;
@@ -1473,14 +1559,36 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
         //  }
         
         //Gen-Level
-        pT1 = -999;
-        eta1 = -999;
-        phi1 = -999;
-        pT2 = -999;
-        eta2 = -999;
-        phi2 = -999;
-        idMcL1 = -99;
-        idMcL2 = -99;
+        pT1 = -9999.;
+        eta1 = -9999.;
+        phi1 = -9999.;
+        pT2 = -9999.;
+        eta2 = -9999.;
+        phi2 = -9999.;
+        idMcL1 = -9999.;
+        idMcL2 = -9999.;
+
+        gpXL1 = -9999.;
+        gpYL1 = -9999.;
+	gpZL1 = -9999.;
+	genergyL1 = -9999.;
+	gpXL2 = -9999.;
+	gpYL2 = -9999.;
+	gpZL2 = -9999.;
+	genergyL2 = -9999.;
+	gpXB_t = -9999.;
+	gpYB_t = -9999.;
+	gpZB_t = -9999.;
+	genergyB_t = -9999.;
+	gpXB_tb = -9999.;
+	gpYB_tb = -9999.;
+	gpZB_tb = -9999.;
+	genergyB_tb = -9999.;
+	genH1Mass = -9999.;
+	genH2Mass = -9999.;
+	genshat = -9999.;
+	genGammaCM = -9999.;
+	
         if(!_isData) {
             nLepTopDecay = 0;
             nNeutrino = 0;
@@ -1491,22 +1599,6 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             int iL2 = -99;
             int iB_t = -99;
 	    int iB_tb = -99;
-	    double pXL1 = -99;
-	    double pYL1 = -99;
-	    double pZL1 = -99;
-	    double energyL1 = -99;
-	    double pXL2 = -99;
-	    double pYL2 = -99;
-	    double pZL2 = -99;
-	    double energyL2 = -99;
-	    double pXB_t = -99;
-	    double pYB_t = -99;
-	    double pZB_t = -99;
-	    double energyB_t = -99;
-	    double pXB_tb = -99;
-	    double pYB_tb = -99;
-	    double pZB_tb = -99;
-	    double energyB_tb = -99;
 	    TLorentzVector genH1 = -99;
 	    TLorentzVector genH2 = -99;
 
@@ -1517,6 +1609,8 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             double deltaEGen1 = 999999999;
             double deltaRGen2;
             double deltaEGen2 = 999999999;
+
+
             
             for(int i=0; i<nMc; i++) {
                 // Neutrinos
@@ -1620,10 +1714,10 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 				//For T2tt, idGrandMothMcL1 stores great grandmother , stop
 				if (SMS_temp == "T2tt") idGrandMothMcL1 = idMc[mothMc[mothMc[mothMc[iL1]]]];
 				
-				pXL1 = pMc[iL1]*cos(phiMc[iL1])*sin(thetaMc[iL1]);
-				pYL1 = pMc[iL1]*sin(phiMc[iL1])*sin(thetaMc[iL1]);
-				pZL1 = pMc[iL1]*cos(thetaMc[iL1]);
-				energyL1 = energyMc[iL1];
+				gpXL1 = pMc[iL1]*cos(phiMc[iL1])*sin(thetaMc[iL1]);
+				gpYL1 = pMc[iL1]*sin(phiMc[iL1])*sin(thetaMc[iL1]);
+				gpZL1 = pMc[iL1]*cos(thetaMc[iL1]);
+				genergyL1 = energyMc[iL1];
             }
             if(iL2>=0) {
                 pT2 = pMc[iL2]*sin(thetaMc[iL2]);
@@ -1633,47 +1727,47 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
                 idMothMcL2 = idMc[mothMc[iL2]];
                 if (SMS_temp == "none") idGrandMothMcL2 = idMc[mothMc[mothMc[iL2]]];
                 if (SMS_temp == "T2bw") idGrandMothMcL2 = idMc[mothMc[mothMc[mothMc[iL2]]]];
-		pXL2 = pMc[iL2]*cos(phiMc[iL2])*sin(thetaMc[iL2]);
-		pYL2 = pMc[iL2]*sin(phiMc[iL2])*sin(thetaMc[iL2]);
-		pZL2 = pMc[iL2]*cos(thetaMc[iL2]);
-		energyL2 = energyMc[iL2];
+		gpXL2 = pMc[iL2]*cos(phiMc[iL2])*sin(thetaMc[iL2]);
+		gpYL2 = pMc[iL2]*sin(phiMc[iL2])*sin(thetaMc[iL2]);
+		gpZL2 = pMc[iL2]*cos(thetaMc[iL2]);
+		genergyL2 = energyMc[iL2];
             }
 	    if(iB_t>=0) {
-	      pXB_t = pMc[iB_t]*cos(phiMc[iB_t])*sin(thetaMc[iB_t]);
-	      pYB_t = pMc[iB_t]*sin(phiMc[iB_t])*sin(thetaMc[iB_t]);
-	      pXB_t = pMc[iB_t]*cos(thetaMc[iB_t]);
-	      energyB_t = energyMc[iB_t];
+	      gpXB_t = pMc[iB_t]*cos(phiMc[iB_t])*sin(thetaMc[iB_t]);
+	      gpYB_t = pMc[iB_t]*sin(phiMc[iB_t])*sin(thetaMc[iB_t]);
+	      gpZB_t = pMc[iB_t]*cos(thetaMc[iB_t]);
+	      genergyB_t = energyMc[iB_t];
 
 	    }
 	    if(iB_tb>=0) {
-	      pXB_tb = pMc[iB_tb]*cos(phiMc[iB_tb])*sin(thetaMc[iB_tb]);
-	      pYB_tb = pMc[iB_tb]*sin(phiMc[iB_tb])*sin(thetaMc[iB_tb]);
-	      pZB_tb = pMc[iB_tb]*cos(thetaMc[iB_tb]);
-	      energyB_tb = energyMc[iB_tb];
+	      gpXB_tb = pMc[iB_tb]*cos(phiMc[iB_tb])*sin(thetaMc[iB_tb]);
+	      gpYB_tb = pMc[iB_tb]*sin(phiMc[iB_tb])*sin(thetaMc[iB_tb]);
+	      gpZB_tb = pMc[iB_tb]*cos(thetaMc[iB_tb]);
+	      genergyB_tb = energyMc[iB_tb];
 	    }
 	    // for ttbar background, calculate four-vectors of two hemispheres with B's and L's
 	    // for T2bw, calculate four-vectors of two hemispheres with B's and L's, ignoring chargino 
             if ((idGrandMothMcL1 == 6 && idGrandMothMcL2 == -6)||
 		(idGrandMothMcL1 == 1000006 && idGrandMothMcL2 == -1000006)) {
-	      genH1.SetPxPyPzE( pXL1 + pXB_t,
-				pYL1 + pYB_t,
-				pZL1 + pZB_t,
-			        energyL1 + energyB_t);
-	      genH2.SetPxPyPzE( pXL2 + pXB_tb,
-				pYL2 + pYB_tb,
-				pZL2 + pZB_tb,
-			        energyL2 + energyB_tb);
+	      genH1.SetPxPyPzE( gpXL1 + gpXB_t,
+				gpYL1 + gpYB_t,
+				gpZL1 + gpZB_t,
+			        genergyL1 + genergyB_t);
+	      genH2.SetPxPyPzE( gpXL2 + gpXB_tb,
+				gpYL2 + gpYB_tb,
+				gpZL2 + gpZB_tb,
+			        genergyL2 + genergyB_tb);
 	    }
 	    else if ((idGrandMothMcL1 == -6 && idGrandMothMcL2 == 6)||
 		     (idGrandMothMcL1 == -1000006 && idGrandMothMcL2 == 1000006)) {
-	      genH1.SetPxPyPzE( pXL2 + pXB_t,
-				pYL2 + pYB_t,
-				pZL2 + pZB_t,
-			        energyL2 + energyB_t );
-	      genH2.SetPxPyPzE( pXL1 + pXB_tb,
-				pYL1 + pYB_tb,
-				pZL1 + pZB_tb,
-			        energyL1 + energyB_tb );
+	      genH1.SetPxPyPzE( gpXL2 + gpXB_t,
+				gpYL2 + gpYB_t,
+				gpZL2 + gpZB_t,
+			        genergyL2 + genergyB_t );
+	      genH2.SetPxPyPzE( gpXL1 + gpXB_tb,
+				gpYL1 + gpYB_tb,
+				gpZL1 + gpZB_tb,
+			        genergyL1 + genergyB_tb );
 	    }
 	    // set genH1Mass to smaller of the two masses
 	    if (abs(genH2.M()) >= abs(genH1.M())){
