@@ -221,7 +221,9 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     double MRT_bl;
     double RSQ_bl;
 
-    
+    //corrected shatR
+    double shat_corr;
+ 
     //Hybrid Razor Approach
     double TotalHemMass1;
     double TotalHemMass2;
@@ -302,7 +304,10 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     // pT-corr RSQ, MRT
     outTree->Branch("RSQ_bl", &RSQ_bl, "RSQ_bl/D");
     outTree->Branch("MRT_bl", &MRT_bl, "MRT_bl/D");
-    
+
+    // corrected shatR
+    outTree->Branch("shat_corr", &shat_corr, "shat_corr/D");
+
     // fast-hemispheres
     outTree->Branch("FJR", &FJR, "FJR/D");
     outTree->Branch("FJRSQ", &FJRSQ, "FJRSQ/D");
@@ -913,6 +918,9 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
         //pT-corr MRT, RSQ
 	MRT_bl = -9999.;
 	RSQ_bl = -9999.;
+
+	//corrected shat
+	shat_corr = -9999.;
 	
 	// MC B and L values
 	pXL1 = -9999.;
@@ -1335,7 +1343,14 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             // Hemispheres only b's and l's
             H1 = (B1+L1);
             H2 = (B2+L2);
-            
+
+	    // temp variables used later
+	    TLorentzVector H1_temp;
+	    TLorentzVector H2_temp = H2;
+	    H1_temp.SetPxPyPzE(H1.Px() + MET.Px(), H1.Py() + MET.Py(), H1.Pz(), H1.E());
+	    double HemMass_temp = abs(H1_temp.M()) + abs(H2_temp.M());
+	    double rat = (HemMass_temp / 173.5);
+
             // Now, we must perform longitudinal boost from lab frame to CMz frame
             // in order to make procedure invariant under longitundinal boosts
             BL = H1.Vect()+H2.Vect();
@@ -1358,6 +1373,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             TVector3 betaTR = BetaTR(H1+H2,MET);
 	    MRT_bl = CalcMTR(H1,H2,MET);
 	    RSQ_bl = (MRT_bl * MRT_bl) / ((shatR_bl/2.) * (shatR_bl/2.));
+	    shat_corr = shatR_bl * rat;
 
             // Boost to ~CM frame
             B1.Boost(-betaTR);
