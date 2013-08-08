@@ -66,6 +66,8 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   int passedHLT;
   
   bool ECALTPFilterFlag;
+  bool ecalLaserFilter;
+  bool hcalLaserFilter;
   bool drBoundary;
   bool drDead;
   bool CSCHaloFilterFlag;
@@ -95,10 +97,12 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   double Jet_Phi[20];
   double CSV[20];
   int    nBtag;
+  int    nBtagMed; 
   int    nBtagTight;
   double W = _weight;
   double mst, mchi;
   int    BOX_NUM;
+  int BOX[3];
   Double_t Mu_Px_[2], Mu_Py_[2], Mu_Pz_[2], Mu_E_[2];
   
   double metX[4], metY[4], metCorrX[4], metCorrY[4], ht;
@@ -135,13 +139,12 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   outTree->Branch("ls", &ls, "ls/D");
   outTree->Branch("orbit", &orbit, "orbit/D");
   outTree->Branch("BOX_NUM", &BOX_NUM, "BOX_NUM/I");
+  outTree->Branch("BOX", BOX, "BOX[3]/I");
   //outTree->Branch("ss", &ss, "ss/I");
-  
   // HLT bits
   outTree->Branch("HLT_Razor", &HLT_Razor, "HLT_Razor/I"); 
   outTree->Branch("HLT_Razor_prescaled", &HLT_Razor_prescaled, "HLT_Razor_prescaled/I"); 
   outTree->Branch("passedHLT", &passedHLT, "passedHLT/I");
-
   //  block
   outTree->Branch("R", R, "R[4]/D");
   outTree->Branch("RSQ", RSQ, "RSQ[4]/D");
@@ -159,12 +162,12 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   outTree->Branch("Jet_Phi", Jet_Phi, "Jet_Phi[N_Jets]/D");
   outTree->Branch("CSV", CSV, "CSV[N_Jets]/D");
   outTree->Branch("nBtag", &nBtag, "nBtag/I");
+  outTree->Branch("nBtagMed", &nBtagMed, "nBtagMed/I");
   outTree->Branch("nBtagTight", &nBtagTight, "nBtagTight/I");
   outTree->Branch("W", &W, "W/D");
   outTree->Branch("mst", &mst, "mst/D");
   outTree->Branch("mchi", &mchi, "mchi/D");
   outTree->Branch("nPV", &nPV, "nPV/I");
-
   outTree->Branch("i1", &i1, "i1/I");
   outTree->Branch("pT1", &pT1, "pT1/D");
   outTree->Branch("eta1", &eta1, "eta1/D");
@@ -173,17 +176,13 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   outTree->Branch("pT2", &pT2, "pT2/D");
   outTree->Branch("eta2", &eta2, "eta2/D");
   outTree->Branch("phi2", &phi2, "phi2/D");
-  
   //outTree->Branch("N_Jets", &N_Jets, "N_Jets/I");
-  
   outTree->Branch("Mu_Px", Mu_Px_,"Mu_Px_[2]/D");
   outTree->Branch("Mu_Py", Mu_Py_,"Mu_Py_[2]/D");
   outTree->Branch("Mu_Pz", Mu_Pz_,"Mu_Pz_[2]/D");
   outTree->Branch("Mu_E", Mu_E_,"Mu_E_[2]/D");
-  
   outTree->Branch("iTopDecay", &iTopDecay, "iTopDecay/I");
   outTree->Branch("mssm", mssm, "mssm[3]/F");
-  
   //MET Info
   outTree->Branch("metX", metX, "metX[4]/D");
   outTree->Branch("metY", metY, "metY[4]/D");
@@ -191,11 +190,8 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   outTree->Branch("metCorrY", metCorrY, "metCorrY[4]/D");
   outTree->Branch("ht", &ht, "ht/D");
   outTree->Branch("mht", mht, "mht[3]/D");//xyz->[0,1,2]
-  
   //MC GEN LEVEL INFO
-  
   if( _isData == 0 ){
-    
     outTree->Branch("nMC", &nMc, "nMC/I");
     outTree->Branch("pMC", pMc, "pMC[101]/F");
     outTree->Branch("thetaMC", thetaMc, "thetaMC[101]/F");
@@ -208,7 +204,6 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     outTree->Branch("idMC", idMc, "idMC[101]/I");
     outTree->Branch("mothMC", mothMc, "mothMC[101]/I");
     outTree->Branch("statusMC", statusMc, "statusMC[101]/I");
-    
   }
   
   double Npassed_In = 0;
@@ -223,6 +218,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   double weightII = 1.;
   unsigned int lastLumi=0;
   unsigned int lastRun=0;
+
   
   std::vector<std::string> maskHLT_Razor; 
   maskHLT_Razor.push_back("HLT_RsqMR55_Rsq0p09_MR150");
@@ -232,7 +228,15 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   std::vector<std::string> maskHLT_Razor_prescaled; 
   maskHLT_Razor_prescaled.push_back("HLT_RsqMR40_Rsq0p04");
   //  maskHLT_Razor_prescaled.push_back("HLT_RsqMR45_Rsq0p09");
-  
+    
+  /*
+  std::vector<std::string> maskHLT_Razor;                                         
+  maskHLT_Razor.push_back("HLT_Mu17_Mu8");                                         
+   
+  std::vector<std::string> maskHLT_Razor_prescaled;                                 
+  maskHLT_Razor_prescaled.push_back("HLT_Mu17_TkMu8");
+  */
+
   Long64_t nbytes = 0;
   Long64_t nb = 0;
   cout << "Number of entries = " << stop << endl;
@@ -247,6 +251,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     if(_isData) {
       setRequiredTriggers(maskHLT_Razor); reloadTriggerMask(true); HLT_Razor = hasPassedHLT();
       setRequiredTriggers(maskHLT_Razor_prescaled); reloadTriggerMask(true); HLT_Razor_prescaled = hasPassedHLT();
+      //std::cout << "====HLT_Mu17_Mu8: " << HLT_Razor << " ====HLT_Mu17_TkMu8: " << HLT_Razor_prescaled << std::endl;
       
       ECALTPFilterFlag = (METFlags >> 0)%2;
       drBoundary = (METFlags >> 1)%2;
@@ -255,7 +260,9 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
       trackerFailureFilterFlag = (METFlags >> 4)%2;
       BEECALFlag = (METFlags >> 5)%2; 
       HBHENoiseFilterResultFlag =  (METFlags >> 6)%2;
+      //ecalLaserFilter = (METFlags >> 7)%2;
       eeBadScFilterFlag = (METFlags >> 8)%2;
+      //hcalLaserFilter = (METFlags >> 9)%2;
     }
     
     //Good Run selection
@@ -263,7 +270,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
       if ( lastRun != runNumber || lastLumi != lumiBlock) {
 	lastRun = runNumber;
 	lastLumi = lumiBlock;
-	std::cout << "[GoodRunLS]::Run " << lastRun << " LS " << lastLumi << " is rejected" << std::endl;
+	//std::cout << "[GoodRunLS]::Run " << lastRun << " LS " << lastLumi << " is rejected" << std::endl;
       }
       continue;
     }
@@ -277,18 +284,12 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     Npassed_In += weightII;
     
     double m0=9999, m12=9999, mc=9999;
-    
     _isSMS = false;//Chage to true when running on SMS sample
-    
     if( _isData == 0  && _isSMS ){
-      //double m0=9999, m12=9999, mc=9999;
-      
       int ctr_s = 0;
-      
       //Read and store MSSM paramenters
       mssm[0] = mssm[1] = mssm[2] = 0;
       for (std::vector<string>::iterator it = commentLHE->begin() ; it != commentLHE->end(); ++it){
-	//std::cout << ctr_s << "=======STRING=====" << *it << std::endl;
 	istringstream iss (*it,istringstream::in);
 	string val;
 	for (int n = 0; n < 5; n++){
@@ -296,7 +297,6 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
 	  if( n == 1){
 	    if( val.compare( "model" ) )break;
 	  }else if( n == 2 ){
-	    //std::cout << ctr_s << "=======STRING=====" << *it << std::endl;  
 	    cout << val.substr( 0,val.find("_") ) << endl;
 	    string aa1 = val.substr( val.find("_")+ 1 );
 	    string sm0 = aa1.substr( 0, val.find("_")-1 );
@@ -305,59 +305,21 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
 	    mssm[0] = atof(sm0.c_str());
 	    mssm[1] = atof(sm1.c_str());
 	  }else if( n == 3 )mssm[2] = atof( val.c_str() );
-	  //cout << n << " " << val << endl;
-	  
 	}
 	ctr_s++;
       }
       
     }
     
-    
-    // to integrate with others
-    /*
-      if(!_isData && _isSMS){
-      //find the simplified model parameters for T1tttt                                                                                              
-      std::vector<std::string>::const_iterator c_begin = commentLHE->begin();
-      std::vector<std::string>::const_iterator c_end = commentLHE->end();
-      for(std::vector<std::string>::const_iterator cit=c_begin; cit!=c_end; ++cit) {
-      size_t found = (*cit).find("T1bbbb");
-      if( found != std::string::npos) {
-      size_t foundLength = (*cit).size();
-      found = (*cit).find("=");
-      std::string smaller = (*cit).substr(found+1,foundLength);
-      found = smaller.find("_");
-      smaller = smaller.substr(found+1,smaller.size());
-      
-      std::istringstream iss(smaller);
-      iss >> m0;
-      iss.clear();
-      
-      found = smaller.find("_");
-      smaller = smaller.substr(found+1,smaller.size());
-      iss.str(smaller);
-      iss >> m12;
-      iss.clear();
-      
-      found = smaller.find("_");
-      smaller = smaller.substr(found+1,smaller.size());
-      iss.str(smaller);
-      iss >> mc;
-      iss.clear();
-	  
-      }
-      }
-      }
-    */
     mst=m0;
     mchi=mc;
     
     //HLT and Data Filter
     passedHLT = HLT_Razor + HLT_Razor_prescaled;
-
+    
     if ( _isData == true ) {
-      if ( passedHLT == 0 ) continue;//Comment for getting trigger turn-ons
-      if ((ECALTPFilterFlag==0) || (drBoundary==0) || (drDead==0) || (CSCHaloFilterFlag==0) || (trackerFailureFilterFlag==0) || (BEECALFlag==0) || ( HBHENoiseFilterResultFlag ==0 ) || ( eeBadScFilterFlag == 0 ) ) continue;
+      if ( passedHLT == 0 ) continue;//Comment out for getting trigger turn-ons
+      if ((ECALTPFilterFlag==0) || (drBoundary==0) || (drDead==0) || (CSCHaloFilterFlag==0) || (trackerFailureFilterFlag==0) || (BEECALFlag==0) || ( HBHENoiseFilterResultFlag ==0 ) /*|| (ecalLaserFilter == 0)*/ || (eeBadScFilterFlag == 0) /*|| (hcalLaserFilter == 0)*/) continue;
     }
     
     // find highest-pT PV [replace with Sagar's code]
@@ -464,7 +426,6 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     double pfHT, pfMHTx, pfMHTy;
     
     bool good_pfjet = false;
-    //std::cout << "======== pf Jets ======== " << nAK5PFNoPUJet << std::endl;
     for(int i = 0; i < nAK5PFNoPUJet; i++){
       TLorentzVector jet;
       double px = pxAK5PFNoPUJet[i];
@@ -478,13 +439,10 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
       double EU = uncorrEnergyAK5PFNoPUJet[i];
       
       if(jet.Pt() > 40.0 && fabs(jet.Eta()) < 3.0){
-	
 	double fHAD = (neutralHadronEnergyAK5PFNoPUJet[i]+chargedHadronEnergyAK5PFNoPUJet[i])/EU;
-	
 	if(fHAD > 0.99){
 	  N_pfJets = 0;
-	  // clean NOISY event
-	  break;
+	  break;// clean NOISY event
 	}
 	
 	int nConstituents = chargedHadronMultiplicityAK5PFNoPUJet[i]+neutralHadronMultiplicityAK5PFNoPUJet[i]+photonMultiplicityAK5PFNoPUJet[i]+electronMultiplicityAK5PFNoPUJet[i]+muonMultiplicityAK5PFNoPUJet[i]+HFHadronMultiplicityAK5PFNoPUJet[i]+HFEMMultiplicityAK5PFNoPUJet[i];
@@ -497,7 +455,6 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
 	float chargedHadFrac = chargedHadronEnergyAK5PFNoPUJet[i]/EU;
 	float HFHadFrac = HFHadronEnergyAK5PFNoPUJet[i]/EU;
 	float HFEMFrac = HFEMEnergyAK5PFNoPUJet[i]/EU;
-	
 	int photonMult = photonMultiplicityAK5PFNoPUJet[i];
 	int electronMult = electronMultiplicityAK5PFNoPUJet[i];
 	int muonMult = muonMultiplicityAK5PFNoPUJet[i];
@@ -506,12 +463,6 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
 	int HFHadMult = HFHadronMultiplicityAK5PFNoPUJet[i];
 	int HFEMMult = HFEMMultiplicityAK5PFNoPUJet[i];
 	
-	//std::cout << "nfrac: " << neutralHadFrac << "  ph frac: " <<  photonFrac << \
-	  //  "  nConst: " << nConstituents << std::endl;
-	
-	  //std::cout << " eta: " << fabs(jet.Eta())  << "  Char had frac: " << chargedHadFrac << \
-          //"  chargedMult: " << chargedMult << "  electronFrac: " << electronFrac <<  std::endl;
-	  
 	if((neutralHadFrac < 0.99) && (photonFrac < 0.99) && (nConstituents > 1)) {
 	  //outside of tracker acceptance, these are the only requirements
 	  if (fabs(jet.Eta())>=2.4) good_pfjet = true;
@@ -522,14 +473,12 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
 	}
 	
 	if(good_pfjet){
-	  //std::cout << "Good pfjet " << i << std::endl;
 	  N_pfJets++;
 	  pfJets.push_back(jet);
 	  i_pfJets.push_back(i);
 	  pfHT += jet.Pt();
 	  pfMHTx -= jet.Px();
 	  pfMHTy -= jet.Py();
-	  
 	  //pfJets_btag.push_back(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[i]);
 	  if( pfJetPassCSVL( combinedSecondaryVertexBJetTagsAK5PFNoPUJet[i] ) )pfBtags++;
 	  pfJets_f_photon.push_back(photonFrac);
@@ -539,7 +488,6 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
 	  pfJets_f_chargedhad.push_back(chargedHadFrac);
 	  pfJets_f_hfhad.push_back(HFHadFrac);
 	  pfJets_f_hfem.push_back(HFEMFrac);
-	  
 	  pfJets_mult_photon.push_back(photonMult);
 	  pfJets_mult_electron.push_back(electronMult);
 	  pfJets_mult_muon.push_back(muonMult);
@@ -547,20 +495,15 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
 	  pfJets_mult_chargedhad.push_back(chargedHadMult);
 	  pfJets_mult_hfhad.push_back(HFHadMult);
 	  pfJets_mult_hfem.push_back(HFEMMult);
-	  
-	}
-	else {
+	}else {
 	  cout << "clean NOISY event" << endl;
 	  N_pfJets = 0;
 	  break;//Only takes out the pfJets loop! But good_jet = false
 	}
       }
     }
-    
-    
     // jet ID                                                                 
     if (N_pfJets <= 0 )  continue;// If any Jet is bad (see loop before) event is rejected
-    
     
     //////////////////////////////////////////////////////////////
     /////////////////////Create Muon Collection///////////////////
@@ -569,6 +512,8 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
 
     vector<int> iMuLoose;
     vector<TLorentzVector> MuLoose;
+    vector<int> iMuLoose_StdIso;
+    vector<TLorentzVector> MuLoose_StdIso;
     vector<int> iMuTight;
     vector<TLorentzVector> MuTight;
 
@@ -583,11 +528,13 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
         iMuLoose.push_back(i);
         MuLoose.push_back(thisMu);
       }
-      
-
+      //Standard Isolation
+      if(( isLooseMuon(i, false) ) && ( thisMu.Pt() > 15. )){
+	iMuLoose_StdIso.push_back(i);
+        MuLoose_StdIso.push_back(thisMu);
+      }
     }
     
-
     ////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////
     ///////////////// Create Collection  /////////////////    
@@ -598,26 +545,21 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     vector<TLorentzVector> pfJets_noMu;
     int ctr = 0;
     vector<int> i_pfJets_noMu;
-    for (std::vector<TLorentzVector>::iterator pfJet_it = pfJets.begin(); pfJet_it != pfJets.end(); ++pfJet_it){
+    for(std::vector<TLorentzVector>::iterator pfJet_it = pfJets.begin(); pfJet_it != pfJets.end(); ++pfJet_it){
       bool isMuon = false;
       for (std::vector<TLorentzVector>::iterator Mu_it = MuLoose.begin(); Mu_it != MuLoose.end(); ++Mu_it){
-	
 	if ( (*Mu_it).Pt() < 15. ) continue;
-	
-	if( (*pfJet_it).DeltaR( *Mu_it ) <= 0.3){
+	if( (*pfJet_it).DeltaR( *Mu_it ) <= 0.3 ){
 	  isMuon = true;
 	  break;
 	}
       }
-      
       if (!isMuon){
 	pfJets_noMu.push_back( *pfJet_it );//If no muon found push it back into the collection  
 	i_pfJets_noMu.push_back(i_pfJets[ctr]);
       }
-      
       ctr++;
     }
-    
     
     // Number of Jets                                                                                             
     Jet_Multiplicity = pfJets_noMu.size();
@@ -644,26 +586,21 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     
     // >= 2Jets with pT > 80 GeV                                                            
     if( int( pfJets_noMu.size() ) < 2 ) continue;//At least 2 Jets                                         
-    //std::cout << "debug -1" << std::endl;
     int iFirst_pfJet = HighestPt(pfJets_noMu, -99);
     int iSecond_pfJet = HighestPt(pfJets_noMu, iFirst_pfJet);
-    if( pfJets_noMu[iSecond_pfJet].Pt() < Jet_Min_Pt ) continue;//First and second most energetic Jets \
+    if( pfJets_noMu[iSecond_pfJet].Pt() < Jet_Min_Pt ) continue;//First and second most energetic Jets
     //Must have Pt > 80 GeV  
-    
     Npassed_2Jet+=weightII;
-    
     //count btagged jets                                                                                          
     nBtag = 0;
     nBtagTight = 0;
     
     for( int b = 0; b < i_pfJets_noMu.size(); b++ ){
       if( pfJetPassCSVL( combinedSecondaryVertexBJetTagsAK5Jet[ i_pfJets_noMu[b] ] ) ) nBtag++;//Loose
-      if( pfJetPassCSVT( combinedSecondaryVertexBJetTagsAK5Jet[ i_pfJets_noMu[b] ] ) ) nBtagTight++;
-      //Tight  
+      if( pfJetPassCSVM( combinedSecondaryVertexBJetTagsAK5Jet[ i_pfJets_noMu[b] ] ) ) nBtagMed++;//Med
+      if( pfJetPassCSVT( combinedSecondaryVertexBJetTagsAK5Jet[ i_pfJets_noMu[b] ] ) ) nBtagTight++;//Tight  
     }
-    
-    
-    
+        
     ////////////////////////////////////////////
     ////////////////////////////////////////////
     ///// Muon MET Correct pfJet_noMuon ///////
@@ -671,61 +608,29 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     //////////////////////////////////////////
     
     TVector3 Muon_MET_Correction(0,0,0);
-
     // Boxes
     Mu_Px_[0] = Mu_Py_[0] = Mu_Pz_[0] = Mu_E_[0] = Mu_Px_[1] = Mu_Py_[1] = Mu_Pz_[1] = Mu_E_[1] =  -9999;
 
     // Correct MET for Presence of Loose Muons with pT>15 GeV
     int iFirstMuon = HighestPt(MuLoose, -99);
     if(iFirstMuon >= 0) {
-      //Muon_MET_Correction.SetX(Muon_MET_Correction.X() + pxMuon[iFirstMuon]);
-      //Muon_MET_Correction.SetY(Muon_MET_Correction.Y() + pyMuon[iFirstMuon]);
-
       Muon_MET_Correction.SetX(Muon_MET_Correction.X() + MuLoose[iFirstMuon].Px());
       Muon_MET_Correction.SetY(Muon_MET_Correction.Y() + MuLoose[iFirstMuon].Py());
 
-      /*
-	std::cout << "pxMuon[iFirstMuon]: " <<				\
-	sqrt(pxMuon[iFirstMuon]*pxMuon[iFirstMuon]+pyMuon[iFirstMuon]*pyMuon[iFirstMuon]) << \
-	" MuLoose[iFirstMuon]: " << MuLoose[iFirstMuon].Px() << std::endl;
-      */
-      
-      /*Mu_Px_[0] = pxMuon[iFirstMuon];
-      Mu_Py_[0] = pyMuon[iFirstMuon];
-      Mu_Pz_[0] = pzMuon[iFirstMuon];
-      Mu_E_[0] = energyMuon[iFirstMuon];
-      */
       Mu_Px_[0] =  MuLoose[iFirstMuon].Px();
       Mu_Py_[0] =  MuLoose[iFirstMuon].Py();
       Mu_Pz_[0] =  MuLoose[iFirstMuon].Pz();
       Mu_E_[0] =  MuLoose[iFirstMuon].E();
     }
-
     int iSecondMuon = HighestPt(MuLoose, iFirstMuon);
     if(iSecondMuon >= 0) {
-      //Muon_MET_Correction.SetX(Muon_MET_Correction.X() + pxMuon[iSecondMuon]); 
-      //Muon_MET_Correction.SetY(Muon_MET_Correction.Y() + pyMuon[iSecondMuon]);
-      
       Muon_MET_Correction.SetX(Muon_MET_Correction.X() +  MuLoose[iSecondMuon].Px()); 
       Muon_MET_Correction.SetY(Muon_MET_Correction.Y() +  MuLoose[iSecondMuon].Py());
-      /*std::cout << "pxMuon[iSecondMuon]: " <<				\
-	sqrt( pxMuon[iSecondMuon]*pxMuon[iSecondMuon] +  pyMuon[iSecondMuon]*pyMuon[iSecondMuon] ) << \
-	" MuLoose[iSecondMuon]: " << MuLoose[iSecondMuon].Pt() << std::endl;
-      */
-      
-      /*
-      Mu_Px_[1] = pxMuon[iSecondMuon];
-      Mu_Py_[1] = pyMuon[iSecondMuon];
-      Mu_Pz_[1] = pzMuon[iSecondMuon];
-      Mu_E_[1] = energyMuon[iSecondMuon];
-      */
       
       Mu_Px_[1] = MuLoose[iSecondMuon].Px();
       Mu_Py_[1] = MuLoose[iSecondMuon].Py();
       Mu_Pz_[1] = MuLoose[iSecondMuon].Pz();
       Mu_E_[1] = MuLoose[iSecondMuon].E();
-      
-      
     }
 
     // Tight Electron ID
@@ -748,8 +653,6 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
 
     // Electron VETO
     if(iEleTight.size()>0) continue;
-
-    
     // TAU VETO
     
     //if (iTauTight.size()>0) continue;//removed after a bug was found in the tau ID
@@ -761,12 +664,9 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     for(int kk = 0; kk < nPFCand; kk++){
       TLorentzVector pfCand4V(pxPFCand[kk], pyPFCand[kk], pzPFCand[kk], energyPFCand[kk]);
       bool isMuon = false;
-      for (std::vector<TLorentzVector>::iterator Mu_it = MuLoose.begin(); Mu_it != MuLoose.end(); ++Mu_it){
-	
-        if ( (*Mu_it).Pt() < 15. ) continue;
-	
-        if( (*Mu_it).DeltaR( pfCand4V ) <= 0.3){
-	  //std::cout << "Mu Energy: " << (*Mu_it).E() << " pfCand En: " << pfCand4V.E() << std::endl;
+      for(std::vector<TLorentzVector>::iterator Mu_it = MuLoose.begin(); Mu_it != MuLoose.end(); ++Mu_it){
+	if( (*Mu_it).Pt() < 15. ) continue;
+	if( (*Mu_it).DeltaR( pfCand4V ) <= 0.3){
 	  isMuon = true;
           break;//out of the muon iterator loop
         }
@@ -778,13 +678,10 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
       }
     }
     
-    if(IsoPF)continue;
-    
-    
+    if(IsoPF)continue;//Applying ILV
     Npassed_LepVeto += weightII;//Record how many of th
     
-    //cout << "NBTAG IS " << nBtag << endl;
-    
+        
     // BOX NUMBER
     BOX_NUM = -99;
     if(iMuLoose.size() == 0){
@@ -795,69 +692,17 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
       BOX_NUM = 2;
     }
     
-    /*
-    // dummy values                                          
-    pTHem1[0] = -9999.;
-    etaHem1[0] = -9999.;
-    phiHem1[0] = -9999.;
-    pTHem2[0] = -9999.;
-    etaHem2[0] = -9999.;
-    phiHem2[0] = -9999.;
-    pTHem1[1] = -9999.;
-    etaHem1[1] = -9999.;
-    phiHem1[1] = -9999.;
-    pTHem2[1] = -9999.;
-    etaHem2[1] = -9999.;
-    phiHem2[1] = -9999.;
-    */
+    BOX[0] = BOX[1] = BOX[2] = -99;
+    BOX[0] = iMuLoose.size();
+    BOX[1] = iMuLoose_StdIso.size();
+    BOX[2] = iMuTight.size();
+
     for(int l = 0; l < 4; l++){
       R[l] = -99999.;
       RSQ[l] = -99999.;
       MR[l] = -99999.;
       MRT[l] = -99999.;
     }
-    
-    /*
-    // hemispheres CALO JETS
-    //std::cout << pxPFMet[0] << " " << pxPFMet[1] << " " << pxPFMet[2] << " " << pxPFMet[3] << std::endl;
-    vector<TLorentzVector> tmp_Jet = CombineJets(Jet);
-    if( tmp_Jet.size() >= 2 ) {
-      TLorentzVector Hem1 = tmp_Jet[0];
-      TLorentzVector Hem2 = tmp_Jet[1];
-      
-      // PFMET + Correction
-      TVector3 MET[4];
-      for(int k = 0; k < 4; k++ ){
-	MET[k] = TVector3(pxPFMet[k], pyPFMet[k], 0.);
-	
-	metX[k] = pxPFMet[k];
-	metY[k] = pyPFMet[k];
-	
-	metCorrX[k] = pxPFMet[k] + Muon_MET_Correction.Px();
-	metCorrY[k] = pyPFMet[k] + Muon_MET_Correction.Py();
-	
-	MRT[k] = CalcMTR(Hem1, Hem2, MET[k] + Muon_MET_Correction);
-	//MRT = CalcMTR(Hem1, Hem2, MET);
-	double variable = -999999.;
-	double Rvariable = -999999.;
-	variable = CalcGammaMRstar(Hem1, Hem2);
-	if(variable >0) Rvariable = MRT[k]/variable;
-	
-	// fill the R and hem part of the output tree
-	
-	R[k] = Rvariable;
-	RSQ[k] = Rvariable*Rvariable;
-	MR[k] = variable;
-      }
-      
-      pTHem1[0] = Hem1.Pt();
-      etaHem1[0] = Hem1.Eta();
-      phiHem1[0] = Hem1.Phi();
-      pTHem2[0] = Hem2.Pt();
-      etaHem2[0] = Hem2.Eta();
-      phiHem2[0] = Hem2.Phi();
-    }
-    */
     
     pTHem1 = -9999.;                                                                                           
     etaHem1 = -9999.;                                                                                          
@@ -890,10 +735,8 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
         double Rvariable = -999999.;
         variable = CalcGammaMRstar(Hem1, Hem2);
         if(variable >0) Rvariable = MRT[k]/variable;
-	
-        // fill the R and hem part of the output tree                                                           
-	
-        R[k] = Rvariable;
+	// fill the R and hem part of the output tree                                                           
+	R[k] = Rvariable;
         RSQ[k] = Rvariable*Rvariable;
         MR[k] = variable;
       }
@@ -956,8 +799,6 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     bx = eventNumber;
     ls = lumiBlock;
     orbit = orbitNumber;
-    //std::cout << "metX: " << metX << " metY: " << metY << " metCorrX: " << metCorrX << " metCorrY: " << metCorrY << " Ht: " << ht << std::endl; 
-    //std::cout << "=========================nMc: " << nMc << "=======================" << std::endl;
     outTree->Fill();
   }
   
@@ -974,7 +815,6 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   TFile *file = new TFile(outFileName.c_str(),"RECREATE");
   outTree->Write();
   effTree->Write();
-  //  if(isSMS)FullSMSTree->Write();
   file->Close();
 }
 
