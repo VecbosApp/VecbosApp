@@ -87,7 +87,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     bool trackerFailureFilterFlag;
     bool BEECALFlag;
     
-    // PF block
+    // PF block k
     double run;
     double evNum;
     double bx;
@@ -145,6 +145,9 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     double pXB1, pYB1, pZB1, energyB1;
     double pXB2, pYB2, pZB2, energyB2;
     
+    // lepton angles
+    double dPhi_ll;
+    //double gdPhi_ll;
 
     // ttbar decay: 0 = nolep, 1 = semilep; 2 = fully lep
     int nLepTopDecay;
@@ -217,12 +220,18 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     //check btag efficiencies
     float BDiscList[2];
 
+    //original MR using only b and l
+    double MR_og;
+    double pT_CM;
+
     //pT-corrected MTR, RSQ
     double MRT_bl;
     double RSQ_bl;
 
     //corrected shatR
+    double rat;
     double shat_corr;
+    double shat_m;
  
     //Hybrid Razor Approach
     double TotalHemMass1;
@@ -301,12 +310,19 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     outTree->Branch("mchi", &mchi, "mchi/F");
     outTree->Branch("nPV", &nPV, "nPV/I");
     
+    // original MR using only b and l
+    outTree->Branch("MR_og", &MR_og, "MR_og/D");
+    
+    outTree->Branch("pT_CM", &pT_CM, "pT_CM/D");
+
     // pT-corr RSQ, MRT
     outTree->Branch("RSQ_bl", &RSQ_bl, "RSQ_bl/D");
     outTree->Branch("MRT_bl", &MRT_bl, "MRT_bl/D");
 
     // corrected shatR
+    outTree->Branch("rat", &rat, "rat/D");
     outTree->Branch("shat_corr", &shat_corr, "shat_corr/D");
+    outTree->Branch("shat_m", &shat_m, "shat_m/D");
 
     // fast-hemispheres
     outTree->Branch("FJR", &FJR, "FJR/D");
@@ -439,7 +455,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     outTree->Branch("gpYB_tb", &gpYB_tb, "gpYB_tb/D");
     outTree->Branch("gpZB_tb", &gpZB_tb, "gpZB_tb/D");
     outTree->Branch("energyB_tb", &genergyB_tb, "genergyB_tb/D");
-    
+    //outTree->Branch("gdPhi_ll", &gdPhi_ll, "gdPhi_ll/D");
 
     //MC b's and l's
     outTree->Branch("pXL1", &pXL1, "pXL1/D");
@@ -458,6 +474,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     outTree->Branch("pYB2", &pYB2, "pYB2/D");
     outTree->Branch("pZB2", &pZB2, "pZB2/D");
     outTree->Branch("energyB2", &energyB2, "energyB2/D");
+    outTree->Branch("dPhi_ll", &dPhi_ll, "dPhi_ll/D");
 
     //Selection
     outTree->Branch("nIsolatedPFJets", &nIsolatedPFJets, "nIsolatedPFJets/I");
@@ -915,13 +932,20 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
         BDiscList[0] = -9999. ; 
 	BDiscList[1] = -9999. ;
 	
+	//MR original using only b and l
+	MR_og = -9999.;
+	
+	pT_CM = -9999.;
+
         //pT-corr MRT, RSQ
 	MRT_bl = -9999.;
 	RSQ_bl = -9999.;
 
 	//corrected shat
+	rat = -9999.;
 	shat_corr = -9999.;
-	
+	shat_m = -9999.;
+
 	// MC B and L values
 	pXL1 = -9999.;
 	pYL1 = -9999.;
@@ -931,6 +955,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 	pYL2 = -9999.;
 	pZL2 = -9999.;
 	energyL2 = -9999.;
+	dPhi_ll = -9999.;
 	pXB1 = -9999.;
 	pYB1 = -9999.;
 	pZB1 = -9999.;
@@ -1036,6 +1061,10 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 	    pYL2 = L2.Py();
 	    pZL2 = L2.Pz();
 	    energyL2 = L2.E();
+	    dPhi_ll = atan2(pYL1, pXL1); 
+	    dPhi_ll = dPhi_ll - atan2(pYL2, pXL2 );
+	    dPhi_ll = fabs(dPhi_ll);
+	    dPhi_ll = min(dPhi_ll, 2 * atan(1)*4 - dPhi_ll);
 	    pXB1 = B1.Px();
 	    pYB1 = B1.Py();
 	    pZB1 = B1.Pz();
@@ -1344,12 +1373,22 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             H1 = (B1+L1);
             H2 = (B2+L2);
 
+	    // MR original using only b's and l's
+	    MR_og = sqrt(pow(H1.E()+H2.E(),2)-pow(H1.Pz()+H2.Pz(),2));
+
+	   
 	    // temp variables used later
 	    TLorentzVector H1_temp;
 	    TLorentzVector H2_temp = H2;
 	    H1_temp.SetPxPyPzE(H1.Px() + MET.Px(), H1.Py() + MET.Py(), H1.Pz(), H1.E());
 	    double HemMass_temp = abs(H1_temp.M()) + abs(H2_temp.M());
-	    double rat = (HemMass_temp / 173.5);
+	    rat = (HemMass_temp / (2 * 173.5));
+	    H1_temp.SetE(0);
+	    H1_temp.SetPz(0);
+	    H2_temp.SetPz(0);
+	    H2_temp.SetE(0);
+
+	    pT_CM = abs((H1_temp+H2_temp).M());
 
             // Now, we must perform longitudinal boost from lab frame to CMz frame
             // in order to make procedure invariant under longitundinal boosts
@@ -1372,8 +1411,13 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             shatR_bl = shatR(H1+H2,MET);
             TVector3 betaTR = BetaTR(H1+H2,MET);
 	    MRT_bl = CalcMTR(H1,H2,MET);
-	    RSQ_bl = (MRT_bl * MRT_bl) / ((shatR_bl/2.) * (shatR_bl/2.));
-	    shat_corr = shatR_bl * rat;
+	    RSQ_bl = (MRT_bl * MRT_bl) / ((shatR_bl) * (shatR_bl));
+
+	    if (rat>1) shat_corr = shatR_bl * rat;
+	    else shat_corr = shatR_bl;
+
+	    if (MetMag/74.>1) shat_m = shatR_bl/gammaRList[1] * MetMag/74.;
+	    else shat_m = shatR_bl/gammaRList[1];
 
             // Boost to ~CM frame
             B1.Boost(-betaTR);
@@ -1419,8 +1463,8 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             
             //MR1Raz = 2*H1.E();
             //MR2Raz = 2*H2.E();
-            MR1List[1] = 0.5*shatR_bl;
-            MR2List[1] = 0.5*shatR_bl;
+            MR1List[1] = shatR_bl;
+            MR2List[1] = shatR_bl;
             
             //Boost neutrinos back to CM frame
             N1.Boost(vBETA);
