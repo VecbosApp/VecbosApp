@@ -131,7 +131,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     //int idMcB1, idMothMcB1, idGrandMothMcB1;
     //int idMcB2, idMothMcB2, idGrandMothMcB2;
     double genH1Mass, genH2Mass;
-    double genGammaCM, genshat;
+    double genGammaCM, genshat, genMDR, genMDR2;
 
     // gen-level lepton and b-quark 4-vectors
     double gpXL1, gpYL1, gpZL1, genergyL1;
@@ -147,8 +147,26 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     
     // lepton angles
     double dPhi_ll;
+    // pT corrected lepton angle
+    double dPhi_ll_R;
+    double dPhi_ll_R_2;
+    // helicity angle for bl
+    double CosThetaBL1;
+    double CosThetaBL2;
+    // angle between bl in lab
+    double dPhi_bl1;
+    double dPhi_bl2;
+    double dPhi_bl12;
+    double dPhi_bl21;
+    // pT corrected b and l angle
+    double dPhi_bl1_R;
+    double dPhi_bl2_R;
+    double dPhi_bl12_R;
+    double dPhi_bl21_R;
     //double gdPhi_ll;
-
+    // angle between bl hemispheres in lab   
+    double dPhi_bl;
+    double dPhi_bl_R;
     // ttbar decay: 0 = nolep, 1 = semilep; 2 = fully lep
     int nLepTopDecay;
     int nNeutrino;
@@ -250,6 +268,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     double MR1Raz;
     double MR2Raz;
     double TotalNMagRaz;
+
     //Hybrid Razor Approach + Transverse Boost
     double TotalHemMass1Trans;
     double TotalHemMass2Trans;
@@ -439,6 +458,8 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     outTree->Branch("genH2Mass", &genH2Mass, "genH2Mass/D");
     outTree->Branch("genGammaCM", &genGammaCM, "genGammaCM/D");
     outTree->Branch("genshat", &genshat, "genshat/D");
+    outTree->Branch("genMDR", &genMDR, "genMDR/D");
+    outTree->Branch("genMDR2", &genMDR2, "genMDR2/D");
     outTree->Branch("gpXL1", &gpXL1, "gpXL1/D");
     outTree->Branch("gpYL1", &gpYL1, "gpYL1/D");
     outTree->Branch("gpZL1", &gpZL1, "gpZL1/D");
@@ -475,6 +496,20 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     outTree->Branch("pZB2", &pZB2, "pZB2/D");
     outTree->Branch("energyB2", &energyB2, "energyB2/D");
     outTree->Branch("dPhi_ll", &dPhi_ll, "dPhi_ll/D");
+    outTree->Branch("dPhi_ll_R", &dPhi_ll_R, "dPhi_ll_R/D");
+    outTree->Branch("dPhi_ll_R_2", &dPhi_ll_R_2, "dPhi_ll_R_2/D");
+    outTree->Branch("dPhi_bl1", &dPhi_bl1, "dPhi_bl1/D");
+    outTree->Branch("dPhi_bl2", &dPhi_bl2, "dPhi_bl2/D");
+    outTree->Branch("dPhi_bl12", &dPhi_bl12, "dPhi_bl12/D");
+    outTree->Branch("dPhi_bl21", &dPhi_bl21, "dPhi_bl21/D");
+    outTree->Branch("dPhi_bl1_R", &dPhi_bl1_R, "dPhi_bl1_R/D");
+    outTree->Branch("dPhi_bl2_R", &dPhi_bl2_R, "dPhi_bl2_R/D");
+    outTree->Branch("dPhi_bl12_R", &dPhi_bl12_R, "dPhi_bl12_R/D");
+    outTree->Branch("dPhi_bl21_R", &dPhi_bl21_R, "dPhi_bl21_R/D");
+    outTree->Branch("CosThetaBL1", &CosThetaBL1, "CosThetaBL1/D");
+    outTree->Branch("CosThetaBL2", &CosThetaBL2, "CosThetaBL2/D");
+    outTree->Branch("dPhi_bl", &dPhi_bl, "dPhi_bl/D");
+    outTree->Branch("dPhi_bl_R", &dPhi_bl_R, "dPhi_bl_R/D");
 
     //Selection
     outTree->Branch("nIsolatedPFJets", &nIsolatedPFJets, "nIsolatedPFJets/I");
@@ -956,6 +991,20 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 	pZL2 = -9999.;
 	energyL2 = -9999.;
 	dPhi_ll = -9999.;
+	dPhi_ll_R = -9999.;
+	dPhi_ll_R_2 = -9999.;
+	dPhi_bl1 = -9999.;
+	dPhi_bl2 = -9999.;
+	dPhi_bl12 = -9999.;
+	dPhi_bl21 = -9999.;
+	dPhi_bl1_R = -9999.;
+	dPhi_bl2_R = -9999.;
+	dPhi_bl12_R = -9999.;
+	dPhi_bl21_R = -9999.;
+	CosThetaBL1 = -9999.;
+	CosThetaBL2 = -9999.;
+	dPhi_bl = -9999.;
+	dPhi_bl_R = -9999.;
 	pXB1 = -9999.;
 	pYB1 = -9999.;
 	pZB1 = -9999.;
@@ -1073,7 +1122,11 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 	    pYB2 = B2.Py();
 	    pZB2 = B2.Pz();
 	    energyB2 = B2.E();
-
+	    dPhi_bl1 = L1.Vect().DeltaPhi(B1.Vect());
+	    dPhi_bl2 = L2.Vect().DeltaPhi(B2.Vect());
+	    dPhi_bl12 = L1.Vect().DeltaPhi(B2.Vect());
+	    dPhi_bl21 = L2.Vect().DeltaPhi(B1.Vect());
+	    dPhi_bl = (L1.Vect()+B1.Vect()).DeltaPhi(L2.Vect()+B2.Vect());
             // HYBRID RAZOR APPROACH
             // Combine jets keeping the Tops (b+l) together and in separate hemispheres:
             vector<TLorentzVector> Tops;
@@ -1416,9 +1469,6 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 	    if (rat>1) shat_corr = shatR_bl * rat;
 	    else shat_corr = shatR_bl;
 
-	    if (MetMag/74.>1) shat_m = shatR_bl/gammaRList[1] * MetMag/74.;
-	    else shat_m = shatR_bl/gammaRList[1];
-
             // Boost to ~CM frame
             B1.Boost(-betaTR);
             B2.Boost(-betaTR);
@@ -1436,6 +1486,17 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             //at this stage you can calculate a useful angle, the azimuthal angle between
             //the boost from the CMz to ~CM frame and the visible system of particles
             dPhiCM = (B1+B2+L1+L2).Vect().DeltaPhi(betaTR);
+	    dPhi_ll_R_2 = L1.Vect().DeltaPhi(L2.Vect());
+	    dPhi_bl1_R = L1.Vect().DeltaPhi(B1.Vect());
+	    dPhi_bl2_R = L2.Vect().DeltaPhi(B2.Vect());
+	    dPhi_bl12_R = L1.Vect().DeltaPhi(B2.Vect());
+	    dPhi_bl21_R = L2.Vect().DeltaPhi(B1.Vect());
+	    dPhi_bl_R = (L1.Vect()+B1.Vect()).DeltaPhi(L2.Vect()+B2.Vect());
+	    // check to make sure deltaphi is right
+	    dPhi_ll_R = atan2(L1.Py(), L1.Px()); 
+	    dPhi_ll_R = dPhi_ll_R - atan2(L2.Py(), L2.Px() );
+	    dPhi_ll_R = fabs(dPhi_ll_R);
+	    dPhi_ll_R = min(dPhi_ll_R, 2 * atan(1)*4 - dPhi_ll_R);
             
             //Now, we must boost to each of the respective TR frames (or top rest frames in ttbar)
             vBETA = Boost_type1(H1,H2);
@@ -1445,6 +1506,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             L2.Boost(vBETA);
             H1.Boost(-vBETA);
             H2.Boost(vBETA);
+
             
             //Calculate neutrinos
             N1, N2;
@@ -1487,6 +1549,9 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             //Useful variable is gamma associated with that boost, which corresponds to how far off threshold the ttbar event is
             //gammaR = 1./sqrt(1.-vBETA.Mag2());
             gammaRList[1] = 1./sqrt(1.-vBETA.Mag2());
+
+	    if (MetMag/74.>1) shat_m = shatR_bl/gammaRList[1] * MetMag/74.;
+	    else shat_m = shatR_bl/gammaRList[1];
             
             //In the respective top rest frames you can calculate the energy of the B's (sensitive to first mass splitting) and the helicity angle
             //energies
@@ -1496,6 +1561,8 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             //calculate top helicity angles
             //CosThetaB1 = B1.Vect().Dot(vBETA)/(B1.P()*vBETA.Mag());
             //CosThetaB2 = B2.Vect().Dot(-vBETA)/(B2.P()*vBETA.Mag());
+	    CosThetaBL1 = (B1+L1).Vect().Dot(vBETA)/((B1+L1).P()*vBETA.Mag());
+	    CosThetaBL2 = (B2+L2).Vect().Dot(vBETA)/((B2+L2).P()*vBETA.Mag());
             CosThetaB1List[1] = B1.Vect().Dot(vBETA)/(B1.P()*vBETA.Mag());
             CosThetaB2List[1] = B2.Vect().Dot(-vBETA)/(B2.P()*vBETA.Mag());
             
@@ -1648,7 +1715,8 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 	genH2Mass = -9999.;
 	genshat = -9999.;
 	genGammaCM = -9999.;
-	
+	genMDR = -9999.;
+	genMDR2 = -9999.;
         if(!_isData) {
             nLepTopDecay = 0;
             nNeutrino = 0;
@@ -1659,9 +1727,16 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             int iL2 = -99;
             int iB_t = -99;
 	    int iB_tb = -99;
+	    int iLSP_t = -99;
+	    int iLSP_tb = -99;
 	    TLorentzVector genH1 = -99;
 	    TLorentzVector genH2 = -99;
-
+	    TLorentzVector genLSP_t = -99;
+	    TLorentzVector genLSP_tb = -99;
+	    TLorentzVector genB_t = -99;
+	    TLorentzVector genB_tb = -99;
+	    TLorentzVector genL1 = -99;
+	    TLorentzVector genL2 = -99;
 	    TLorentzVector genTop = -99;
 	    TLorentzVector genTopBar = -99;
             
@@ -1718,21 +1793,39 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 		     idMc[i] == -5){
 		    iB_tb = i;
 		  }
+		  if(abs(idMc[i]) == 1000022 && 
+		     idMc[mothMc[mothMc[i]]] == 1000006){
+		    iLSP_t = i;
+		  }
+		  if(abs(idMc[i]) == 1000022 && 
+		     idMc[mothMc[mothMc[i]]] == -1000006){
+		    iLSP_tb = i;
+		  }
+
 		}
 				
 				
 				
 		// For T2tt b + stop variables:
 		if ((SMS_temp == "T2tt")){
-			if(idMc[mothMc[i]] == 6 &&
-			   idMc[i] == 5){
-				iB_t = i;
-			}
-			// b associated with tbar
-			if(idMc[mothMc[i]] == -6 &&
-			   idMc[i] == -5){
-				iB_tb = i;
-			}
+		  if(idMc[mothMc[i]] == 6 &&
+		     idMc[i] == 5){
+		    iB_t = i;
+		  }
+		  // b associated with tbar
+		  if(idMc[mothMc[i]] == -6 &&
+		     idMc[i] == -5){
+		    iB_tb = i;
+		  }
+		  if(abs(idMc[i]) == 1000022 && 
+		     idMc[mothMc[i]] == 1000006){
+		    iLSP_t = i;
+		  }
+		  if(abs(idMc[i]) == 1000022 && 
+		     idMc[mothMc[i]] == -1000006){
+		    iLSP_tb = i;
+		  }
+
 		}
 
                 pTNeutrinoMag = pTNeutrino.Pt();
@@ -1778,6 +1871,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 				gpYL1 = pMc[iL1]*sin(phiMc[iL1])*sin(thetaMc[iL1]);
 				gpZL1 = pMc[iL1]*cos(thetaMc[iL1]);
 				genergyL1 = energyMc[iL1];
+				genL1.SetPxPyPzE(gpXL1,gpYL1,gpZL1,genergyL1);
             }
             if(iL2>=0) {
                 pT2 = pMc[iL2]*sin(thetaMc[iL2]);
@@ -1792,12 +1886,14 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 		gpYL2 = pMc[iL2]*sin(phiMc[iL2])*sin(thetaMc[iL2]);
 		gpZL2 = pMc[iL2]*cos(thetaMc[iL2]);
 		genergyL2 = energyMc[iL2];
+		genL2.SetPxPyPzE(gpXL2,gpYL2,gpZL2,genergyL2);
             }
 	    if(iB_t>=0) {
 	      gpXB_t = pMc[iB_t]*cos(phiMc[iB_t])*sin(thetaMc[iB_t]);
 	      gpYB_t = pMc[iB_t]*sin(phiMc[iB_t])*sin(thetaMc[iB_t]);
 	      gpZB_t = pMc[iB_t]*cos(thetaMc[iB_t]);
 	      genergyB_t = energyMc[iB_t];
+	      genB_t.SetPxPyPzE(gpXB_t,gpYB_t,gpZB_t,genergyB_t);
 
 	    }
 	    if(iB_tb>=0) {
@@ -1805,6 +1901,23 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 	      gpYB_tb = pMc[iB_tb]*sin(phiMc[iB_tb])*sin(thetaMc[iB_tb]);
 	      gpZB_tb = pMc[iB_tb]*cos(thetaMc[iB_tb]);
 	      genergyB_tb = energyMc[iB_tb];
+	      genB_tb.SetPxPyPzE(gpXB_tb,gpYB_tb,gpZB_tb,genergyB_tb);
+	    }
+	    double gpXLSP_t, gpYLSP_t, gpZLSP_t, genergyLSP_t;
+	    double gpXLSP_tb, gpYLSP_tb, gpZLSP_tb, genergyLSP_tb;
+	 
+	    if(iLSP_t>=0) {
+	      gpXLSP_t = pMc[iLSP_t]*cos(phiMc[iLSP_t])*sin(thetaMc[iLSP_t]);
+	      gpYLSP_t = pMc[iLSP_t]*sin(phiMc[iLSP_t])*sin(thetaMc[iLSP_t]);
+	      gpZLSP_t = pMc[iLSP_t]*cos(thetaMc[iLSP_t]);
+	      genergyLSP_t = energyMc[iLSP_t];
+
+	    }
+	    if(iLSP_tb>=0) {
+	      gpXLSP_tb = pMc[iLSP_tb]*cos(phiMc[iLSP_tb])*sin(thetaMc[iLSP_tb]);
+	      gpYLSP_tb = pMc[iLSP_tb]*sin(phiMc[iLSP_tb])*sin(thetaMc[iLSP_tb]);
+	      gpZLSP_tb = pMc[iLSP_tb]*cos(thetaMc[iLSP_tb]);
+	      genergyLSP_tb = energyMc[iLSP_tb];
 	    }
 	    // for ttbar background, calculate four-vectors of two hemispheres with B's and L's
 	    // for T2bw, calculate four-vectors of two hemispheres with B's and L's, ignoring chargino 
@@ -1901,6 +2014,15 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
 	    // gammaCM and shat for gen-level
 	    genGammaCM = 1./sqrt(1.-genBoostCM.Mag2());
 	    genshat = sqrt(4 * genGammaCM * genGammaCM * genTop.M()* genTop.M());
+	    if (SMS_temp == "none"){
+	      genMDR = genTop.M();
+	      genMDR2 = (genTop.M()*genTop.M() + (genH1Mass+genH2Mass)*(genH1Mass+genH2Mass))/(2.*genTop.M());
+	    }
+	    else if ((SMS_temp == "T2bw")||(SMS_temp == "T2tt")){
+	      genMDR = (genTop.M()*genTop.M() - genLSP_t.M()*genLSP_t.M())/genTop.M();
+	      genMDR2 = (genTop.M()*genTop.M() - genLSP_t.M()*genLSP_t.M() + ((genL1.M()+genL2.M()+genB_t.M()+genB_tb.M())*0.5)*(0.5*(genL1.M()+genL2.M()+genB_t.M()+genB_tb.M())))/(2.*genTop.M()) ;
+	      
+	    }
 	    			     	      
         }
         
