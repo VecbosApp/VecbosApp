@@ -728,7 +728,7 @@ int main(int argc, char* argv[]) {
     }
   }
     
-  RazorMultiB vecbos(theChain, "none", isData, isData, smsName);
+  RazorMultiB vecbos(theChain, json, isData, isData, smsName);
   vecbos.SetWeight(double(weight));
   vecbos.Loop(string(outFileName), start, stop);
 #endif
