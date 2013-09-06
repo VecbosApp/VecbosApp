@@ -76,17 +76,16 @@ void RazorMultiB::SetWeight(double weight){
 void RazorMultiB::Loop(string outFileName, int start, int stop) {
     if(fChain == 0) return;
     
+    // nominal triggers
     int HLT_DoubleMu;
     int HLT_DoubleEle;
     int HLT_MuEle;
-    
-    bool ECALTPFilterFlag;
-    bool drBoundary;
-    bool drDead;
-    bool CSCHaloFilterFlag;
-    bool trackerFailureFilterFlag;
-    bool BEECALFlag;
-    
+    // prescaled triggers
+    int HLT_Mu17;
+    int HLT_Mu12;
+    int HLT_Ele17;
+    int HLT_Ele8;
+        
     // PF block k
     double run;
     double evNum;
@@ -308,6 +307,10 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     outTree->Branch("HLT_DoubleMu", &HLT_DoubleMu, "HLT_DoubleMu/I");
     outTree->Branch("HLT_DoubleEle", &HLT_DoubleEle, "HLT_DoubleEle/I");
     outTree->Branch("HLT_MuEle", &HLT_MuEle, "HLT_MuEle/I");
+    outTree->Branch("HLT_Mu17", &HLT_Mu17, "HLT_Mu17/I");
+    outTree->Branch("HLT_Mu12", &HLT_Mu12, "HLT_Mu12/I");
+    outTree->Branch("HLT_Ele17", &HLT_Ele17, "HLT_Ele17/I");
+    outTree->Branch("HLT_Ele8", &HLT_Ele8, "HLT_Ele8/I");
     
     // PF block
     outTree->Branch("PFR", &PFR, "PFR/D");
@@ -539,14 +542,27 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
     std::vector<std::string> maskHLT_DoubleMu;
     //maskHLT_DoubleMu.push_back("HLT_Mu13_Mu8_v");
     maskHLT_DoubleMu.push_back("HLT_Mu17_Mu8_v");
-    
+    maskHLT_DoubleMu.push_back("HLT_Mu17_TkMu8_v");
+
     std::vector<std::string> maskHLT_DoubleEle;
     maskHLT_DoubleEle.push_back("HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v");
     
     std::vector<std::string> maskHLT_MuEle;
     maskHLT_MuEle.push_back("HLT_Mu17_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v");
     maskHLT_MuEle.push_back("HLT_Mu8_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v");
-    
+
+    std::vector<std::string> maskHLT_Mu17;
+    maskHLT_Mu17.push_back("HLT_Mu17_v");
+
+    std::vector<std::string> maskHLT_Mu12;
+    maskHLT_Mu12.push_back("HLT_Mu12_v");
+
+    std::vector<std::string> maskHLT_Ele17;
+    maskHLT_Ele17.push_back("HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v");
+
+    std::vector<std::string> maskHLT_Ele8;
+    maskHLT_Ele8.push_back("HLT_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v");
+
     Long64_t nbytes = 0;
     Long64_t nb = 0;
     cout << "Number of entries= " << stop << endl;
@@ -562,6 +578,10 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             setRequiredTriggers(maskHLT_DoubleMu); reloadTriggerMask(true); HLT_DoubleMu = hasPassedHLT();
             setRequiredTriggers(maskHLT_DoubleEle); reloadTriggerMask(true); HLT_DoubleEle = hasPassedHLT();
             setRequiredTriggers(maskHLT_MuEle); reloadTriggerMask(true); HLT_MuEle = hasPassedHLT();
+            setRequiredTriggers(maskHLT_Mu17); reloadTriggerMask(true); HLT_Mu17 = hasPassedHLT();
+            setRequiredTriggers(maskHLT_Mu12); reloadTriggerMask(true); HLT_Mu12 = hasPassedHLT();
+            setRequiredTriggers(maskHLT_Ele17); reloadTriggerMask(true); HLT_Ele17 = hasPassedHLT();
+            setRequiredTriggers(maskHLT_Ele8); reloadTriggerMask(true); HLT_Ele8 = hasPassedHLT();
         }
         
         //Good Run selection
@@ -597,11 +617,11 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
         }
         
         //HLT
-        int passedHLT = HLT_DoubleMu+HLT_DoubleEle+HLT_MuEle;
-        if (_isData==true) {
+        int passedHLT = HLT_DoubleMu + HLT_DoubleEle + HLT_MuEle + HLT_Mu17 + HLT_Mu12 + HLT_Ele17 + HLT_Ele8;
+        if (_isData==true) {            
             if (passedHLT==0) continue;
-            if ((ECALTPFilterFlag==0) || (drBoundary==0) || (drDead==0) || (CSCHaloFilterFlag==0) || (trackerFailureFilterFlag==0) || (BEECALFlag==0)) continue;
         }
+
         
         // find highest-pT PV [replace with Sagar's code]
         int iPV = passPV();
