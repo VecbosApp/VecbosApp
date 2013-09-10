@@ -80,6 +80,7 @@ VecbosApp:  $(SRCDIR)VecbosApp.C \
 	$(OUTLIB)RazorMultiB.o \
 	$(OUTLIB)RazorDiMuB.o \
 	$(OUTLIB)RazorDMAnalysis.o \
+	$(OUTLIB)BtagEff.o \
 	$(OUTLIB)MonoJet.o \
 	$(OUTLIB)CandleCalib.o \
 	$(OUTLIBCOMMON)Conditions.o \
@@ -149,6 +150,7 @@ lib: 	$(OUTLIBCOMMON)Conditions.o \
 	$(OUTLIB)RazorMultiB.o \
 	$(OUTLIB)RazorDiMuB.o \
 	$(OUTLIB)RazorDMAnalysis.o \
+	$(OUTLIB)BtagEff.o \
 	$(OUTLIB)MonoJet.o \
 	$(OUTLIB)CandleCalib.o \
 	$(OUTLIB)LQ3Helper.o \
@@ -237,6 +239,9 @@ $(OUTLIB)RazorDiMuB.o: $(SRCDIR)RazorDiMuB.cc $(OUTLIB)Vecbos.o
 
 $(OUTLIB)RazorDMAnalysis.o: $(SRCDIR)RazorDMAnalysis_pfJets.cc $(OUTLIB)Vecbos.o
 	$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)RazorDMAnalysis.o $<
+
+$(OUTLIB)BtagEff.o: $(SRCDIR)BtagEff.cc $(OUTLIB)Vecbos.o
+	$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)BtagEff.o $<
 
 $(OUTLIB)MonoJet.o: $(SRCDIR)MonoJet.cc $(OUTLIB)Vecbos.o
 	$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)MonoJet.o $<

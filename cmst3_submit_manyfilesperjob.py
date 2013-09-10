@@ -72,7 +72,7 @@ for ijob in range(ijobmax):
     print "OUTPUTFILE: ", outputname
     outputfile = open(outputname,'w')
     outputfile.write('#!/bin/bash\n')
-    outputfile.write("cd /afs/cern.ch/work/c/cpena/scratch_DM/CMSSW_5_2_3/src; eval `scramv1 run -sh`\n")
+    outputfile.write('cd '+ pwd+'; eval `scramv1 run -sh`\n')
     outputfile.write('cd '+pwd+'\n')
     if isData:
         outputfile.write('./VecbosApp '+inputfilename+" "+process+"/"+output+"/out/"+output+"_"+str(ijob)+".root --isData -json="+JSON+"\n")
@@ -82,7 +82,6 @@ for ijob in range(ijobmax):
         print './VecbosApp '+inputfilename+" "+process+"/"+output+"/out/"+output+"_testMc_"+str(ijob)+".root \n"
     outputfile.close
     os.system("echo bsub -q "+queue+" -o /dev/null -e /dev/null source "+pwd+"/"+outputname)
-    os.system("sleep .1; bsub -q "+queue+" -o /dev/null -e /dev/null source "+pwd+"/"+outputname)
-    #os.system("sleep 1; bsub -q "+queue+" source "+pwd+"/"+outputname)
+    os.system("sleep 1; bsub -q "+queue+" source "+pwd+"/"+outputname)
     ijob = ijob+1
     continue
