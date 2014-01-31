@@ -32,6 +32,7 @@ public :
    Float_t         sigmaFastjet;
    Float_t         rhoJetsFastJet;
    Float_t         rhoJetsFastJet_nopu;
+   Float_t         rhoJetsCentralNeutralFastJet;
    Int_t           tooManyTrackerFailures;
    Int_t           runNumber;
    ULong64_t       eventNumber;
@@ -649,6 +650,7 @@ public :
    Int_t           standAloneTrackIndexMuon[50];   //[nMuon]
    Int_t           combinedTrackIndexMuon[50];   //[nMuon]
    Int_t           muonIdMuon[50];   //[nMuon]
+   Int_t           pfmuonIdMuon[50];   //[nMuon]
    Int_t           typeMuon[50];   //[nMuon]
    Int_t           numberOfMatchesMuon[50];   //[nMuon]
    Float_t         sumPt03Muon[50];   //[nMuon]
@@ -939,6 +941,7 @@ public :
    Float_t         betastarAK5PFNoPUJet[200];   //[nAK5PFNoPUJet]
    Float_t         rmsCandsHandAK5PFNoPUJet[200];   //[nAK5PFNoPUJet]
    Float_t         jetIdMvaAK5PFNoPUJet[200];   //[nAK5PFNoPUJet]
+   Float_t         jetIdMvaPhilV1AK5PFNoPUJet[200];   //[nAK5PFNoPUJet]
    Float_t         nChargedIdMvaAK5PFNoPUJet[200];   //[nAK5PFNoPUJet]
    Float_t         nNeutralsIdMvaAK5PFNoPUJet[200];   //[nAK5PFNoPUJet]
    Float_t         dZIdMvaAK5PFNoPUJet[200];   //[nAK5PFNoPUJet]
@@ -1069,6 +1072,7 @@ public :
    TBranch        *b_sigmaFastjet;   //!
    TBranch        *b_rhoJetsFastJet;   //!
    TBranch        *b_rhoJetsFastJet_nopu;   //!
+   TBranch        *b_rhoJetsCentralNeutralFastJet;   //!
    TBranch        *b_runNumber;   //!
    TBranch        *b_eventNumber;   //!
    TBranch        *b_lumiBlock;   //!
@@ -1685,6 +1689,7 @@ public :
    TBranch        *b_standAloneTrackIndexMuon;   //!
    TBranch        *b_combinedTrackIndexMuon;   //!
    TBranch        *b_muonIdMuon;   //!
+   TBranch        *b_pfmuonIdMuon;   //!
    TBranch        *b_typeMuon;   //!
    TBranch        *b_numberOfMatchesMuon;   //!
    TBranch        *b_sumPt03Muon;   //!
@@ -1975,6 +1980,7 @@ public :
    TBranch        *b_betastarAK5PFNoPUJet;   //!
    TBranch        *b_rmsCandsHandAK5PFNoPUJet;   //!
    TBranch        *b_jetIdMvaAK5PFNoPUJet;   //!
+   TBranch        *b_jetIdMvaPhilV1AK5PFNoPUJet;   //!
    TBranch        *b_nChargedIdMvaAK5PFNoPUJet;   //!
    TBranch        *b_nNeutralsIdMvaAK5PFNoPUJet;   //!
    TBranch        *b_dZIdMvaAK5PFNoPUJet;   //!
@@ -2032,6 +2038,7 @@ public :
    TBranch        *b_betastarAK5PFPUcorrJet;   //!
    TBranch        *b_rmsCandsHandAK5PFPUcorrJet;   //!
    TBranch        *b_jetIdMvaAK5PFPUcorrJet;   //!
+   TBranch        *b_jetIdMvaPhilV1AK5PFPUcorrJet;   //!
    TBranch        *b_nChargedIdMvaAK5PFPUcorrJet;   //!
    TBranch        *b_nNeutralsIdMvaAK5PFPUcorrJet;   //!
    TBranch        *b_dZIdMvaAK5PFPUcorrJet;   //!
@@ -2176,6 +2183,7 @@ void VecbosBase::Init(TTree *tree)
    fChain->SetBranchAddress("sigmaFastjet", &sigmaFastjet, &b_sigmaFastjet);
    fChain->SetBranchAddress("rhoJetsFastJet", &rhoJetsFastJet, &b_rhoJetsFastJet);
    fChain->SetBranchAddress("rhoJetsFastJet_nopu", &rhoJetsFastJet_nopu, &b_rhoJetsFastJet_nopu);
+   fChain->SetBranchAddress("rhoJetsCentralNeutralFastJet", &rhoJetsCentralNeutralFastJet, &b_rhoJetsCentralNeutralFastJet);
    fChain->SetBranchAddress("runNumber", &runNumber, &b_runNumber);
    fChain->SetBranchAddress("eventNumber", &eventNumber, &b_eventNumber);
    fChain->SetBranchAddress("lumiBlock", &lumiBlock, &b_lumiBlock);
@@ -2792,6 +2800,7 @@ void VecbosBase::Init(TTree *tree)
    fChain->SetBranchAddress("standAloneTrackIndexMuon", standAloneTrackIndexMuon, &b_standAloneTrackIndexMuon);
    fChain->SetBranchAddress("combinedTrackIndexMuon", combinedTrackIndexMuon, &b_combinedTrackIndexMuon);
    fChain->SetBranchAddress("muonIdMuon", muonIdMuon, &b_muonIdMuon);
+   fChain->SetBranchAddress("pfmuonIdMuon", pfmuonIdMuon, &b_pfmuonIdMuon);
    fChain->SetBranchAddress("typeMuon", typeMuon, &b_typeMuon);
    fChain->SetBranchAddress("numberOfMatchesMuon", numberOfMatchesMuon, &b_numberOfMatchesMuon);
    fChain->SetBranchAddress("sumPt03Muon", sumPt03Muon, &b_sumPt03Muon);
@@ -3082,6 +3091,7 @@ void VecbosBase::Init(TTree *tree)
    fChain->SetBranchAddress("betastarAK5PFNoPUJet", betastarAK5PFNoPUJet, &b_betastarAK5PFNoPUJet);
    fChain->SetBranchAddress("rmsCandsHandAK5PFNoPUJet", rmsCandsHandAK5PFNoPUJet, &b_rmsCandsHandAK5PFNoPUJet);
    fChain->SetBranchAddress("jetIdMvaAK5PFNoPUJet", jetIdMvaAK5PFNoPUJet, &b_jetIdMvaAK5PFNoPUJet);
+   fChain->SetBranchAddress("jetIdMvaPhilV1AK5PFNoPUJet", jetIdMvaPhilV1AK5PFNoPUJet, &b_jetIdMvaPhilV1AK5PFNoPUJet);
    fChain->SetBranchAddress("nChargedIdMvaAK5PFNoPUJet", nChargedIdMvaAK5PFNoPUJet, &b_nChargedIdMvaAK5PFNoPUJet);
    fChain->SetBranchAddress("nNeutralsIdMvaAK5PFNoPUJet", nNeutralsIdMvaAK5PFNoPUJet, &b_nNeutralsIdMvaAK5PFNoPUJet);
    fChain->SetBranchAddress("dZIdMvaAK5PFNoPUJet", dZIdMvaAK5PFNoPUJet, &b_dZIdMvaAK5PFNoPUJet);
@@ -3139,6 +3149,7 @@ void VecbosBase::Init(TTree *tree)
    fChain->SetBranchAddress("betastarAK5PFPUcorrJet", betastarAK5PFPUcorrJet, &b_betastarAK5PFPUcorrJet);
    fChain->SetBranchAddress("rmsCandsHandAK5PFPUcorrJet", rmsCandsHandAK5PFPUcorrJet, &b_rmsCandsHandAK5PFPUcorrJet);
    fChain->SetBranchAddress("jetIdMvaAK5PFPUcorrJet", jetIdMvaAK5PFPUcorrJet, &b_jetIdMvaAK5PFPUcorrJet);
+   fChain->SetBranchAddress("jetIdMvaPhilV1AK5PFPUcorrJet", jetIdMvaPhilV1AK5PFPUcorrJet, &b_jetIdMvaPhilV1AK5PFPUcorrJet);
    fChain->SetBranchAddress("nChargedIdMvaAK5PFPUcorrJet", nChargedIdMvaAK5PFPUcorrJet, &b_nChargedIdMvaAK5PFPUcorrJet);
    fChain->SetBranchAddress("nNeutralsIdMvaAK5PFPUcorrJet", nNeutralsIdMvaAK5PFPUcorrJet, &b_nNeutralsIdMvaAK5PFPUcorrJet);
    fChain->SetBranchAddress("dZIdMvaAK5PFPUcorrJet", dZIdMvaAK5PFPUcorrJet, &b_dZIdMvaAK5PFPUcorrJet);

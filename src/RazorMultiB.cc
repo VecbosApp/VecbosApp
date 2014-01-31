@@ -647,7 +647,7 @@ void RazorMultiB::Loop(string outFileName, int start, int stop) {
             myJet.SetPxPyPzE(px,py,pz,E);
             
             if(myJet.Pt() > 30.0 && fabs(myJet.Eta()) < 3.0){
-                if ( goodJetID(i) ) {
+                if ( isLoosePFNoPUJetID(i) ) {
                     PFJet.push_back(myJet);
                     iPFJet.push_back(i);
                     nPFJets += 1;
@@ -2376,61 +2376,6 @@ std::vector<float> RazorMultiB::ParseEvent(){
     parameterPoint.push_back(mchi);
     return parameterPoint;
 }
-
-
-
-
-bool RazorMultiB::goodJetID(int i){
-    ///////////////////////////////////
-    //Now, we do PFNoPU jets with PU corrections 
-    ///////////////////////////////////
-    TLorentzVector jet;
-    double px = pxAK5PFNoPUJet[i];
-    double py = pyAK5PFNoPUJet[i];
-    double pz = pzAK5PFNoPUJet[i];
-    double E = sqrt(px*px+py*py+pz*pz);
-    jet.SetPxPyPzE(px,py,pz,E);
-    
-    bool good_jet = false;
-    double EU = uncorrEnergyAK5PFNoPUJet[i];
-    
-    double fHAD = (neutralHadronEnergyAK5PFNoPUJet[i]+chargedHadronEnergyAK5PFNoPUJet[i])/EU;
-    
-    if(fHAD > 0.99){
-        good_jet = false;
-    }
-    else {
-        int nConstituents = chargedHadronMultiplicityAK5PFNoPUJet[i]+neutralHadronMultiplicityAK5PFNoPUJet[i]+photonMultiplicityAK5PFNoPUJet[i]+electronMultiplicityAK5PFNoPUJet[i]+muonMultiplicityAK5PFNoPUJet[i]+HFHadronMultiplicityAK5PFNoPUJet[i]+HFEMMultiplicityAK5PFNoPUJet[i];
-        int chargedMult = chargedHadronMultiplicityAK5PFNoPUJet[i]+electronMultiplicityAK5PFNoPUJet[i]+muonMultiplicityAK5PFNoPUJet[i];
-        
-        float photonFrac = photonEnergyAK5PFNoPUJet[i]/EU;
-        float electronFrac = electronEnergyAK5PFNoPUJet[i]/EU;
-        float muonFrac = muonEnergyAK5PFNoPUJet[i]/EU;
-        float neutralHadFrac = neutralHadronEnergyAK5PFNoPUJet[i]/EU;
-        float chargedHadFrac = chargedHadronEnergyAK5PFNoPUJet[i]/EU;
-        float HFHadFrac = HFHadronEnergyAK5PFNoPUJet[i]/EU;
-        float HFEMFrac = HFEMEnergyAK5PFNoPUJet[i]/EU;
-        
-        int photonMult = photonMultiplicityAK5PFNoPUJet[i];
-        int electronMult = electronMultiplicityAK5PFNoPUJet[i];
-        int muonMult = muonMultiplicityAK5PFNoPUJet[i];
-        int neutralHadMult = neutralHadronMultiplicityAK5PFNoPUJet[i];
-        int chargedHadMult = chargedHadronMultiplicityAK5PFNoPUJet[i];
-        int HFHadMult = HFHadronMultiplicityAK5PFNoPUJet[i];
-        int HFEMMult = HFEMMultiplicityAK5PFNoPUJet[i];
-        
-        if((neutralHadFrac < 0.99) && (photonFrac < 0.99) && (nConstituents > 1)) {
-            //outside of tracker acceptance, these are the only requirementspf
-            if (fabs(jet.Eta())>=2.4) good_jet = true;
-            //inside of the tracker acceptance, there are extra requirements				     
-            else {
-                if ((chargedHadFrac > 0.0) && (chargedMult > 0) && (electronFrac < 0.99)) good_jet = true;
-            }
-        }
-    }
-    return good_jet;
-}
-
 
 bool RazorMultiB::FailFilters(){
     bool FAIL = false;

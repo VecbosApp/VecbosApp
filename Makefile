@@ -78,6 +78,7 @@ VecbosApp:  $(SRCDIR)VecbosApp.C \
 	$(OUTLIB)DiJet.o \
 	$(OUTLIB)Razor.o \
 	$(OUTLIB)RazorMultiB.o \
+	$(OUTLIB)Timing.o \
 	$(OUTLIB)RazorDiMuB.o \
 	$(OUTLIB)RazorDMAnalysis.o \
 	$(OUTLIB)BtagEff.o \
@@ -148,6 +149,7 @@ lib: 	$(OUTLIBCOMMON)Conditions.o \
 	$(OUTLIB)Razor.o \
 	$(OUTLIB)RazorLeptons.o \
 	$(OUTLIB)RazorMultiB.o \
+	$(OUTLIB)Timing.o \
 	$(OUTLIB)RazorDiMuB.o \
 	$(OUTLIB)RazorDMAnalysis.o \
 	$(OUTLIB)BtagEff.o \
@@ -233,6 +235,9 @@ $(OUTLIB)SUSYMultiB.o: $(SRCDIR)SUSYMultiB.cc $(OUTLIB)Vecbos.o
 
 $(OUTLIB)RazorMultiB.o: $(SRCDIR)RazorMultiB.cc $(OUTLIB)Vecbos.o
 	$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)RazorMultiB.o $<
+
+$(OUTLIB)Timing.o: $(SRCDIR)Timing.cc $(OUTLIB)Vecbos.o
+	$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)Timing.o $<
 
 $(OUTLIB)RazorDiMuB.o: $(SRCDIR)RazorDiMuB.cc $(OUTLIB)Vecbos.o
 	$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)RazorDiMuB.o $<

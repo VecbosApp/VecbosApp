@@ -36,7 +36,6 @@ public:
   TVector3 BetaTR(TLorentzVector TOT, TVector3 MET);
   double shatR(TLorentzVector TOT, TVector3 MET);
   vector<float> ParseEvent();
-  bool goodJetID(int i);
   bool FailFilters();
   bool isFlagged();
   void InitEventFlag(char *s_Event);

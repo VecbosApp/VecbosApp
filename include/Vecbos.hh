@@ -383,6 +383,17 @@ protected:
   bool pfJetPassCSVM(double btagOutput);
   bool pfJetPassCSVT(double btagOutput);
 
+  // PF JET ID 
+  // FROM https://twiki.cern.ch/twiki/bin/view/CMS/JetID#Documentation
+  bool isPFNoPUJetID(int jetIndex, double energyFrac);
+  bool isLoosePFNoPUJetID(int jetIndex);
+  bool isMediumPFNoPUJetID(int jetIndex);
+  bool isTightPFNoPUJetID(int jetIndex);
+  bool isPFPUcorrJetID(int jetIndex, double energyFrac);
+  bool isLoosePFPUcorrJetID(int jetIndex);
+  bool isMediumPFPUcorrJetID(int jetIndex);
+  bool isTightPFPUcorrJetID(int jetIndex);
+
   /// LEPTON SELECTION 2012
   void isMuonID2012(int muonIndex, bool *muonIdOutput);
   bool isTightMuon(int iMu, bool CorrectingIsoforMuons = false);

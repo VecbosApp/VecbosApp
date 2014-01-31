@@ -2669,6 +2669,130 @@ bool Vecbos::pfJetPassCSVT(double btagOutput)
 }
 
 
+// FROM https://twiki.cern.ch/twiki/bin/view/CMS/JetID#Documentation
+bool Vecbos::isPFNoPUJetID(int jetIndex, double energyFrac) {
+  TLorentzVector jet;
+  double px = pxAK5PFNoPUJet[jetIndex];
+  double py = pyAK5PFNoPUJet[jetIndex];
+  double pz = pzAK5PFNoPUJet[jetIndex];
+  double E = sqrt(px*px+py*py+pz*pz);
+  jet.SetPxPyPzE(px,py,pz,E);
+    
+  bool good_jet = false;
+  double EU = uncorrEnergyAK5PFNoPUJet[jetIndex];
+    
+  double fHAD = (neutralHadronEnergyAK5PFNoPUJet[jetIndex]+chargedHadronEnergyAK5PFNoPUJet[jetIndex])/EU;
+    
+  if(fHAD > 0.99){
+    good_jet = false;
+  }
+  else {
+    int nConstituents = chargedHadronMultiplicityAK5PFNoPUJet[jetIndex]+neutralHadronMultiplicityAK5PFNoPUJet[jetIndex]+photonMultiplicityAK5PFNoPUJet[jetIndex]+electronMultiplicityAK5PFNoPUJet[jetIndex]+muonMultiplicityAK5PFNoPUJet[jetIndex]+HFHadronMultiplicityAK5PFNoPUJet[jetIndex]+HFEMMultiplicityAK5PFNoPUJet[jetIndex];
+    int chargedMult = chargedHadronMultiplicityAK5PFNoPUJet[jetIndex]+electronMultiplicityAK5PFNoPUJet[jetIndex]+muonMultiplicityAK5PFNoPUJet[jetIndex];
+        
+    float photonFrac = photonEnergyAK5PFNoPUJet[jetIndex]/EU;
+    float electronFrac = electronEnergyAK5PFNoPUJet[jetIndex]/EU;
+    float muonFrac = muonEnergyAK5PFNoPUJet[jetIndex]/EU;
+    float neutralHadFrac = neutralHadronEnergyAK5PFNoPUJet[jetIndex]/EU;
+    float chargedHadFrac = chargedHadronEnergyAK5PFNoPUJet[jetIndex]/EU;
+    float HFHadFrac = HFHadronEnergyAK5PFNoPUJet[jetIndex]/EU;
+    float HFEMFrac = HFEMEnergyAK5PFNoPUJet[jetIndex]/EU;
+        
+    int photonMult = photonMultiplicityAK5PFNoPUJet[jetIndex];
+    int electronMult = electronMultiplicityAK5PFNoPUJet[jetIndex];
+    int muonMult = muonMultiplicityAK5PFNoPUJet[jetIndex];
+    int neutralHadMult = neutralHadronMultiplicityAK5PFNoPUJet[jetIndex];
+    int chargedHadMult = chargedHadronMultiplicityAK5PFNoPUJet[jetIndex];
+    int HFHadMult = HFHadronMultiplicityAK5PFNoPUJet[jetIndex];
+    int HFEMMult = HFEMMultiplicityAK5PFNoPUJet[jetIndex];
+        
+    if((neutralHadFrac < energyFrac) && (photonFrac < energyFrac) && (nConstituents > 1)) {
+      //outside of tracker acceptance, these are the only requirementspf
+      if (fabs(jet.Eta())>=2.4) good_jet = true;
+      //inside of the tracker acceptance, there are extra requirements				     
+      else {
+	if ((chargedHadFrac > 0.0) && (chargedMult > 0) && (electronFrac < 0.99)) good_jet = true;
+      }
+    }
+  }
+    return good_jet;
+
+}
+
+bool Vecbos::isLoosePFNoPUJetID(int jetIndex) {
+  return isPFNoPUJetID(jetIndex, 0.99);
+}
+
+bool Vecbos::isMediumPFNoPUJetID(int jetIndex) {
+  return isPFNoPUJetID(jetIndex, 0.95);
+}
+
+bool Vecbos::isTightPFNoPUJetID(int jetIndex) {
+  return isPFNoPUJetID(jetIndex, 0.90);
+}
+
+// FROM https://twiki.cern.ch/twiki/bin/view/CMS/JetID#Documentation
+bool Vecbos::isPFPUcorrJetID(int jetIndex, double energyFrac) {
+  TLorentzVector jet;
+  double px = pxAK5PFPUcorrJet[jetIndex];
+  double py = pyAK5PFPUcorrJet[jetIndex];
+  double pz = pzAK5PFPUcorrJet[jetIndex];
+  double E = sqrt(px*px+py*py+pz*pz);
+  jet.SetPxPyPzE(px,py,pz,E);
+    
+  bool good_jet = false;
+  double EU = uncorrEnergyAK5PFPUcorrJet[jetIndex];
+    
+  double fHAD = (neutralHadronEnergyAK5PFPUcorrJet[jetIndex]+chargedHadronEnergyAK5PFPUcorrJet[jetIndex])/EU;
+    
+  if(fHAD > 0.99){
+    good_jet = false;
+  }
+  else {
+    int nConstituents = chargedHadronMultiplicityAK5PFPUcorrJet[jetIndex]+neutralHadronMultiplicityAK5PFPUcorrJet[jetIndex]+photonMultiplicityAK5PFPUcorrJet[jetIndex]+electronMultiplicityAK5PFPUcorrJet[jetIndex]+muonMultiplicityAK5PFPUcorrJet[jetIndex]+HFHadronMultiplicityAK5PFPUcorrJet[jetIndex]+HFEMMultiplicityAK5PFPUcorrJet[jetIndex];
+    int chargedMult = chargedHadronMultiplicityAK5PFPUcorrJet[jetIndex]+electronMultiplicityAK5PFPUcorrJet[jetIndex]+muonMultiplicityAK5PFPUcorrJet[jetIndex];
+        
+    float photonFrac = photonEnergyAK5PFPUcorrJet[jetIndex]/EU;
+    float electronFrac = electronEnergyAK5PFPUcorrJet[jetIndex]/EU;
+    float muonFrac = muonEnergyAK5PFPUcorrJet[jetIndex]/EU;
+    float neutralHadFrac = neutralHadronEnergyAK5PFPUcorrJet[jetIndex]/EU;
+    float chargedHadFrac = chargedHadronEnergyAK5PFPUcorrJet[jetIndex]/EU;
+    float HFHadFrac = HFHadronEnergyAK5PFPUcorrJet[jetIndex]/EU;
+    float HFEMFrac = HFEMEnergyAK5PFPUcorrJet[jetIndex]/EU;
+        
+    int photonMult = photonMultiplicityAK5PFPUcorrJet[jetIndex];
+    int electronMult = electronMultiplicityAK5PFPUcorrJet[jetIndex];
+    int muonMult = muonMultiplicityAK5PFPUcorrJet[jetIndex];
+    int neutralHadMult = neutralHadronMultiplicityAK5PFPUcorrJet[jetIndex];
+    int chargedHadMult = chargedHadronMultiplicityAK5PFPUcorrJet[jetIndex];
+    int HFHadMult = HFHadronMultiplicityAK5PFPUcorrJet[jetIndex];
+    int HFEMMult = HFEMMultiplicityAK5PFPUcorrJet[jetIndex];
+        
+    if((neutralHadFrac < energyFrac) && (photonFrac < energyFrac) && (nConstituents > 1)) {
+      //outside of tracker acceptance, these are the only requirementspf
+      if (fabs(jet.Eta())>=2.4) good_jet = true;
+      //inside of the tracker acceptance, there are extra requirements				     
+      else {
+	if ((chargedHadFrac > 0.0) && (chargedMult > 0) && (electronFrac < 0.99)) good_jet = true;
+      }
+    }
+  }
+    return good_jet;
+
+}
+
+bool Vecbos::isLoosePFPUcorrJetID(int jetIndex) {
+  return isPFPUcorrJetID(jetIndex, 0.99);
+}
+
+bool Vecbos::isMediumPFPUcorrJetID(int jetIndex) {
+  return isPFPUcorrJetID(jetIndex, 0.95);
+}
+
+bool Vecbos::isTightPFPUcorrJetID(int jetIndex) {
+  return isPFPUcorrJetID(jetIndex, 0.90);
+}
+
 // 2012 Lepton Selection
 
 void Vecbos::isMuonID2012(int muonIndex, bool *muonIdOutput) {
@@ -2702,7 +2826,7 @@ void Vecbos::isMuonID2012(int muonIndex, bool *muonIdOutput) {
 
   if(kinkMuon[muonIndex]>=20) *muonIdOutput = false;
 
-  //if(pfmuonIdMuon[muonIndex]==0) *muonIdOutput = false;
+  if(pfmuonIdMuon[muonIndex]==0) *muonIdOutput = false;
 
   float ptTrack = sqrt( pxTrack[track]*pxTrack[track] + pyTrack[track]*pyTrack[track] );
   float sign = fabs(ptErrorTrack[track]/ptTrack);
