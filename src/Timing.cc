@@ -183,23 +183,26 @@ void Timing::InitEventTree(){
   myEventT->Branch("CaloJet_covEtaEta", CaloJet_covEtaEta, "CaloJet_covEtaEta[20]/F");
   myEventT->Branch("CaloJet_covPhiPhi", CaloJet_covPhiPhi, "CaloJet_covPhiPhi[20]/F");
 
-  //PFnoPU
-  myEventT->Branch("N_PFnoPU", &N_PFnoPU, "N_PFnoPU/I");
-  myEventT->Branch("PFnoPU_pt", PFnoPU_pt, "PFnoPU_pt[20]/F");
-  myEventT->Branch("PFnoPU_eta", PFnoPU_eta, "PFnoPU_eta[20]/F");
-  myEventT->Branch("PFnoPU_phi", PFnoPU_phi, "PFnoPU_phi[20]/F");
-  myEventT->Branch("PFnoPU_energy", PFnoPU_energy, "PFnoPU_energy[20]/F");
-  myEventT->Branch("PFnoPU_uncorrEnergy", PFnoPU_uncorrEnergy, "PFnoPU_uncorrEnergy[20]/F");
-  myEventT->Branch("PFnoPU_vx", PFnoPU_vx, "PFnoPU_vx[20]/F");
-  myEventT->Branch("PFnoPU_vy", PFnoPU_vy, "PFnoPU_vy[20]/F");
-  myEventT->Branch("PFnoPU_vz", PFnoPU_vz, "PFnoPU_vz[20]/F");
-  myEventT->Branch("PFnoPU_area", PFnoPU_area, "PFnoPU_area[20]/F");
-  myEventT->Branch("PFnoPU_EMFrac", PFnoPU_EMFrac, "PFnoPU_EMFrac[20]/F");
-  myEventT->Branch("PFnoPU_Ntrack_match", PFnoPU_Ntrack_match, "PFnoPU_Ntrack_match[20]/I");
-  myEventT->Branch("PFnoPU_Ntrack_nomatch", PFnoPU_Ntrack_nomatch, "PFnoPU_Ntrack_nomatch[20]/I");
-  myEventT->Branch("PFnoPU_pt_match", PFnoPU_pt_match, "PFnoPU_pt_match[20]/F");
-  myEventT->Branch("PFnoPU_pt_nomatch", PFnoPU_pt_nomatch, "PFnoPU_pt_nomatch[20]/F");
-  myEventT->Branch("PFnoPU_MVAID", PFnoPU_MVAID, "PFnoPU_MVAID[20]/F");
+  //PFNoPU
+  myEventT->Branch("N_PFNoPU", &N_PFNoPU, "N_PFNoPU/I");
+  myEventT->Branch("PFNoPU_pt", PFNoPU_pt, "PFNoPU_pt[20]/F");
+  myEventT->Branch("PFNoPU_eta", PFNoPU_eta, "PFNoPU_eta[20]/F");
+  myEventT->Branch("PFNoPU_phi", PFNoPU_phi, "PFNoPU_phi[20]/F");
+  myEventT->Branch("PFNoPU_energy", PFNoPU_energy, "PFNoPU_energy[20]/F");
+  myEventT->Branch("PFNoPU_uncorrEnergy", PFNoPU_uncorrEnergy, "PFNoPU_uncorrEnergy[20]/F");
+  myEventT->Branch("PFNoPU_vx", PFNoPU_vx, "PFNoPU_vx[20]/F");
+  myEventT->Branch("PFNoPU_vy", PFNoPU_vy, "PFNoPU_vy[20]/F");
+  myEventT->Branch("PFNoPU_vz", PFNoPU_vz, "PFNoPU_vz[20]/F");
+  myEventT->Branch("PFNoPU_area", PFNoPU_area, "PFNoPU_area[20]/F");
+  myEventT->Branch("PFNoPU_EMFrac", PFNoPU_EMFrac, "PFNoPU_EMFrac[20]/F");
+  myEventT->Branch("PFNoPU_Ntrack_match", PFNoPU_Ntrack_match, "PFNoPU_Ntrack_match[20]/I");
+  myEventT->Branch("PFNoPU_Ntrack_nomatch", PFNoPU_Ntrack_nomatch, "PFNoPU_Ntrack_nomatch[20]/I");
+  myEventT->Branch("PFNoPU_pt_match", PFNoPU_pt_match, "PFNoPU_pt_match[20]/F");
+  myEventT->Branch("PFNoPU_pt_nomatch", PFNoPU_pt_nomatch, "PFNoPU_pt_nomatch[20]/F");
+  myEventT->Branch("PFNoPU_MVAID", PFNoPU_MVAID, "PFNoPU_MVAID[20]/F");
+  myEventT->Branch("PFNoPU_LoosePFJetID", PFNoPU_LoosePFJetID, "PFNoPU_LoosePFJetID[20]/I");
+  myEventT->Branch("PFNoPU_MediumPFJetID", PFNoPU_MediumPFJetID, "PFNoPU_MediumPFJetID[20]/I");
+  myEventT->Branch("PFNoPU_TightPFJetID", PFNoPU_TightPFJetID, "PFNoPU_TightPFJetID[20]/I");
 
   //PFPUcorr
   myEventT->Branch("N_PFPUcorr", &N_PFPUcorr, "N_PFPUcorr/I");
@@ -218,6 +221,9 @@ void Timing::InitEventTree(){
   myEventT->Branch("PFPUcorr_pt_match", PFPUcorr_pt_match, "PFPUcorr_pt_match[20]/F");
   myEventT->Branch("PFPUcorr_pt_nomatch", PFPUcorr_pt_nomatch, "PFPUcorr_pt_nomatch[20]/F");
   myEventT->Branch("PFPUcorr_MVAID", PFPUcorr_MVAID, "PFPUcorr_MVAID[20]/F");
+  myEventT->Branch("PFPUcorr_LoosePFJetID", PFPUcorr_LoosePFJetID, "PFPUcorr_LoosePFJetID[20]/I");
+  myEventT->Branch("PFPUcorr_MediumPFJetID", PFPUcorr_MediumPFJetID, "PFPUcorr_MediumPFJetID[20]/I");
+  myEventT->Branch("PFPUcorr_TightPFJetID", PFPUcorr_TightPFJetID, "PFPUcorr_TightPFJetID[20]/I");
 
   //GEN
   myEventT->Branch("N_GEN", &N_GEN, "N_GEN/I");
@@ -604,8 +610,8 @@ bool Timing::PassJetSelection(){
   ///////////////////////////////////
   //Now, we do PFNoPU jets with PU corrections 
   ///////////////////////////////////
-  N_PFnoPU = 0;
-  for(int i = 0; i < nAK5PFNoPUJet && N_PFnoPU < 20; i++){
+  N_PFNoPU = 0;
+  for(int i = 0; i < nAK5PFNoPUJet && N_PFNoPU < 20; i++){
     TLorentzVector jet;
     double px = pxAK5PFNoPUJet[i];
     double py = pyAK5PFNoPUJet[i];
@@ -621,19 +627,22 @@ bool Timing::PassJetSelection(){
       if(jet.DeltaR(vMU[imu]) < 0.5) continue;
     }
 
-    PFnoPU_pt[N_PFnoPU] = jet.Pt();
-    PFnoPU_eta[N_PFnoPU] = jet.Eta();
-    PFnoPU_phi[N_PFnoPU] = jet.Phi();
-    PFnoPU_energy[N_PFnoPU] = energyAK5PFNoPUJet[i];
-    PFnoPU_uncorrEnergy[N_PFnoPU] = uncorrEnergyAK5PFNoPUJet[i];
-    PFnoPU_vx[N_PFnoPU] = vertexXAK5PFNoPUJet[i];
-    PFnoPU_vy[N_PFnoPU] = vertexYAK5PFNoPUJet[i];
-    PFnoPU_vz[N_PFnoPU] = vertexZAK5PFNoPUJet[i];
-    PFnoPU_area[N_PFnoPU] = areaAK5PFNoPUJet[i];
-    PFnoPU_EMFrac[N_PFnoPU] = (HFEMEnergyAK5PFNoPUJet[i]+
+    PFNoPU_pt[N_PFNoPU] = jet.Pt();
+    PFNoPU_eta[N_PFNoPU] = jet.Eta();
+    PFNoPU_phi[N_PFNoPU] = jet.Phi();
+    PFNoPU_energy[N_PFNoPU] = energyAK5PFNoPUJet[i];
+    PFNoPU_uncorrEnergy[N_PFNoPU] = uncorrEnergyAK5PFNoPUJet[i];
+    PFNoPU_vx[N_PFNoPU] = vertexXAK5PFNoPUJet[i];
+    PFNoPU_vy[N_PFNoPU] = vertexYAK5PFNoPUJet[i];
+    PFNoPU_vz[N_PFNoPU] = vertexZAK5PFNoPUJet[i];
+    PFNoPU_area[N_PFNoPU] = areaAK5PFNoPUJet[i];
+    PFNoPU_EMFrac[N_PFNoPU] = (HFEMEnergyAK5PFNoPUJet[i]+
 			       chargedEmEnergyAK5PFNoPUJet[i]+
 			       neutralEmEnergyAK5PFNoPUJet[i])/uncorrEnergyAK5PFNoPUJet[i];
-    PFnoPU_MVAID[N_PFnoPU] = jetIdMvaPhilV1AK5PFNoPUJet[i];
+    PFNoPU_MVAID[N_PFNoPU] = jetIdMvaPhilV1AK5PFNoPUJet[i];
+    PFNoPU_LoosePFJetID[N_PFNoPU] = isLoosePFNoPUJetID(i);
+    PFNoPU_MediumPFJetID[N_PFNoPU] = isMediumPFNoPUJetID(i);
+    PFNoPU_TightPFJetID[N_PFNoPU] = isTightPFNoPUJetID(i);
     
     //Now we do track/jet matching
     int N_match = 0;
@@ -652,12 +661,12 @@ bool Timing::PassJetSelection(){
 	pt_unmatch += unmatched_tracks[it].Pt();
       }
     }
-    PFnoPU_Ntrack_match[N_PFnoPU] = N_match;
-    PFnoPU_Ntrack_nomatch[N_PFnoPU] = N_unmatch;
-    PFnoPU_pt_match[N_PFnoPU] = pt_match;
-    PFnoPU_pt_nomatch[N_PFnoPU] = pt_unmatch;
+    PFNoPU_Ntrack_match[N_PFNoPU] = N_match;
+    PFNoPU_Ntrack_nomatch[N_PFNoPU] = N_unmatch;
+    PFNoPU_pt_match[N_PFNoPU] = pt_match;
+    PFNoPU_pt_nomatch[N_PFNoPU] = pt_unmatch;
 
-    N_PFnoPU++;
+    N_PFNoPU++;
   }
 
   ///////////////////////////////////
@@ -693,6 +702,9 @@ bool Timing::PassJetSelection(){
 			       chargedEmEnergyAK5PFPUcorrJet[i]+
 			       neutralEmEnergyAK5PFPUcorrJet[i])/uncorrEnergyAK5PFPUcorrJet[i];
     PFPUcorr_MVAID[N_PFPUcorr] = jetIdMvaPhilV1AK5PFPUcorrJet[i];
+    PFPUcorr_LoosePFJetID[N_PFPUcorr] = isLoosePFPUcorrJetID(i);
+    PFPUcorr_MediumPFJetID[N_PFPUcorr] = isMediumPFPUcorrJetID(i);
+    PFPUcorr_TightPFJetID[N_PFPUcorr] = isTightPFPUcorrJetID(i);
     
     //Now we do track/jet matching
     int N_match = 0;
@@ -766,7 +778,7 @@ bool Timing::PassJetSelection(){
     N_GEN++;
   }
 	
-  if(N_CaloJet+N_PFnoPU+N_PFPUcorr < 1) return false;
+  if(N_CaloJet+N_PFNoPU+N_PFPUcorr < 1) return false;
  
   return true;
 }

@@ -138,25 +138,28 @@ private:
   float CaloJet_covEtaEta[20];
   float CaloJet_covPhiPhi[20];
 
-  //PFnoPU
-  int N_PFnoPU;
-  float PFnoPU_pt[20];
-  float PFnoPU_eta[20];
-  float PFnoPU_phi[20];
-  float PFnoPU_energy[20];
-  float PFnoPU_uncorrEnergy[20];
-  float PFnoPU_vx[20];
-  float PFnoPU_vy[20];
-  float PFnoPU_vz[20];
-  float PFnoPU_area[20];
-  float PFnoPU_EMFrac[20];
+  //PFNoPU
+  int N_PFNoPU;
+  float PFNoPU_pt[20];
+  float PFNoPU_eta[20];
+  float PFNoPU_phi[20];
+  float PFNoPU_energy[20];
+  float PFNoPU_uncorrEnergy[20];
+  float PFNoPU_vx[20];
+  float PFNoPU_vy[20];
+  float PFNoPU_vz[20];
+  float PFNoPU_area[20];
+  float PFNoPU_EMFrac[20];
+  int PFNoPU_LoosePFJetID[20];
+  int PFNoPU_MediumPFJetID[20];
+  int PFNoPU_TightPFJetID[20];
 
-  int PFnoPU_Ntrack_match[20];
-  int PFnoPU_Ntrack_nomatch[20];
-  float PFnoPU_pt_match[20];
-  float PFnoPU_pt_nomatch[20];
+  int PFNoPU_Ntrack_match[20];
+  int PFNoPU_Ntrack_nomatch[20];
+  float PFNoPU_pt_match[20];
+  float PFNoPU_pt_nomatch[20];
 
-  float PFnoPU_MVAID[20];
+  float PFNoPU_MVAID[20];
 
   //PFPUcorr
   int N_PFPUcorr;
@@ -177,6 +180,9 @@ private:
   float PFPUcorr_pt_nomatch[20];
   
   float PFPUcorr_MVAID[20];
+  int PFPUcorr_LoosePFJetID[20];
+  int PFPUcorr_MediumPFJetID[20];
+  int PFPUcorr_TightPFJetID[20];
 
   //other info for the event
   int N_PU[3];
