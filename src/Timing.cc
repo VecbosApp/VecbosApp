@@ -27,17 +27,35 @@ using namespace std;
 #include "Timing.hh"
 
 Timing::Timing(TTree *tree) : Vecbos(tree) {  
-  
+  _goodRunLS = false;
+  _isData = false;
+  _weight=1.0;  
+}
+
+
+Timing::Timing(TTree *tree, string jsonFile,  bool goodRunLS, bool isData) : Vecbos(tree) {
+  _goodRunLS = goodRunLS;
+  _isData = isData;
+  _weight=1.0;
+  //To read good run list!
+  if (_goodRunLS && _isData) {
+    cout << "json File = " << jsonFile << endl;
+    setJsonGoodRunList(jsonFile);
+    fillRunLSMap();
+  }
 }
 
 Timing::~Timing(){
 }
 
-void Timing::Loop(string outFileName, int ISDATA) {
+void Timing::SetWeight(double weight){
+  _weight=weight;
+}
+
+void Timing::Loop(string outFileName, int start, int stop) {
   if(fChain == 0) return;
   
   s_output = outFileName;
-  is_DATA = ISDATA;
 
   //Initiate event dump tree
   InitEventTree();
@@ -50,7 +68,7 @@ void Timing::Loop(string outFileName, int ISDATA) {
   Long64_t nentries = fChain->GetEntries();
   cout << "and here" << endl;
   cout << "Number of entries = " << nentries << endl;
-  for (Long64_t jentry=0; jentry<nentries; jentry++) {
+  for (Long64_t jentry=start; jentry<stop; jentry++) {
     Long64_t ientry = LoadTree(jentry);
     if (ientry < 0) break;
     
@@ -61,26 +79,52 @@ void Timing::Loop(string outFileName, int ISDATA) {
 
     nb = fChain->GetEntry(jentry);   nbytes += nb;
       
-    if (jentry%10000 == 0)
+    if (jentry%1000 == 0)
       cout << ">>> Processing event # " << jentry << endl;
     
-    if(is_DATA) {
-      //Check LS/RUN 
-      if(isGoodRunLS() == false){
+    cout << jentry << " isGoodRunLS() = " << isGoodRunLS() << endl;
+
+    unsigned int lastLumi=0;
+    unsigned int lastRun=0;
+    if(_isData) {
+
+      //Good Run selection
+      if (_isData && _goodRunLS && !isGoodRunLS()) {
+	if ( lastRun != runNumber || lastLumi != lumiBlock) {
+	  lastRun = runNumber;
+	  lastLumi = lumiBlock;
+	  std::cout << "[GoodRunLS]::Run " << lastRun << " LS " << lastLumi << " is rejected" << std::endl;
+	}
 	continue;
       }
+        
+      if (_isData && _goodRunLS && ( lastRun!= runNumber || lastLumi != lumiBlock) ) {
+	lastRun = runNumber;
+	lastLumi = lumiBlock;
+	std::cout << "[GoodRunLS]::Run " << lastRun << " LS " << lastLumi << " is OK" << std::endl;
+      }
+
       if((fail2011Filter == 1) || (failHPDHits == 1) || 
 	 (failHPDNoOtherHits == 1) || (failMaxZeros == 1)){
 	continue;
       }
     }
-      
-    if(PassLeptonSelection() == false) continue;
-    if(PassPVSelection() == false) continue;
-    if(PassSCSelection() == false) continue;
+     
+    //if(PassLeptonSelection() == false) continue;
+    bool passPV = PassPVSelection();
+    cout <<  jentry << " PassPVSelection() = " << passPV << endl;
+
+    if(passPV == false) continue;
+
+    bool passSC = PassSCSelection();
+    cout <<  jentry << " PassSCSelection() = " << passSC << endl;
+    if(passSC == false) continue;
 
     InitTracks();
-    if(PassJetSelection() == false) continue;
+
+    bool passJet = PassJetSelection();
+    cout <<  jentry << " PassJetSelection() = " << passJet << endl;
+    if(passJet == false) continue;
 
     AddEvent();
     NTOT++;
@@ -735,47 +779,49 @@ bool Timing::PassJetSelection(){
   ///////////////////////////////////
   //Now, we do GEN jets:
   ///////////////////////////////////
-     
+    
   //GEN 
   N_GEN = 0;
-  for(int i = 0; i < nAK5GenJet; i++){
-    TLorentzVector jet;
-    double px = pxAK5GenJet[i];
-    double py = pyAK5GenJet[i];
-    double pz = pzAK5GenJet[i];
-    double E = sqrt(px*px+py*py+pz*pz);
-    jet.SetPxPyPzE(px,py,pz,E);
+  if (!_isData) { 
+    for(int i = 0; i < nAK5GenJet; i++){
+      TLorentzVector jet;
+      double px = pxAK5GenJet[i];
+      double py = pyAK5GenJet[i];
+      double pz = pzAK5GenJet[i];
+      double E = sqrt(px*px+py*py+pz*pz);
+      jet.SetPxPyPzE(px,py,pz,E);
     
-    if(jet.Pt() < min_pt/2.) continue;
+      if(jet.Pt() < min_pt/2.) continue;
 
-    GEN_pt[N_GEN] = jet.Pt();
-    GEN_eta[N_GEN] = jet.Eta();
-    GEN_phi[N_GEN] = jet.Phi();
-    GEN_energy[N_GEN] = energyAK5GenJet[i];
+      GEN_pt[N_GEN] = jet.Pt();
+      GEN_eta[N_GEN] = jet.Eta();
+      GEN_phi[N_GEN] = jet.Phi();
+      GEN_energy[N_GEN] = energyAK5GenJet[i];
     
-    //Now we do track/jet matching
-    int N_match = 0;
-    int N_unmatch = 0;
-    float pt_match = 0.0;
-    float pt_unmatch = 0.0;
-    for(int it = 0; it < matched_tracks.size(); it++){
-      if(matched_tracks[it].DeltaR(jet.Vect()) < 0.5){
-	N_match++;
-	pt_match += matched_tracks[it].Pt();
+      //Now we do track/jet matching
+      int N_match = 0;
+      int N_unmatch = 0;
+      float pt_match = 0.0;
+      float pt_unmatch = 0.0;
+      for(int it = 0; it < matched_tracks.size(); it++){
+	if(matched_tracks[it].DeltaR(jet.Vect()) < 0.5){
+	  N_match++;
+	  pt_match += matched_tracks[it].Pt();
+	}
       }
-    }
-    for(int it = 0; it < unmatched_tracks.size(); it++){
-      if(unmatched_tracks[it].DeltaR(jet.Vect()) < 0.5){
-	N_unmatch++;
-	pt_unmatch += unmatched_tracks[it].Pt();
+      for(int it = 0; it < unmatched_tracks.size(); it++){
+	if(unmatched_tracks[it].DeltaR(jet.Vect()) < 0.5){
+	  N_unmatch++;
+	  pt_unmatch += unmatched_tracks[it].Pt();
+	}
       }
-    }
-    GEN_Ntrack_match[N_GEN] = N_match;
-    GEN_Ntrack_nomatch[N_GEN] = N_unmatch;
-    GEN_pt_match[N_GEN] = pt_match;
-    GEN_pt_nomatch[N_GEN] = pt_unmatch;
+      GEN_Ntrack_match[N_GEN] = N_match;
+      GEN_Ntrack_nomatch[N_GEN] = N_unmatch;
+      GEN_pt_match[N_GEN] = pt_match;
+      GEN_pt_nomatch[N_GEN] = pt_unmatch;
 
-    N_GEN++;
+      N_GEN++;
+    }
   }
 	
   if(N_CaloJet+N_PFNoPU+N_PFPUcorr < 1) return false;

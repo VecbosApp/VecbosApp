@@ -141,12 +141,10 @@ int main(int argc, char* argv[]) {
 
   /// Gets the list of input files and chains
   /// them into a single TChain
-  std::cout << "main 0" << std::endl;
   char inputFileName[150];
   char outFileName[150];
   char skimFileName[150];
   char json[150]="none";
-  std::cout << "main 1"<< std::endl;
   if ( argc < 3 ){
     cout << "Error at Input: please specify an input file including the list of input ROOT files" << endl; 
     cout << "Example:        ./VecbosApp list.txt output.root" << endl;
@@ -160,23 +158,19 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  std::cout << "main 2"<< std::endl;
   // rad running options
   strcpy(inputFileName,argv[1]);
   strcpy(outFileName,argv[2]);
   strcpy(skimFileName,argv[2]);
-  std::cout << "main 3"<< std::endl;
   TChain *theChain = new TChain("ntp1");
   char Buffer[500];
   char MyRootFile[2000];  
   ifstream *inputFile = new ifstream(inputFileName);
-  std::cout << "main 4"<< std::endl;
   // get the tree with the conditions from the first file
   //  TTree *treeCond = new TTree();
   //  int nfiles=1;
   char tmpFileName[256];
   vector<string> filesToRemove;
-  std::cout << "main 5"<< std::endl;
   while( !(inputFile->eof()) ){
     inputFile->getline(Buffer,500);
     if (!strstr(Buffer,"#") && !(strspn(Buffer," ") == strlen(Buffer)))
@@ -762,12 +756,16 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if Application == 32
-  std::cout << "here 0" << std::endl;
   BtagEff vecbos(theChain);
-  std::cout << "here 1" << std::endl;
   vecbos.Loop(string(outFileName));
-  std::cout << "here 2"<< std::endl;
 #endif  
+
+
+#if Application == 33
+  Timing vecbos(theChain, string(json), isData, isData);
+  vecbos.SetWeight(double(weight));
+  vecbos.Loop(string(outFileName), start, stop);
+#endif
 
   system("rm thisiswhyitcrashed*");
   

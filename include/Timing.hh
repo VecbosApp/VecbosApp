@@ -5,9 +5,6 @@
 //
 //-------------------------------------------------------
 
-/// The Timing class can be used to perform fast check
-/// on input ntuples (in a format compatible to VecbosBase)
-
 #ifndef Timing_h
 #define Timing_h
 
@@ -15,10 +12,10 @@
 #include "Vecbos.hh"
 #include "Jet.hh"
 #include "CaloTower.hh"
-
 #include "CommonTools/include/PUWeight.h"
-#include "VecbosBase.hh"
-#include "Vecbos.hh"
+#include "CommonTools/include/Utils.hh"
+#include "CommonTools/include/LeptonIdBits.h"
+#include "CommonTools/include/TriggerMask.hh"
 
 using namespace std;
 
@@ -26,12 +23,17 @@ class Timing : public Vecbos{
 public:
 
   Timing(TTree *tree=0); /// Class Constructor
+  Timing(TTree *tree=0, string jsonFile=string("none"), bool goodRunLS=false, bool isData=false); /// Class Constructor
   virtual ~Timing();     /// Class Destructor
   /// The function to run on each events
-  void Loop(string outFileName, int ISDATA);
+  void SetWeight(double);
+  void Loop(string outFileName, int start, int stop);
+  double _weight;
   
 private:
 
+  bool _goodRunLS;
+  bool _isData;
   //
   bool PassLeptonSelection();
   bool PassPVSelection();
@@ -50,8 +52,6 @@ private:
   TTree *myEventT;
 
   string s_output;
- 
-  bool is_DATA;
  
   TFile *f_out;
 
@@ -200,7 +200,7 @@ private:
 
   int GEN_Ntrack_match[20];
   int GEN_Ntrack_nomatch[20];
-  float GEN_pt_match[20];
+  float GEN_pt_match[20];  
   float GEN_pt_nomatch[20];
 };
 #endif
