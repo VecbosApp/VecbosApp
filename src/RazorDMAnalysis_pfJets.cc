@@ -60,6 +60,68 @@ void RazorDMAnalysis::SetWeight(double weight){
 
 void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   if(fChain == 0) return;
+
+  if(outFileName.find("DYJetsHT200To400") != string::npos){
+    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/DYJetsHT200To400.root");
+    pu_h = (TH1D*)pu_f->Get("pileup");
+  }else if(outFileName.find("DYJetsHT400") != string::npos){
+    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/DYJetsHT400.root");
+    pu_h = (TH1D*)pu_f->Get("pileup");
+  }else if(outFileName.find("TTJetsFullyLeptMGDecays") != string::npos){
+    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/TTj_Lep.root");
+    pu_h = (TH1D*)pu_f->Get("pileup");
+  }else if(outFileName.find("TTJetsSemiLeptMGDecays") != string::npos){
+    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/TTj_Semilep.root");
+    pu_h = (TH1D*)pu_f->Get("pileup");
+  }else if(outFileName.find("TTJetsHadMGDecays") != string::npos){
+    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/TTj_Had.root");
+    pu_h = (TH1D*)pu_f->Get("pileup");
+  }else if(outFileName.find("WJetsToLNu_150_HT_200") != string::npos){
+    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/Wpj_150_HT_200.root");
+    pu_h = (TH1D*)pu_f->Get("pileup");
+  }else if(outFileName.find("WJetsToLNu_200_HT_250") != string::npos){
+    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/Wpj_200_HT_250.root");
+    pu_h = (TH1D*)pu_f->Get("pileup");
+  }else if(outFileName.find("WJetsToLNu_250_HT_300") != string::npos){
+    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/Wpj_250_HT_300.root");
+    pu_h = (TH1D*)pu_f->Get("pileup");
+  }else if(outFileName.find("WJetsToLNu_300_HT_400") != string::npos){
+    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/Wpj_300_HT_400.root");
+    pu_h = (TH1D*)pu_f->Get("pileup");
+  }else if(outFileName.find("WJetsToLNu_400_HT_Inf") != string::npos){
+    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/Wpj_400_HT_inf.root");
+    pu_h = (TH1D*)pu_f->Get("pileup");
+  }else if(outFileName.find("ZJetsToNuNu_50_HT_100") != string::npos){
+    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/ZJetsToNuNu_50_HT_100.root");
+    pu_h = (TH1D*)pu_f->Get("pileup");
+  }else if(outFileName.find("ZJetsToNuNu_100_HT_200") != string::npos){
+    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/ZJetsToNuNu_100_HT_200.root");
+    pu_h = (TH1D*)pu_f->Get("pileup");
+  }else if(outFileName.find("ZJetsToNuNu_200_HT_400") != string::npos){
+    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/ZJetsToNuNu_200_HT_400.root");
+    pu_h = (TH1D*)pu_f->Get("pileup");
+  }else if(outFileName.find("ZJetsToNuNu_400_HT_inf") != string::npos){
+    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/ZJetsToNuNu_400_HT_inf.root");
+    pu_h = (TH1D*)pu_f->Get("pileup");
+  }else{
+    std::cout << "-----------INVALID MC NAME-------------------" << std::endl;
+  }
+
+  mu_corr_f = new TFile("/afs/cern.ch/user/w/woodson/public/WEIGHT/MuScaleFactorMap_MC53X_2012HZZ4L.root");
+  mu_corr_h = (TH2F*)mu_corr_f->Get("TH2D_ALL_2012");
+
+  //JEC Uncertainty
+  JetCorrectionUncertainty *jec_un = 
+    new JetCorrectionUncertainty(*(new JetCorrectorParameters("JEC_Uncertainty/Summer13_V5_MC_Uncertainty_AK5PF.txt", "Total")));
+    
+  TFile* file = new TFile(outFileName.c_str(),"RECREATE");
+
+  double pu_w;
+  double jes_up_w;
+  double jes_down_w;
+  double mu_w;
+  double mu_w_up;
+  double mu_w_down;
   
   int HLT_Razor;
   int HLT_Razor_prescaled;
@@ -123,6 +185,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   float mssm[3];
   //int    ss;
   int    nPV;
+  int    nPu;
   int Jet_Multiplicity;
   int N_Jets;
   // gen level info
@@ -138,6 +201,11 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   outTree->Branch("bx", &bx, "bx/D");
   outTree->Branch("ls", &ls, "ls/D");
   outTree->Branch("orbit", &orbit, "orbit/D");
+  outTree->Branch("nPU", &nPu, "nPU/I");
+  outTree->Branch("pu_w", &pu_w, "pu_w/D");
+  outTree->Branch("mu_w", &mu_w, "mu_w/D");
+  outTree->Branch("mu_w_up", &mu_w_up, "mu_w_up/D");
+  outTree->Branch("mu_w_down", &mu_w_down, "mu_w_down/D");
   outTree->Branch("BOX_NUM", &BOX_NUM, "BOX_NUM/I");
   outTree->Branch("BOX", BOX, "BOX[3]/I");
   //outTree->Branch("ss", &ss, "ss/I");
@@ -193,17 +261,17 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   //MC GEN LEVEL INFO
   if( _isData == 0 ){
     outTree->Branch("nMC", &nMc, "nMC/I");
-    outTree->Branch("pMC", pMc, "pMC[101]/F");
-    outTree->Branch("thetaMC", thetaMc, "thetaMC[101]/F");
-    outTree->Branch("etaMC", etaMc, "etaMC[101]/F");
-    outTree->Branch("phiMC", phiMc, "phiMC[101]/F");
-    outTree->Branch("energyMC", energyMc, "energyMC[101]/F");
-    outTree->Branch("vxMC", vxMc, "vxMC[101]/F");
-    outTree->Branch("vyMC", vyMc, "vyMC[101]/F");
-    outTree->Branch("vzMC", vzMc, "vzMC[101]/F");
-    outTree->Branch("idMC", idMc, "idMC[101]/I");
-    outTree->Branch("mothMC", mothMc, "mothMC[101]/I");
-    outTree->Branch("statusMC", statusMc, "statusMC[101]/I");
+    outTree->Branch("pMC", pMc, "pMC[nMC]/F");
+    outTree->Branch("thetaMC", thetaMc, "thetaMC[nMC]/F");
+    outTree->Branch("etaMC", etaMc, "etaMC[nMC]/F");
+    outTree->Branch("phiMC", phiMc, "phiMC[nMC]/F");
+    outTree->Branch("energyMC", energyMc, "energyMC[nMC]/F");
+    outTree->Branch("vxMC", vxMc, "vxMC[nMC]/F");
+    outTree->Branch("vyMC", vyMc, "vyMC[nMC]/F");
+    outTree->Branch("vzMC", vzMc, "vzMC[nMC]/F");
+    outTree->Branch("idMC", idMc, "idMC[nMC]/I");
+    outTree->Branch("mothMC", mothMc, "mothMC[nMC]/I");
+    outTree->Branch("statusMC", statusMc, "statusMC[nMC]/I");
   }
   
   double Npassed_In = 0;
@@ -227,7 +295,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   
   std::vector<std::string> maskHLT_Razor_prescaled; 
   maskHLT_Razor_prescaled.push_back("HLT_RsqMR40_Rsq0p04");
-  //  maskHLT_Razor_prescaled.push_back("HLT_RsqMR45_Rsq0p09");
+  //maskHLT_Razor_prescaled.push_back("HLT_RsqMR45_Rsq0p09");
     
   /*
   std::vector<std::string> maskHLT_Razor;                                         
@@ -251,7 +319,6 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     if(_isData) {
       setRequiredTriggers(maskHLT_Razor); reloadTriggerMask(true); HLT_Razor = hasPassedHLT();
       setRequiredTriggers(maskHLT_Razor_prescaled); reloadTriggerMask(true); HLT_Razor_prescaled = hasPassedHLT();
-      //std::cout << "====HLT_Mu17_Mu8: " << HLT_Razor << " ====HLT_Mu17_TkMu8: " << HLT_Razor_prescaled << std::endl;
       
       ECALTPFilterFlag = (METFlags >> 0)%2;
       drBoundary = (METFlags >> 1)%2;
@@ -260,9 +327,9 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
       trackerFailureFilterFlag = (METFlags >> 4)%2;
       BEECALFlag = (METFlags >> 5)%2; 
       HBHENoiseFilterResultFlag =  (METFlags >> 6)%2;
-      //ecalLaserFilter = (METFlags >> 7)%2;
+      ecalLaserFilter = (METFlags >> 7)%2;
       eeBadScFilterFlag = (METFlags >> 8)%2;
-      //hcalLaserFilter = (METFlags >> 9)%2;
+      hcalLaserFilter = (METFlags >> 9)%2;
     }
     
     //Good Run selection
@@ -315,11 +382,12 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     mchi=mc;
     
     //HLT and Data Filter
-    passedHLT = HLT_Razor + HLT_Razor_prescaled;
-    
+    //passedHLT = HLT_Razor + HLT_Razor_prescaled;
+    passedHLT = HLT_Razor;
+
     if ( _isData == true ) {
       if ( passedHLT == 0 ) continue;//Comment out for getting trigger turn-ons
-      if ((ECALTPFilterFlag==0) || (drBoundary==0) || (drDead==0) || (CSCHaloFilterFlag==0) || (trackerFailureFilterFlag==0) || (BEECALFlag==0) || ( HBHENoiseFilterResultFlag ==0 ) /*|| (ecalLaserFilter == 0)*/ || (eeBadScFilterFlag == 0) /*|| (hcalLaserFilter == 0)*/) continue;
+      if ((ECALTPFilterFlag==0) || (drBoundary==0) || (drDead==0) || (CSCHaloFilterFlag==0) || (trackerFailureFilterFlag==0) || (BEECALFlag==0) || ( HBHENoiseFilterResultFlag ==0 ) || (ecalLaserFilter == 0) || (eeBadScFilterFlag == 0) || (hcalLaserFilter == 0)) continue;
     }
     
     // find highest-pT PV [replace with Sagar's code]
@@ -535,6 +603,30 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
       }
     }
     
+    mu_w = 1.0;
+    double mu_err_sqr = 0.0;
+    for(int j = 0; j < MuLoose.size(); j++){
+      if(MuLoose[j].Pt() <= 100 && fabs(MuLoose[j].PseudoRapidity()) <= 2.4){
+	mu_w *= mu_corr_h->GetBinContent( mu_corr_h->FindBin( MuLoose[j].Pt(), MuLoose[j].PseudoRapidity() ) );
+	mu_err_sqr += pow(mu_corr_h->GetBinError( mu_corr_h->FindBin( MuLoose[j].Pt(), MuLoose[j].PseudoRapidity() ) ), 2);
+      }else if( MuLoose[j].Pt() > 100 && fabs(MuLoose[j].PseudoRapidity()) <= 2.4 ){
+	mu_w *= mu_corr_h->GetBinContent( mu_corr_h->FindBin( 99.9, MuLoose[j].PseudoRapidity() ) );
+        mu_err_sqr += pow(mu_corr_h->GetBinError( mu_corr_h->FindBin( 99.9, MuLoose[j].PseudoRapidity() ) ), 2);
+      }else if( MuLoose[j].Pt() <= 100 && fabs(MuLoose[j].PseudoRapidity()) > 2.4 ){
+	int mu_eta;
+	if(MuLoose[j].PseudoRapidity()>0){
+	  mu_eta = 2.39;
+	}else{
+	  mu_eta = -2.39;
+	}
+        mu_w *= mu_corr_h->GetBinContent( mu_corr_h->FindBin( MuLoose[j].Pt(), mu_eta ) );
+        mu_err_sqr += pow(mu_corr_h->GetBinError( mu_corr_h->FindBin( MuLoose[j].Pt(), mu_eta ) ), 2);
+      }
+    }
+    
+    mu_w_up = mu_w + sqrt(mu_err_sqr);
+    mu_w_down = mu_w - sqrt(mu_err_sqr);
+    
     ////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////
     ///////////////// Create Collection  /////////////////    
@@ -652,7 +744,8 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     }
 
     // Electron VETO
-    if(iEleTight.size()>0) continue;
+    if(iEleTight.size()>0) continue;//REMOVE ONLY FOR Trigger TURN_ON    
+    
     // TAU VETO
     
     //if (iTauTight.size()>0) continue;//removed after a bug was found in the tau ID
@@ -672,10 +765,12 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
         }
       }
       
+      
       if( ILV( kk ) < 0.15 && isMuon == false){
         IsoPF = true;
-        break;//out of the PFCand loop. This means we found an isolated tau or electron 
+        break;//out of the PFCand loop. Ths means we found an isolated tau or electron 
       }
+      
     }
     
     if(IsoPF)continue;//Applying ILV
@@ -799,6 +894,13 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     bx = eventNumber;
     ls = lumiBlock;
     orbit = orbitNumber;
+    nPu = nPU[0];
+    if(!_isData){
+      pu_w = pu_h->GetBinContent(pu_h->FindBin(nPU[0]));
+    }else{
+      pu_w = 1.0;
+      mu_w = 1.0;
+    }
     outTree->Fill();
   }
   
@@ -812,7 +914,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
 
   effTree->Fill();
   
-  TFile *file = new TFile(outFileName.c_str(),"RECREATE");
+  //TFile *file = new TFile(outFileName.c_str(),"RECREATE");
   outTree->Write();
   effTree->Write();
   file->Close();

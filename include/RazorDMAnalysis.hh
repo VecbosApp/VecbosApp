@@ -1,7 +1,7 @@
 //-------------------------------------------------------
 // Description:
-//    Razor analysis for 2b2mu+MET final state
-// Authors:
+//    Razor analysis for 2Jets+MET final state
+// Authors:Cristian Pen~a
 //
 //-------------------------------------------------------
 
@@ -12,9 +12,11 @@
 #include "Vecbos.hh"
 #include "Jet.hh"
 #include "CaloTower.hh"
+#include "JetCorrectionUncertainty.h"
 #include "CommonTools/include/Utils.hh"
 #include "CommonTools/include/LeptonIdBits.h"
 #include "CommonTools/include/TriggerMask.hh"
+#include "JetCorrectorParameters.h"
 
 using namespace std;
 
@@ -35,6 +37,9 @@ private:
   bool _isData;
   bool _goodRunLS;
   TTree* _treeCond;
-  
+  TFile* mu_corr_f;
+  TH2F* mu_corr_h;
+  TFile* pu_f;
+  TH1D* pu_h;
 };
 #endif
