@@ -145,18 +145,44 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   double ls;
   double orbit;
   double R[4];
+  double R_up[4];//JEC Uncertaninty
+  double R_down[4];
   double RSQ[4];
+  double RSQ_up[4];//JEC Uncertaninty
+  double RSQ_down[4];
   double MR[4];
+  double MR_up[4];// JEC Uncertainty
+  double MR_down[4];
   double MRT[4];
+  double MRT_up[4];//JEC Uncertainty
+  double MRT_down[4];
   double pTHem1;
+  double pTHem1_up;//JEC Uncertainty
+  double pTHem1_down;
   double etaHem1;
+  double etaHem1_up;//JEC Uncertainty
+  double etaHem1_down;
   double phiHem1;
+  double phiHem1_up;//JEC Uncertainty
+  double phiHem1_down;
   double pTHem2;
+  double pTHem2_up;//JEC Uncertainty
+  double pTHem2_down;
   double etaHem2;
+  double etaHem2_up;//JEC Uncertainty
+  double etaHem2_down;
   double phiHem2;
+  double phiHem2_up;//JEC Uncertainty
+  double phiHem2_down;
   double Jet_PT[20];
+  double Jet_PT_up[20];//JEC Uncertainty
+  double Jet_PT_down[20];
   double Jet_Eta[20];
+  double Jet_Eta_up[20];//JEC Uncertainty
+  double Jet_Eta_down[20];
   double Jet_Phi[20];
+  double Jet_Phi_up[20];//JEC Uncertainty
+  double Jet_Phi_down[20];
   double CSV[20];
   int    nBtag;
   int    nBtagMed; 
@@ -215,19 +241,46 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   outTree->Branch("passedHLT", &passedHLT, "passedHLT/I");
   //  block
   outTree->Branch("R", R, "R[4]/D");
+  outTree->Branch("R_up", R_up, "R_up[4]/D");
+  outTree->Branch("R_down", R_down, "R_down[4]/D");
   outTree->Branch("RSQ", RSQ, "RSQ[4]/D");
+  outTree->Branch("RSQ_up", RSQ_up, "RSQ_up[4]/D");
+  outTree->Branch("RSQ_down", RSQ_down, "RSQ_down[4]/D");
   outTree->Branch("MR", MR, "MR[4]/D");
+  outTree->Branch("MR_up", MR_up, "MR_up[4]/D");
+  outTree->Branch("MR_down", MR_down, "MR_down[4]/D");
   outTree->Branch("MRT", MRT, "MRT[4]/D");
+  outTree->Branch("MRT_up", MRT_up, "MRT_up[4]/D");
+  outTree->Branch("MRT_down", MRT_down, "MRT_down[4]/D");
+  
   outTree->Branch("pTHem1", &pTHem1, "pTHem1/D");
+  outTree->Branch("pTHem1_up", &pTHem1_up, "pTHem1_up/D");
+  outTree->Branch("pTHem1_down", &pTHem1_down, "pTHem1_down/D");
   outTree->Branch("etaHem1", &etaHem1, "etaHem1/D");
+  outTree->Branch("etaHem1_up", &etaHem1_up, "etaHem1_up/D");
+  outTree->Branch("etaHem1_down", &etaHem1_down, "etaHem1_down/D");
   outTree->Branch("phiHem1", &phiHem1, "phiHem1/D");
+  outTree->Branch("phiHem1_up", &phiHem1_up, "phiHem1_up/D");
+  outTree->Branch("phiHem1_down", &phiHem1_down, "phiHem1_down/D");
   outTree->Branch("pTHem2", &pTHem2, "pTHem2/D");
+  outTree->Branch("pTHem2_up", &pTHem2_up, "pTHem2_up/D");
+  outTree->Branch("pTHem2_down", &pTHem2_down, "pTHem2_down/D");
   outTree->Branch("etaHem2", &etaHem2, "etaHem2/D");
+  outTree->Branch("etaHem2_up", &etaHem2_up, "etaHem2_up/D");
+  outTree->Branch("etaHem2_down", &etaHem2_down, "etaHem2_down/D");
   outTree->Branch("phiHem2", &phiHem2, "phiHem2/D");
+  outTree->Branch("phiHem2_up", &phiHem2_up, "phiHem2_up/D");
+  outTree->Branch("phiHem2_down", &phiHem2_down, "phiHem2_down/D");
   outTree->Branch("N_Jets", &N_Jets, "N_Jets/I");
   outTree->Branch("Jet_PT", Jet_PT, "Jet_PT[N_Jets]/D");
+  outTree->Branch("Jet_PT_up", Jet_PT_up, "Jet_PT_up[N_Jets]/D");
+  outTree->Branch("Jet_PT_down", Jet_PT_down, "Jet_PT_down[N_Jets]/D");
   outTree->Branch("Jet_Eta", Jet_Eta, "Jet_Eta[N_Jets]/D");
+  outTree->Branch("Jet_Eta_up", Jet_Eta_up, "Jet_Eta_up[N_Jets]/D");
+  outTree->Branch("Jet_Eta_down", Jet_Eta_down, "Jet_Eta_down[N_Jets]/D");
   outTree->Branch("Jet_Phi", Jet_Phi, "Jet_Phi[N_Jets]/D");
+  outTree->Branch("Jet_Phi_up", Jet_Phi_up, "Jet_Phi_up[N_Jets]/D");
+  outTree->Branch("Jet_Phi_down", Jet_Phi_down, "Jet_Phi_down[N_Jets]/D");
   outTree->Branch("CSV", CSV, "CSV[N_Jets]/D");
   outTree->Branch("nBtag", &nBtag, "nBtag/I");
   outTree->Branch("nBtagMed", &nBtagMed, "nBtagMed/I");
@@ -653,6 +706,26 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
       ctr++;
     }
     
+    //JEC Up and Down
+    vector<TLorentzVector> pfJets_noMu_Up;
+    vector<TLorentzVector> pfJets_noMu_Down;
+    for(int j = 0; j < pfJets_noMu.size(); j++){
+      //JEC Up
+      jec_un->setJetEta(pfJets_noMu[j].Eta());
+      jec_un->setJetPt(pfJets_noMu[j].Pt());
+      double deltaPt = fabs(jec_un->getUncertainty(true));
+ 
+      //JEC Up Now
+      double scl = (pfJets_noMu[j].Pt() + deltaPt)/(pfJets_noMu[j].Pt());
+      TLorentzVector aux_J;
+      aux_J.SetPxPyPzE(scl*pfJets_noMu[j].Px(), scl*pfJets_noMu[j].Py(), scl*pfJets_noMu[j].Pz(), scl*pfJets_noMu[j].E());
+      pfJets_noMu_Up.push_back(aux_J);
+      //JEC Down
+      scl = (pfJets_noMu[j].Pt() - deltaPt)/(pfJets_noMu[j].Pt());
+      aux_J.SetPxPyPzE(scl*pfJets_noMu[j].Px(), scl*pfJets_noMu[j].Py(), scl*pfJets_noMu[j].Pz(), scl*pfJets_noMu[j].E());
+      pfJets_noMu_Up.push_back(aux_J);
+    }
+    
     // Number of Jets                                                                                             
     Jet_Multiplicity = pfJets_noMu.size();
     N_Jets = pfJets_noMu.size();
@@ -685,8 +758,9 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     Npassed_2Jet+=weightII;
     //count btagged jets                                                                                          
     nBtag = 0;
+    nBtagMed = 0;
     nBtagTight = 0;
-    
+        
     for( int b = 0; b < i_pfJets_noMu.size(); b++ ){
       if( pfJetPassCSVL( combinedSecondaryVertexBJetTagsAK5Jet[ i_pfJets_noMu[b] ] ) ) nBtag++;//Loose
       if( pfJetPassCSVM( combinedSecondaryVertexBJetTagsAK5Jet[ i_pfJets_noMu[b] ] ) ) nBtagMed++;//Med
@@ -698,7 +772,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     ///// Muon MET Correct pfJet_noMuon ///////
     ///////////////////////////////////////////
     //////////////////////////////////////////
-    
+    //Di-muon Transverse momentum
     TVector3 Muon_MET_Correction(0,0,0);
     // Boxes
     Mu_Px_[0] = Mu_Py_[0] = Mu_Pz_[0] = Mu_E_[0] = Mu_Px_[1] = Mu_Py_[1] = Mu_Pz_[1] = Mu_E_[1] =  -9999;
@@ -821,6 +895,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
         metX[k] = pxPFMet[k];
         metY[k] = pyPFMet[k];
 	
+	//MET with muon as neutrinos METCorr = -sum(Pt_pfCand)+Sum(Pt_pfCand==Muon)
 	metCorrX[k] = pxPFMet[k] + Muon_MET_Correction.Px();
         metCorrY[k] = pyPFMet[k] + Muon_MET_Correction.Py();
 	
