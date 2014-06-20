@@ -57,6 +57,12 @@ public :
    Int_t           idMc[101];   //[nMc]
    Int_t           mothMc[101];   //[nMc]
    Int_t           statusMc[101];   //[nMc]
+   Int_t           nCTEQ66;
+   Double_t        wCTEQ66[45];   //[nCTEQ66]                                                                                             
+   Int_t           nMRST2006NNLO;
+   Double_t        wMRST2006NNLO[31];   //[nMRST2006NNLO]                                                                                 
+   Int_t           nNNPDF10100;
+   Double_t        wNNPDF10100[101];   //[nNNPDF10100]
    Int_t           nTrg;
    Int_t           firedTrg[16];   //[nTrg]
    Int_t           nHLT;
@@ -1096,6 +1102,12 @@ public :
    TBranch        *b_idMc;   //!
    TBranch        *b_mothMc;   //!
    TBranch        *b_statusMc;   //!
+   TBranch        *b_nCTEQ66;   //!                                                                                                       
+   TBranch        *b_wCTEQ66;   //!                                                                                                  
+   TBranch        *b_nMRST2006NNLO;   //!                                                                                           
+   TBranch        *b_wMRST2006NNLO;   //!                                                                                         
+   TBranch        *b_nNNPDF10100;   //!                                                                                           
+   TBranch        *b_wNNPDF10100;   //!
    TBranch        *b_nTrg;   //!
    TBranch        *b_firedTrg;   //!
    TBranch        *b_nHLT;   //!
@@ -2207,6 +2219,12 @@ void VecbosBase::Init(TTree *tree)
    fChain->SetBranchAddress("idMc", idMc, &b_idMc);
    fChain->SetBranchAddress("mothMc", mothMc, &b_mothMc);
    fChain->SetBranchAddress("statusMc", statusMc, &b_statusMc);
+   fChain->SetBranchAddress("nCTEQ66", &nCTEQ66, &b_nCTEQ66);
+   fChain->SetBranchAddress("wCTEQ66", wCTEQ66, &b_wCTEQ66);
+   fChain->SetBranchAddress("nMRST2006NNLO", &nMRST2006NNLO, &b_nMRST2006NNLO);
+   fChain->SetBranchAddress("wMRST2006NNLO", wMRST2006NNLO, &b_wMRST2006NNLO);
+   fChain->SetBranchAddress("nNNPDF10100", &nNNPDF10100, &b_nNNPDF10100);
+   fChain->SetBranchAddress("wNNPDF10100", wNNPDF10100, &b_wNNPDF10100);
    fChain->SetBranchAddress("nTrg", &nTrg, &b_nTrg);
    fChain->SetBranchAddress("firedTrg", firedTrg, &b_firedTrg);
    fChain->SetBranchAddress("nHLT", &nHLT, &b_nHLT);

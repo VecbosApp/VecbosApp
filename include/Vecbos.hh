@@ -11,6 +11,7 @@
 //    Chris Rogan
 //    Caltech
 //    Yi Chen (adding electron/muon function, b-tag working points and hcal noise wrapper function)
+//    Cristian Pena (adding ILV, correcting ISO for muons in isLooseMuon )
 //--------------------------------------------------------------
 
 /// The Vecbos class is an auxiliary class which contains basic
@@ -37,6 +38,7 @@
 #include <numeric>
 #include <list>
 #include "combination.hh"
+#include <utility>
 
 // FASTJET includes
 #include "FASTJET/include/fastjet/PseudoJet.hh"
@@ -401,6 +403,8 @@ protected:
   double CorrrectIsoforMuons(double pt);
   double CorrrectIsoforMuons(int iMu, TVector3 MuP);
   double ILV(int);
+  double GetISR(double, const char*);
+  std::pair<double, double> GetPDF(double*, int);
   bool isTrigElectron(int iEle);
   bool isTightElectron(int iEle);
   bool isLooseElectron(int iEle);

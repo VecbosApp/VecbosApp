@@ -60,49 +60,67 @@ void RazorDMAnalysis::SetWeight(double weight){
 
 void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   if(fChain == 0) return;
-
+  int pdgID = -99;
   if(outFileName.find("DYJetsHT200To400") != string::npos){
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/DYJetsHT200To400.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
+    pdgID = 23;
   }else if(outFileName.find("DYJetsHT400") != string::npos){
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/DYJetsHT400.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
+    pdgID = 23;
   }else if(outFileName.find("TTJetsFullyLeptMGDecays") != string::npos){
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/TTj_Lep.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
+    pdgID = 6;
   }else if(outFileName.find("TTJetsSemiLeptMGDecays") != string::npos){
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/TTj_Semilep.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
+    pdgID = 6;
   }else if(outFileName.find("TTJetsHadMGDecays") != string::npos){
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/TTj_Had.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
+    pdgID = 6;
   }else if(outFileName.find("WJetsToLNu_150_HT_200") != string::npos){
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/Wpj_150_HT_200.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
+    pdgID = 24;
   }else if(outFileName.find("WJetsToLNu_200_HT_250") != string::npos){
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/Wpj_200_HT_250.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
+    pdgID = 24;
   }else if(outFileName.find("WJetsToLNu_250_HT_300") != string::npos){
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/Wpj_250_HT_300.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
+    pdgID = 24;
   }else if(outFileName.find("WJetsToLNu_300_HT_400") != string::npos){
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/Wpj_300_HT_400.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
+    pdgID = 24;
   }else if(outFileName.find("WJetsToLNu_400_HT_Inf") != string::npos){
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/Wpj_400_HT_inf.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
+    pdgID = 24;
   }else if(outFileName.find("ZJetsToNuNu_50_HT_100") != string::npos){
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/ZJetsToNuNu_50_HT_100.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
+    pdgID = 23;
   }else if(outFileName.find("ZJetsToNuNu_100_HT_200") != string::npos){
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/ZJetsToNuNu_100_HT_200.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
+    pdgID = 23;
   }else if(outFileName.find("ZJetsToNuNu_200_HT_400") != string::npos){
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/ZJetsToNuNu_200_HT_400.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
+    pdgID = 23;
   }else if(outFileName.find("ZJetsToNuNu_400_HT_inf") != string::npos){
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/ZJetsToNuNu_400_HT_inf.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
+    pdgID = 23;
+  }else if(outFileName.find("DMm") != string::npos){
+    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/DMmTotal.root");
+    pu_h = (TH1D*)pu_f->Get("pileup");
+    pdgID = 18;
   }else{
     std::cout << "-----------INVALID MC NAME-------------------" << std::endl;
   }
@@ -111,10 +129,18 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   mu_corr_h = (TH2F*)mu_corr_f->Get("TH2D_ALL_2012");
 
   //JEC Uncertainty
+  /*
   JetCorrectionUncertainty *jec_un = 
     new JetCorrectionUncertainty(*(new JetCorrectorParameters("JEC_Uncertainty/Summer13_V5_MC_Uncertainty_AK5PF.txt", "Total")));
+  */
+  JetCorrectionUncertainty *jec_un =
+    new JetCorrectionUncertainty(*(new JetCorrectorParameters("JEC_Uncertainty/Summer13_V5_MC_Uncertainty_AK5PF.txt")));
     
   TFile* file = new TFile(outFileName.c_str(),"RECREATE");
+
+  double w_isr = 0.0;
+  double w_isr_up = 0.0;
+  double w_isr_down = 0.0;
 
   double pu_w;
   double jes_up_w;
@@ -122,7 +148,10 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   double mu_w;
   double mu_w_up;
   double mu_w_down;
-  
+  double ISR;
+  double ISR_up;
+  double ISR_down;
+
   int HLT_Razor;
   int HLT_Razor_prescaled;
   int passedHLT;
@@ -193,7 +222,8 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   int BOX[3];
   Double_t Mu_Px_[2], Mu_Py_[2], Mu_Pz_[2], Mu_E_[2];
   
-  double metX[4], metY[4], metCorrX[4], metCorrY[4], ht;
+  double metX[4], metY[4], metCorrX[4], metCorrY[4], JetMetX, JetMetY, JetMetX_up, JetMetX_down, JetMetY_up, JetMetY_down, ht;
+  double metX_up[4], metX_down[4], metY_up[4], metY_down[4], metCorrX_up[4], metCorrX_down[4], metCorrY_up[4], metCorrY_down[4];
   double mht[3];//xyz
   
   //Cristian MC information
@@ -232,6 +262,9 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   outTree->Branch("mu_w", &mu_w, "mu_w/D");
   outTree->Branch("mu_w_up", &mu_w_up, "mu_w_up/D");
   outTree->Branch("mu_w_down", &mu_w_down, "mu_w_down/D");
+  outTree->Branch("ISR", &ISR, "ISR/D");
+  outTree->Branch("ISR_up", &ISR_up, "ISR_up/D");
+  outTree->Branch("ISR_down", &ISR_down, "ISR_down/D");
   outTree->Branch("BOX_NUM", &BOX_NUM, "BOX_NUM/I");
   outTree->Branch("BOX", BOX, "BOX[3]/I");
   //outTree->Branch("ss", &ss, "ss/I");
@@ -309,6 +342,16 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   outTree->Branch("metY", metY, "metY[4]/D");
   outTree->Branch("metCorrX", metCorrX, "metCorrX[4]/D");
   outTree->Branch("metCorrY", metCorrY, "metCorrY[4]/D");
+  outTree->Branch("metX_up", metX_up, "metX_up[4]/D");
+  outTree->Branch("metX_down", metX_down, "metX_down[4]/D");
+  outTree->Branch("metY_up", metY_up, "metY_up[4]/D");
+  outTree->Branch("metY_down", metY_down, "metY_down[4]/D");
+  outTree->Branch("metCorrX_up", metCorrX_up, "metCorrX_up[4]/D");
+  outTree->Branch("metCorrX_down", metCorrX_down, "metCorrX_down[4]/D");
+  outTree->Branch("metCorrY_up", metCorrY_up, "metCorrY_up[4]/D");
+  outTree->Branch("metCorrY_down", metCorrY_down, "metCorrY_down[4]/D");
+  outTree->Branch("JetMetX", &JetMetX, "JetMetX/D");
+  outTree->Branch("JetMetY", &JetMetY, "JetMetY/D");
   outTree->Branch("ht", &ht, "ht/D");
   outTree->Branch("mht", mht, "mht[3]/D");//xyz->[0,1,2]
   //MC GEN LEVEL INFO
@@ -325,6 +368,14 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     outTree->Branch("idMC", idMc, "idMC[nMC]/I");
     outTree->Branch("mothMC", mothMc, "mothMC[nMC]/I");
     outTree->Branch("statusMC", statusMc, "statusMC[nMC]/I");
+    if(outFileName.find("DMm") != string::npos){
+      outTree->Branch("nCTEQ66", &nCTEQ66, "nCTEQ66/I");
+      outTree->Branch("wCTEQ66", wCTEQ66, "wCTEQ66[nCTEQ66]/D");
+      outTree->Branch("nMRST2006NNLO", &nMRST2006NNLO, "nMRST2006NNLO/I");
+      outTree->Branch("wMRST2006NNLO", wMRST2006NNLO, "wMRST2006NNLO[nMRST2006NNLO]/D");
+      outTree->Branch("nNNPDF10100", &nNNPDF10100, "nNNPDF10100/I");
+      outTree->Branch("wNNPDF10100", wNNPDF10100, "wNNPDF10100[nNNPDF10100]/D");
+    }
   }
   
   double Npassed_In = 0;
@@ -367,7 +418,28 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     nb = fChain->GetEntry(jentry);   nbytes += nb;
     if (jentry%1000 == 0) cout << ">>> Processing event # " << jentry << endl;
 
+    //Cristian ISR correction
+    TVector3 SYS(0.0, 0.0, 0.0);
+    if(!_isData){
+      TVector3 aux;
+      for(int i=0; i<nMc; i++) {
+        if(abs(idMc[i]) == pdgID && statusMc[i] == 3){
+	  std::cout << "PDG: " << idMc[i] << "  Pt: " << pMc[i]/cosh(etaMc[i]) << std::endl;
+          aux.SetPtEtaPhi(pMc[i]/cosh(etaMc[i]), etaMc[i], phiMc[i]);
+          SYS += aux;
+        }
+      }
+    }
+    //std::cout << "PT SYS: " << SYS.Pt() << std::endl;
+    ISR = GetISR(SYS.Pt(), "central");
+    ISR_up = GetISR(SYS.Pt(), "up");
+    ISR_down = GetISR(SYS.Pt(), "down");
     
+    w_isr += ISR;
+    w_isr_up += ISR_up;
+    w_isr_down += ISR_down;
+    
+
     //IMPORTANT: FOR DATA RELOAD THE TRIGGER MASK PER FILE WHICH IS SUPPOSED TO CONTAIN UNIFORM CONDITIONS X FILE
     if(_isData) {
       setRequiredTriggers(maskHLT_Razor); reloadTriggerMask(true); HLT_Razor = hasPassedHLT();
@@ -617,7 +689,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
 	  pfJets_mult_hfhad.push_back(HFHadMult);
 	  pfJets_mult_hfem.push_back(HFEMMult);
 	}else {
-	  cout << "clean NOISY event" << endl;
+	  cout << "clean NOISY event JET ID" << endl;
 	  N_pfJets = 0;
 	  break;//Only takes out the pfJets loop! But good_jet = false
 	}
@@ -640,7 +712,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
 
     for( int i = 0; i < nMuon; i++ ) {
       TLorentzVector thisMu( pxMuon[i], pyMuon[i], pzMuon[i], energyMuon[i] );
-      if( ( isTightMuon(i, true) ) && ( thisMu.Pt() > 15. ) ) {
+      /*if( ( isTightMuon(i, true) ) && ( thisMu.Pt() > 15. ) ) {
         iMuTight.push_back(i);
         MuTight.push_back(thisMu);
 	iMuLoose.push_back(i);
@@ -648,6 +720,11 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
       }else if( ( isLooseMuon(i, true) ) && ( thisMu.Pt() > 15. ) ) {
         iMuLoose.push_back(i);
         MuLoose.push_back(thisMu);
+	}*/
+
+      if( ( isLooseMuon(i, true) ) && ( thisMu.Pt() > 15. ) ) {                                                                                    
+        iMuLoose.push_back(i);
+	MuLoose.push_back(thisMu);
       }
       //Standard Isolation
       if(( isLooseMuon(i, false) ) && ( thisMu.Pt() > 15. )){
@@ -713,40 +790,89 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
       //JEC Up
       jec_un->setJetEta(pfJets_noMu[j].Eta());
       jec_un->setJetPt(pfJets_noMu[j].Pt());
-      double deltaPt = fabs(jec_un->getUncertainty(true));
- 
+      //std::cout << "Getting JEC"<< std::endl;
+      double deltaPt = fabs(jec_un->getUncertainty(true));//Fractional Error
+      //std::cout << "------deltaPt: " << pfJets_noMu[j].Pt()*deltaPt << std::endl;
+      //std::cout << "Got JEC"<< std::endl;
+      
       //JEC Up Now
-      double scl = (pfJets_noMu[j].Pt() + deltaPt)/(pfJets_noMu[j].Pt());
+      //double scl = (pfJets_noMu[j].Pt() + deltaPt)/(pfJets_noMu[j].Pt());
+      double scl = 1.0 + deltaPt;
       TLorentzVector aux_J;
       aux_J.SetPxPyPzE(scl*pfJets_noMu[j].Px(), scl*pfJets_noMu[j].Py(), scl*pfJets_noMu[j].Pz(), scl*pfJets_noMu[j].E());
       pfJets_noMu_Up.push_back(aux_J);
       //JEC Down
-      scl = (pfJets_noMu[j].Pt() - deltaPt)/(pfJets_noMu[j].Pt());
+      //scl = (pfJets_noMu[j].Pt() - deltaPt)/(pfJets_noMu[j].Pt());
+      scl = 1.0 - deltaPt;
       aux_J.SetPxPyPzE(scl*pfJets_noMu[j].Px(), scl*pfJets_noMu[j].Py(), scl*pfJets_noMu[j].Pz(), scl*pfJets_noMu[j].E());
-      pfJets_noMu_Up.push_back(aux_J);
+      pfJets_noMu_Down.push_back(aux_J);
     }
-    
+    //std::cout << "===>OUT OF JEC" << std::endl;
     // Number of Jets                                                                                             
     Jet_Multiplicity = pfJets_noMu.size();
     N_Jets = pfJets_noMu.size();
-    std::map<double, double> JetPTMap;
-    std::map<double, double> JetEtaMap;
-    std::map<double, double> JetPhiMap;
-    std::vector<double> JetPT;
-    for(int j = 0; j < pfJets_noMu.size(); j++){
-      JetPTMap[pfJets_noMu[j].Pt()] = combinedSecondaryVertexBJetTagsAK5Jet[  i_pfJets_noMu[j]  ];
-      JetEtaMap[pfJets_noMu[j].Pt()] = pfJets_noMu[j].Eta();
-      JetPhiMap[pfJets_noMu[j].Pt()] = pfJets_noMu[j].Phi();
-      JetPT.push_back( pfJets_noMu[j].Pt() );
-    }
+
+    //Create Maps with Pt as the Key to order the Jet from Highest to Lowest PT
+    std::map<double, double> JetCVS_Map;
     
+    std::map<double, double> JetEtaMap;
+    std::map<double, double> JetEtaMap_up;
+    std::map<double, double> JetEtaMap_down;
+    std::map<double, double> JetPhiMap;
+    std::map<double, double> JetPhiMap_up;
+    std::map<double, double> JetPhiMap_down;
+    
+    std::vector<double> JetPT;
+    std::map<double, double> JetPtMap_up;
+    std::map<double, double> JetPtMap_down;
+    
+    //JetMet Init
+    JetMetX = 0;
+    JetMetX_up = 0;
+    JetMetX_down = 0;
+    JetMetY = 0;
+    JetMetY_up = 0;
+    JetMetY_down = 0;
+    for(int j = 0; j < pfJets_noMu.size(); j++){
+      JetMetX += pfJets_noMu[j].Px();
+      JetMetX_up += pfJets_noMu_Up[j].Px();
+      JetMetX_down += pfJets_noMu_Down[j].Px();
+      JetMetY += pfJets_noMu[j].Py();
+      JetMetY_up += pfJets_noMu_Up[j].Py();
+      JetMetY_down += pfJets_noMu_Down[j].Py();
+      
+      
+      JetCVS_Map[pfJets_noMu[j].Pt()] = combinedSecondaryVertexBJetTagsAK5Jet[  i_pfJets_noMu[j]  ];
+      
+      JetEtaMap[pfJets_noMu[j].Pt()] = pfJets_noMu[j].Eta();
+      JetEtaMap_up[pfJets_noMu[j].Pt()] = pfJets_noMu_Up[j].Eta();
+      JetEtaMap_down[pfJets_noMu[j].Pt()] = pfJets_noMu_Down[j].Eta();
+      
+      JetPhiMap[pfJets_noMu[j].Pt()] = pfJets_noMu[j].Phi();
+      JetPhiMap_up[pfJets_noMu[j].Pt()] = pfJets_noMu_Up[j].Phi();
+      JetPhiMap_down[pfJets_noMu[j].Pt()] = pfJets_noMu_Down[j].Phi();
+      
+      JetPT.push_back( pfJets_noMu[j].Pt() );
+      JetPtMap_up[pfJets_noMu[j].Pt()] = pfJets_noMu_Up[j].Pt();
+      JetPtMap_down[pfJets_noMu[j].Pt()] = pfJets_noMu_Down[j].Pt();
+    }
+    //std::cout << "===>OUT OF MAPS" << std::endl;
     std::sort(JetPT.begin(), JetPT.end());
     std::reverse(JetPT.begin(), JetPT.end());
     for(int j = 0; j < pfJets_noMu.size(); j++){
       Jet_PT[j] = JetPT[j];
+      Jet_PT_up[j] = JetPtMap_up[JetPT[j]];
+      Jet_PT_down[j] = JetPtMap_down[JetPT[j]];
+      
       Jet_Eta[j] = JetEtaMap[JetPT[j]];
+      Jet_Eta_up[j] = JetEtaMap_up[JetPT[j]];
+      Jet_Eta_down[j] = JetEtaMap_down[JetPT[j]];
+      
       Jet_Phi[j] = JetPhiMap[JetPT[j]];
-      CSV[j] = JetPTMap[JetPT[j]];
+      Jet_Phi_up[j] = JetPhiMap_up[JetPT[j]];
+      Jet_Phi_down[j] = JetPhiMap_down[JetPT[j]];
+      
+      CSV[j] = JetCVS_Map[JetPT[j]];
     }
     
     // >= 2Jets with pT > 80 GeV                                                            
@@ -821,7 +947,6 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     if(iEleTight.size()>0) continue;//REMOVE ONLY FOR Trigger TURN_ON    
     
     // TAU VETO
-    
     //if (iTauTight.size()>0) continue;//removed after a bug was found in the tau ID
 
     //////////////////////////////////////////////                                                                      
@@ -838,8 +963,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
           break;//out of the muon iterator loop
         }
       }
-      
-      
+            
       if( ILV( kk ) < 0.15 && isMuon == false){
         IsoPF = true;
         break;//out of the PFCand loop. Ths means we found an isolated tau or electron 
@@ -850,6 +974,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     if(IsoPF)continue;//Applying ILV
     Npassed_LepVeto += weightII;//Record how many of th
     
+    //std::cout << "===>OUT OF ILV" << std::endl;
         
     // BOX NUMBER
     BOX_NUM = -99;
@@ -882,43 +1007,93 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     
     // hemispheres PfJets Muons subtracted                                                                       
     //std::cout << pxPFMet[0] << " " << pxPFMet[1] << " " << pxPFMet[2] << " " << pxPFMet[3] << std::endl;       
-    vector<TLorentzVector> tmp_pfJet = CombineJets(pfJets_noMu);
-    if( tmp_pfJet.size() >= 2 ) {
-      TLorentzVector Hem1 = tmp_pfJet[0];
-      TLorentzVector Hem2 = tmp_pfJet[1];
+    vector<TLorentzVector> hem_pfJet = CombineJets(pfJets_noMu);
+    vector<TLorentzVector> hem_pfJet_Up = CombineJets(pfJets_noMu_Up);
+    vector<TLorentzVector> hem_pfJet_Down = CombineJets(pfJets_noMu_Down);
+    if( hem_pfJet.size() >= 2 ) {
+      TLorentzVector Hem1 = hem_pfJet[0];
+      TLorentzVector Hem2 = hem_pfJet[1];
+      TLorentzVector Hem1_Up = hem_pfJet_Up[0];
+      TLorentzVector Hem2_Up = hem_pfJet_Up[1];
+      TLorentzVector Hem1_Down = hem_pfJet_Down[0];
+      TLorentzVector Hem2_Down = hem_pfJet_Down[1];
       
       // PFMET + Correction                                                                                     
       TVector3 MET[4];
+      TVector3 MET_up[4];
+      TVector3 MET_down[4];
       for(int k = 0; k < 4; k++ ){
         MET[k] = TVector3(pxPFMet[k], pyPFMet[k], 0.);
+	MET_up[k] = TVector3(pxPFMet[k]+JetMetX-JetMetX_up, pyPFMet[k]+JetMetY-JetMetY_up, 0.);
+	MET_down[k] = TVector3(pxPFMet[k]+JetMetX-JetMetX_down, pyPFMet[k]+JetMetY-JetMetY_down, 0.);
 	
         metX[k] = pxPFMet[k];
+	metX_up[k] = pxPFMet[k]+JetMetX-JetMetX_up;
+	metX_down[k] = pxPFMet[k]+JetMetX-JetMetX_down;
         metY[k] = pyPFMet[k];
+	metY_up[k] = pyPFMet[k]+JetMetY-JetMetY_up;
+	metY_down[k] = pyPFMet[k]+JetMetY-JetMetY_down;
 	
 	//MET with muon as neutrinos METCorr = -sum(Pt_pfCand)+Sum(Pt_pfCand==Muon)
 	metCorrX[k] = pxPFMet[k] + Muon_MET_Correction.Px();
+	metCorrX_up[k] = pxPFMet[k] + Muon_MET_Correction.Px() +JetMetX-JetMetX_up;
+	metCorrX_down[k] = pxPFMet[k] + Muon_MET_Correction.Px() +JetMetX-JetMetX_down;
         metCorrY[k] = pyPFMet[k] + Muon_MET_Correction.Py();
+	metCorrY_up[k] = pyPFMet[k] + Muon_MET_Correction.Px() +JetMetX-JetMetX_up;
+	metCorrY_down[k] = pyPFMet[k] + Muon_MET_Correction.Py() +JetMetY-JetMetY_down;
 	
         MRT[k] = CalcMTR(Hem1, Hem2, MET[k] + Muon_MET_Correction);
+	MRT_up[k] = CalcMTR(Hem1_Up, Hem2_Up, MET_up[k] + Muon_MET_Correction);
+	MRT_down[k] = CalcMTR(Hem1_Down, Hem2_Down, MET_down[k] + Muon_MET_Correction);
         //MRT = CalcMTR(Hem1, Hem2, MET);                                                                        
-        double variable = -999999.;
-        double Rvariable = -999999.;
-        variable = CalcGammaMRstar(Hem1, Hem2);
-        if(variable >0) Rvariable = MRT[k]/variable;
+        double gammaMRstar = -999999.;
+        double  r = -999999.;
+        gammaMRstar = CalcGammaMRstar(Hem1, Hem2);
+        if(gammaMRstar >0) r = MRT[k]/gammaMRstar;
 	// fill the R and hem part of the output tree                                                           
-	R[k] = Rvariable;
-        RSQ[k] = Rvariable*Rvariable;
-        MR[k] = variable;
+	R[k] = r;
+        RSQ[k] = r*r;
+        MR[k] = gammaMRstar;
+	//JEC Up
+	gammaMRstar = CalcGammaMRstar(Hem1_Up, Hem2_Up);
+        if(gammaMRstar >0) r = MRT_up[k]/gammaMRstar;
+	R_up[k] = r;
+        RSQ_up[k] = r*r;
+        MR_up[k] = gammaMRstar;
+	//JEC Up
+	gammaMRstar = CalcGammaMRstar(Hem1_Down, Hem2_Down);
+	if(gammaMRstar >0) r = MRT_down[k]/gammaMRstar;
+        R_down[k] = r;
+        RSQ_down[k] = r*r;
+        MR_down[k] = gammaMRstar;
       }
       
       pTHem1 = Hem1.Pt();
+      pTHem1_up = Hem1_Up.Pt();
+      pTHem1_down = Hem1_Down.Pt();
+      
       etaHem1 = Hem1.Eta();
+      etaHem1_up = Hem1_Up.Eta();
+      etaHem1_down = Hem1_Down.Eta();
+      
       phiHem1 = Hem1.Phi();
+      phiHem1_up = Hem1_Up.Phi();
+      phiHem1_down = Hem1_Down.Phi();
+      
       pTHem2 = Hem2.Pt();
+      pTHem2_up = Hem2_Up.Pt();
+      pTHem2_down = Hem2_Down.Pt();
+      
       etaHem2 = Hem2.Eta();
+      etaHem2_up = Hem2_Up.Eta();
+      etaHem2_down = Hem2_Down.Eta();
+      
       phiHem2 = Hem2.Phi();
+      phiHem2_up = Hem2_Up.Phi();
+      phiHem2_down = Hem2_Down.Phi();
     }
     
+    //std::cout << "===>OUT OF MR and R2" << std::endl;
     
     //gen-level info
     pT1 = -999;
@@ -962,7 +1137,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
 	i2 = idMc[iL2];
       } 
     }
-    
+
     // fill output tree
     run = runNumber;
     evNum = eventNumber;
@@ -981,11 +1156,14 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   
   // fill efficiency tree
   TTree* effTree = new TTree("effTree", "effTree");
-  effTree->Branch("Npassed_In",      &Npassed_In,      "Npassed_In/D");
-  effTree->Branch("Npassed_PV",      &Npassed_PV,      "Npassed_PV/D");
-  effTree->Branch("Npassed_2Jet",  &Npassed_2Jet,  "Npassed_2Jet/D");
-  effTree->Branch("Npassed_0btag",  &Npassed_0btag,  "Npassed_0btag/D");
-  effTree->Branch("Npassed_LepVeto",  &Npassed_LepVeto,  "Npassed_LepVeto/D");
+  effTree->Branch("Npassed_In", &Npassed_In, "Npassed_In/D");
+  effTree->Branch("Npassed_ISR", &w_isr, "Npassed_ISR/D");
+  effTree->Branch("Npassed_ISR_up", &w_isr_up, "Npassed_ISR_up/D");
+  effTree->Branch("Npassed_ISR_down", &w_isr_down, "Npassed_ISR_down/D");
+  effTree->Branch("Npassed_PV", &Npassed_PV, "Npassed_PV/D");
+  effTree->Branch("Npassed_2Jet", &Npassed_2Jet, "Npassed_2Jet/D");
+  effTree->Branch("Npassed_0btag", &Npassed_0btag, "Npassed_0btag/D");
+  effTree->Branch("Npassed_LepVeto", &Npassed_LepVeto, "Npassed_LepVeto/D");
 
   effTree->Fill();
   
