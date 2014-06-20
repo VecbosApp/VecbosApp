@@ -2826,7 +2826,7 @@ void Vecbos::isMuonID2012(int muonIndex, bool *muonIdOutput) {
 
   if(kinkMuon[muonIndex]>=20) *muonIdOutput = false;
 
-  if(pfmuonIdMuon[muonIndex]==0) *muonIdOutput = false;
+  //if(pfmuonIdMuon[muonIndex]==0) *muonIdOutput = false;
 
   float ptTrack = sqrt( pxTrack[track]*pxTrack[track] + pyTrack[track]*pyTrack[track] );
   float sign = fabs(ptErrorTrack[track]/ptTrack);
@@ -3061,6 +3061,72 @@ double Vecbos::ILV(int iPFCand){
   return ( ChargedIso03PFCand[iPFCand] + max(pfIso03, 0.0) )/PT;
 }
 
+double Vecbos::GetISR(double pt, const char* type = ""){
+  if(type == "" || pt <= 0.0)return -99.0;
+  double isr[] = {1.0, 0.95, 0.90, 0.80};
+  double isr_up[] = {1.0, 1.0, 1.0, 1.0};
+  double isr_down[] = {1.0, 0.90, 0.80, 0.60};
+  if(type == "central"){
+    if(pt <= 120){
+      return isr[0];
+    }else if(pt > 120 && pt <= 150){
+      return isr[1];
+    }else if(pt > 150 && pt <= 250){
+      return isr[2];
+    }else if(pt > 250){
+      return isr[3];
+    }
+  }else if(type == "up"){
+    if(pt <= 120){
+      return isr_up[0];
+    }else if(pt > 120 && pt <= 150){
+      return isr_up[1];
+    }else if(pt > 150 && pt <= 250){
+      return isr_up[2];
+    }else if(pt > 250){
+      return isr_up[3];
+    }
+  }else if(type == "down"){
+    if(pt <= 120){
+      return isr_down[0];
+    }else if(pt > 120 && pt <= 150){
+      return isr_down[1];
+    }else if(pt > 150 && pt <= 250){
+      return isr_down[2];
+    }else if(pt > 250){
+      return isr_down[3];
+    }
+  }
+
+  return -99.0;
+  
+};
+
+double Vecbos::GetPDF(double* w, int n){
+  //returns DeltaWeight
+  double wplus = 0.0;
+  double wminus = 0.0;
+  int npairs = int(n-1/2);
+  for(int i = 0; i < npairs; i++){
+    double wa = w[2*i + 1] - w[0];
+    double wb = w[2*i + 2] - w[0];
+    //wplus
+    if(wa > wb){
+      if(wa > 0.)wplus += wa*wa;
+    }else{
+      if(wb > 0.)wplus += wb*wb;
+    }
+    //wminus
+    if( wa < wb){
+      if(wa < 0.0)wminus += wa*wa;
+    }else{
+      if(wb < 0.0)wminus += wb*wb;
+    }    
+  }
+  wplus = sqrt(wplus);
+  wminus = sqrt(wminus);
+  return wplus;
+}
 
 double Vecbos::CorrrectIsoforMuons(double pt) {
   if(pt <= 0.) return 0.0;
