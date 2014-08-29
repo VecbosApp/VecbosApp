@@ -72,6 +72,10 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
   int    isEMPh2;
   int    isLoosePh2;
   int    isTightPh2;
+  double pTGG;
+  double etaGG;
+  double phiGG;
+  double mGG;
 
   // PF  block
   int    passedPF;
@@ -96,28 +100,28 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
   double CaloMR;
 
   // general event info
-  double run;
-  double evNum;
-  double bx;
-  double ls;
-  double orbit;
+  int run;
+  ULong64_t evNum;
+  int bx;
+  int lumi;
+  int orbit;
   double W;
-  int pTPFJet[10];
-  int etaPFJet[10];
-  int phiPFJet[10];
-  int mPFJet[10];
-
-
+  double pTPFJet[10];
+  double etaPFJet[10];
+  double phiPFJet[10];
+  double mPFJet[10];
+  int constPFHem1[10];
+  int constPFHem2[10];
 
   // prepare the output tree
   TTree* outTree = new TTree("outTree", "outTree");
   outTree->Branch("HLT_Photon36_R9Id85_OR_CaloId10_Iso50_Photon22_R9Id85_OR_CaloId10_Iso50", &HLT_Photon36_R9Id85_OR_CaloId10_Iso50_Photon22_R9Id85_OR_CaloId10_Iso50, "HLT_Photon36_R9Id85_OR_CaloId10_Iso50_Photon22_R9Id85_OR_CaloId10_Iso50/I");
 
-  outTree->Branch("run", &run, "run/D");
-  outTree->Branch("evNum", &evNum, "evNum/D");
-  outTree->Branch("bx", &bx, "bx/D");
-  outTree->Branch("ls", &ls, "ls/D");
-  outTree->Branch("orbit", &orbit, "orbit/D");
+  outTree->Branch("run", &run, "run/I");
+  outTree->Branch("evNum", &evNum, "evNum/l");
+  outTree->Branch("bx", &bx, "bx/I");
+  outTree->Branch("lumi", &lumi, "lumi/I");
+  outTree->Branch("orbit", &orbit, "orbit/I");
   outTree->Branch("W", &W, "W/D");
     
   outTree->Branch("pTPh1", &pTPh1, "pTPh1/D");
@@ -134,15 +138,21 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
   outTree->Branch("isEMPh2", &isEMPh2, "isEMPh2/I");
   outTree->Branch("isLoosePh2", &isLoosePh2, "isLoosePh2/I");
   outTree->Branch("isTightPh2", &isTightPh2, "isTightPh2/I");
+  outTree->Branch("pTGG", &pTGG, "pTGG/D");
+  outTree->Branch("phiGG", &phiGG, "phiGG/D");
+  outTree->Branch("etaGG", &etaGG, "etaGG/D");
+  outTree->Branch("mGG", &mGG, "mGG/D");
     
   // PF block
   outTree->Branch("passedPF", &passedPF, "passedPF/I");
   outTree->Branch("pTPFHem1", &pTPFHem1, "pTPFHem1/D");
   outTree->Branch("etaPFHem1", &etaPFHem1, "etaPFHem1/D");
   outTree->Branch("phiPFHem1", &phiPFHem1, "phiPFHem1/D");
+  outTree->Branch("constPFHem1", constPFHem1, "constPFHem1[10]/I");
   outTree->Branch("pTPFHem2", &pTPFHem2, "pTPFHem2/D");
   outTree->Branch("etaPFHem2", &etaPFHem2, "etaPFHem2/D");
   outTree->Branch("phiPFHem2", &phiPFHem2, "phiPFHem2/D");
+  outTree->Branch("constPFHem2", constPFHem2, "constPFHem2[10]/I");
   outTree->Branch("pTPFJet", pTPFJet, "pTPFJet[10]/D");
   outTree->Branch("etaPFJet", etaPFJet, "etaPFJet[10]/D");
   outTree->Branch("phiPFJet", phiPFJet, "phiPFJet[10]/D");
@@ -189,7 +199,7 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
     //Good Run selection
     if (_isData && _goodRunLS && !isGoodRunLS()) {
       if ( lastRun != runNumber || lastLumi != lumiBlock) {
-	std::cout << "[GoodRunLS]::Run " << lastRun << " LS " << lastLumi << " is rejected" << std::endl;
+	//std::cout << "[GoodRunLS]::Run " << lastRun << " LS " << lastLumi << " is rejected" << std::endl;
       }
       continue;
     }
@@ -197,8 +207,10 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
     if (_isData && _goodRunLS && ( lastRun!= runNumber || lastLumi != lumiBlock) ) {
       lastRun = runNumber;
       lastLumi = lumiBlock;
-      std::cout << "[GoodRunLS]::Run " << lastRun << " LS " << lastLumi << " is OK" << std::endl;
+      //std::cout << "[GoodRunLS]::Run " << lastRun << " LS " << lastLumi << " is OK" << std::endl;
     }
+
+    cout << "\n" << runNumber << " : " << lumiBlock << " : " << eventNumber << endl;
     
     Npassed_In += _weight;
 
@@ -243,6 +255,16 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
 
     // HCAL FLAGS
     if(!eventPassHcalFilter()) continue;
+
+
+    for (int i = 0; i < 10; i++){
+      pTPFJet[i] = -1;
+      etaPFJet[i] = -1;
+      phiPFJet[i] = -1;
+      mPFJet[i] = -1;
+      constPFHem1[i] = -1;
+      constPFHem2[i] = -1;
+    }
 
     
     vector<TLorentzVector> CaloJet;    
@@ -343,37 +365,44 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
 	iPh2 = i;
       }
     }
+    if (runNumber==194912){
+      // VERY SPECIFIC TO THESE 7 EVENTS
+      iPh1 = 0;
+      iPh2 = 2;
+    }
+    if (runNumber==199436){
+      // VERY SPECIFIC TO THESE 7 EVENTS
+      iPh1 = 1;
+      iPh2 = 2;
+    }
+
 
 
     // Jet selection 
     vector<TLorentzVector> PFPUcorrJet;    
     for(int i=0; i< nAK5PFPUcorrJet; i++) {
       TLorentzVector myJet(pxAK5PFPUcorrJet[i], pyAK5PFPUcorrJet[i], pzAK5PFPUcorrJet[i], energyAK5PFPUcorrJet[i]);   
-      if(myJet.Pt()>30. && fabs(myJet.Eta())< 3.0) 
+      if(myJet.Pt()>30. && fabs(myJet.Eta())< 3.0 && isLoosePFPUcorrJetID(i)) 
 	if(myJet.DeltaR(PFPhoton[iPh1]) > 0.5 && myJet.DeltaR(PFPhoton[iPh2]) > 0.5)
 	PFPUcorrJet.push_back(myJet);
     }
 
 
-    int flag = 1;
-    //bubble sort the jets by Pt()
-    for (int i=0; (i < PFPUcorrJet.size()) && flag; i++){
-      TLorentzVector tempvector;
-      int tempi;
-      flag = 0;
-      for (int j=0; j < (PFPUcorrJet.size()-1); j++){
-	if (PFPUcorrJet.at(j+1).Pt() > PFPUcorrJet.at(j).Pt()){
-	  tempvector = PFPUcorrJet.at(j);
-	  PFPUcorrJet.at(j) = PFPUcorrJet.at(j+1);
-	  PFPUcorrJet.at(j+1) = tempvector;
-	  flag=1;
-	}
-      }
-    }
+    // int flag = 1;
+    // //bubble sort the jets by Pt()
+    // for (int i=0; (i < PFPUcorrJet.size()) && flag; i++){
+    //   TLorentzVector tempvector;
+    //   flag = 0;
+    //   for (int j=0; j < (PFPUcorrJet.size()-1); j++){
+    // 	if (PFPUcorrJet.at(j+1).Pt() > PFPUcorrJet.at(j).Pt()){
+    // 	  tempvector = PFPUcorrJet.at(j);
+    // 	  PFPUcorrJet.at(j) = PFPUcorrJet.at(j+1);
+    // 	  PFPUcorrJet.at(j+1) = tempvector;
+    // 	  flag=1;
+    // 	}
+    //   }
+    // }
 
-    for (int i=0; i < 10; i++){
-      pTPFJet[i] = 0; etaPFJet[i] = 0; phiPFJet[i] = 0; mPFJet[i] = 0;
-    }
 
     for (int i=0; i < PFPUcorrJet.size(); i++){
       pTPFJet[i] = PFPUcorrJet.at(i).Pt();
@@ -384,11 +413,29 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
 
     
 
+    
+    cout << "Number of jets (pT > 40, |eta| < 3) = " << PFPUcorrJet.size() << endl;
+    cout << "Jets\t\tPt\t\tEta\t\tPhi" << endl;
+    for (int i=0; i < PFPUcorrJet.size(); i++){
+      cout << "    \t\t" << pTPFJet[i] << "\t\t"  << etaPFJet[i]  << "\t\t" <<  phiPFJet[i] << endl;
+    }
+
+    // use PFMET (missing transverse energy)
+    TVector3 MET(pxPFMet[0], pyPFMet[0], 0.);
+
+    cout << "PFMET = " << MET.Pt()  << ", phi = " << MET.Phi() << endl;
+
+    cout << "number of photons = " << PFPhoton.size() << endl;
     cout << "iPh1 = " << iPh1 << ", iPh2 = " <<  iPh2 << endl;
-    cout << "pT(ph1) = "  << PFPhoton[iPh1].Pt() << endl;
-    cout << "pT(ph2) = "  << PFPhoton[iPh2].Pt() << endl;
     cout << "m(ph1+ph2) = "  << (PFPhoton[iPh1]+PFPhoton[iPh2]).M() << endl;
-    cout << "number jets = " << PFPUcorrJet.size() << endl;
+    cout << "pT(ph1+ph2) = "  << (PFPhoton[iPh1]+PFPhoton[iPh2]).Pt() << endl;
+    cout << "eta(ph1+ph2) = "  << (PFPhoton[iPh1]+PFPhoton[iPh2]).Eta() << endl;
+
+    mGG = (PFPhoton[iPh1]+PFPhoton[iPh2]).M();
+    pTGG = (PFPhoton[iPh1]+PFPhoton[iPh2]).Pt();
+    etaGG = (PFPhoton[iPh1]+PFPhoton[iPh2]).Eta();
+    phiGG = (PFPhoton[iPh1]+PFPhoton[iPh2]).Phi();
+      
     PFPUcorrJet.push_back(PFPhoton[iPh1]+PFPhoton[iPh2]);
     //    if(iPh1 == -99 && iPh2 == -99) continue;
     Npassed_2Ph += _weight;
@@ -459,19 +506,6 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
       isTightPh2 = int(isTight[iPh2]);
     }
 
-    //cout<<" is Tight = "<<isTightPh1<<endl;
-
-    // photon separation
-    //    if(PFPhoton[iPh1].DeltaR(PFPhoton[iPh2])<0.8) continue;
-    //    if(DeltaPhi(PFPhoton[iPh1].Phi(), PFPhoton[iPh2].Phi())<0.05) continue;
-
-    // add the photons to the jet list;
-    // just use the jets instead???? 
-    //    PFPUcorrJet.push_back(PFPhoton[iPh1]);
-    //    PFPUcorrJet.push_back(PFPhoton[iPh2]);
-    
-    // use PFMET (missing transverse energy)
-    TVector3 MET(pxPFMet[0], pyPFMet[0], 0.);
 
     // dummy values
     passedPF = 0;
@@ -487,9 +521,43 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
     // hemispheres
 
 
-    CMSHemisphere* PFHem = new CMSHemisphere(PFPUcorrJet);
-    PFHem->CombineMinMass();
-    vector<TLorentzVector> tmpJet = PFHem->GetHemispheres();
+    // int flag = 1;
+    // //bubble sort the jets by Pt()
+    // for (int i=0; (i < PFPUcorrJet.size()) && flag; i++){
+    //   TLorentzVector tempvector;
+    //   flag = 0;
+    //   for (int j=0; j < (PFPUcorrJet.size()-1); j++){
+    // 	if (PFPUcorrJet.at(j+1).Pt() > PFPUcorrJet.at(j).Pt()){
+    // 	  tempvector = PFPUcorrJet.at(j);
+    // 	  PFPUcorrJet.at(j) = PFPUcorrJet.at(j+1);
+    // 	  PFPUcorrJet.at(j+1) = tempvector;
+    // 	  flag=1;
+    // 	}
+    //   }
+    // }
+
+
+    
+    vector<TLorentzVector> tmpJet = CombineJets(PFPUcorrJet);
+    vector<int> temp1 = GetHem1Const(PFPUcorrJet); 
+    vector<int> temp2 = GetHem2Const(PFPUcorrJet); 
+    
+
+    int k = 0;
+    for (int i = 0; i < temp1.size(); i++){
+      if (temp1[i]>-1){
+	constPFHem1[k] = temp1[i];
+	k++;
+      }
+    }
+    k = 0;
+    for (int i = 0; i < temp2.size(); i++){
+      if (temp2[i]>-1){
+	constPFHem2[k] = temp2[i];
+	k++;
+      }
+    }
+
     if(tmpJet.size() >= 2) {
       Npassed_PFHem += _weight;
       
@@ -504,7 +572,8 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
       double MT = CalcMTR(PFHem1, PFHem2, MET);
       double variable = -999999.;
       double Rvariable = -999999.;
-      variable = CalcGammaMRstarE(PFHem1, PFHem2);
+      variable = CalcGammaMRstar(PFHem1, PFHem2);
+      //variable = CalcGammaMRstarE(PFHem1, PFHem2);
       if(variable >0) Rvariable = MT/variable;
       
       // fill the tree
@@ -518,6 +587,9 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
       phiPFHem2 = PFHem2.Phi();
       RSQ = Rvariable*Rvariable;
       MR = variable;   
+
+      cout << "MR = " << MR << endl;
+      cout << "RSQ = " << RSQ << endl;
     }
 
     // dummy values
@@ -549,7 +621,7 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
       double MT = CalcMTR(CaloHem1, CaloHem2, MET);
       double variable = -999999.;
       double Rvariable = -999999.;
-      variable = CalcGammaMRstarE(CaloHem1, CaloHem2);
+      variable = CalcGammaMRstar(CaloHem1, CaloHem2);
       if(variable >0) Rvariable = MT/variable;
       
       // fill the tree
@@ -566,8 +638,8 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
 
     run = runNumber;
     evNum = eventNumber;
-    bx = eventNumber;
-    ls = lumiBlock;
+    bx = bunchCrossing;
+    lumi = lumiBlock;
     orbit = orbitNumber;
     W = _weight;
 
