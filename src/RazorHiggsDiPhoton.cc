@@ -415,21 +415,21 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
 
     
     cout << "Number of jets (pT > 40, |eta| < 3) = " << PFPUcorrJet.size() << endl;
-    cout << "Jets\t\tPt\t\tEta\t\tPhi" << endl;
+    cout << "\nJets\t\tPt\t\tEta\t\tPhi" << endl;
     for (int i=0; i < PFPUcorrJet.size(); i++){
       cout << "    \t\t" << pTPFJet[i] << "\t\t"  << etaPFJet[i]  << "\t\t" <<  phiPFJet[i] << endl;
     }
+    cout << "Hgg\t\tPt\t\tEta\t\tPhi" << endl;
+    cout << "    \t\t" << (PFPhoton[iPh1]+PFPhoton[iPh2]).Pt() << "\t\t"  << (PFPhoton[iPh1]+PFPhoton[iPh2]).Eta()  << "\t\t" <<  (PFPhoton[iPh1]+PFPhoton[iPh2]).Phi() << endl;
 
     // use PFMET (missing transverse energy)
     TVector3 MET(pxPFMet[0], pyPFMet[0], 0.);
 
-    cout << "PFMET = " << MET.Pt()  << ", phi = " << MET.Phi() << endl;
+    cout << "\nPFMET = " << MET.Pt()  << ", phi = " << MET.Phi() << endl;
 
-    cout << "number of photons = " << PFPhoton.size() << endl;
+    cout << "\nnumber of photons = " << PFPhoton.size() << endl;
     cout << "iPh1 = " << iPh1 << ", iPh2 = " <<  iPh2 << endl;
-    cout << "m(ph1+ph2) = "  << (PFPhoton[iPh1]+PFPhoton[iPh2]).M() << endl;
-    cout << "pT(ph1+ph2) = "  << (PFPhoton[iPh1]+PFPhoton[iPh2]).Pt() << endl;
-    cout << "eta(ph1+ph2) = "  << (PFPhoton[iPh1]+PFPhoton[iPh2]).Eta() << endl;
+    cout << "\nm(ph1+ph2) = "  << (PFPhoton[iPh1]+PFPhoton[iPh2]).M() << endl;
 
     mGG = (PFPhoton[iPh1]+PFPhoton[iPh2]).M();
     pTGG = (PFPhoton[iPh1]+PFPhoton[iPh2]).Pt();
