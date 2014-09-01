@@ -22,14 +22,14 @@ vector<TLorentzVector> CMSHemisphere::GetHemispheres() {
 vector<int> CMSHemisphere::GetHem1Constituents() {
   vector<int> hem_temp;
   if(no_switch) {
-    for (int i; i < 40; i++){
+    for (int i = 0; i < 40; i++){
       hem_temp.push_back(hem[chosen_perm][i]);
     }
     return hem_temp;
     delete hem;
   }
   else {
-    for (int i; i < 40; i++){
+    for (int i = 0; i < 40; i++){
       hem_temp.push_back(hem2[chosen_perm][i]);
     }
     return hem_temp;
@@ -39,7 +39,7 @@ vector<int> CMSHemisphere::GetHem1Constituents() {
 vector<int> CMSHemisphere::GetHem2Constituents() {
   vector<int> hem_temp;
   if(no_switch) {
-    for (int i; i < 40; i++){
+    for (int i = 0; i < 40; i++){
       hem_temp.push_back(hem2[chosen_perm][i]);
     }
     return hem_temp;
