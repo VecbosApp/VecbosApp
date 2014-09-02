@@ -387,7 +387,6 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
 	iPh1 = i;
       }
     }
-
     for(int i=0; i<PFPhoton.size(); i++) {
       if(PFPhoton[i].Pt() > phMax2 && i != iPh1 && isEM[i]) {
 	phMax2 = PFPhoton[i].Pt();
@@ -401,6 +400,11 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
     }
     if (runNumber==199436){
       // VERY SPECIFIC TO THESE 7 EVENTS
+      iPh1 = 1;
+      iPh2 = 2;
+    }
+
+    if (runNumber==200042){
       iPh1 = 1;
       iPh2 = 2;
     }
