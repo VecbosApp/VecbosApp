@@ -2875,7 +2875,8 @@ bool Vecbos::isPFNoPUJetID(int jetIndex, double energyFrac) {
   double EU = uncorrEnergyAK5PFNoPUJet[jetIndex];
     
   double fHAD = (neutralHadronEnergyAK5PFNoPUJet[jetIndex]+chargedHadronEnergyAK5PFNoPUJet[jetIndex])/EU;
-    
+  fHAD = 0;
+
   if(fHAD > 0.99){
     good_jet = false;
   }
@@ -2937,7 +2938,7 @@ bool Vecbos::isPFPUcorrJetID(int jetIndex, double energyFrac) {
   double EU = uncorrEnergyAK5PFPUcorrJet[jetIndex];
     
   double fHAD = (neutralHadronEnergyAK5PFPUcorrJet[jetIndex]+chargedHadronEnergyAK5PFPUcorrJet[jetIndex])/EU;
-    
+  fHAD = 0;
   if(fHAD > 0.99){
     good_jet = false;
   }
