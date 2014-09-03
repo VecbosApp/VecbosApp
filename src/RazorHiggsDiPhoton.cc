@@ -53,7 +53,9 @@ void RazorHiggsDiPhoton::SetWeight(double weight) {
 
 void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
   if(fChain == 0) return;
-
+  
+  int passCTR = 0;
+  
   // double-photon triggers
   int HLT_Photon36_R9Id85_OR_CaloId10_Iso50_Photon22_R9Id85_OR_CaloId10_Iso50;
   int HLT_ParkedRazor;
@@ -335,7 +337,6 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
       // ET cut
       double pT = energyPho[i]*sin(thetaPho[i]);
       if(pT  >= 25.) {
-
 	/*	
 	  bool isEM_i = true;
 	  bool isLoose_i = true;
@@ -357,6 +358,31 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
 	// e2/e9
 	int iSC = superClusterIndexPho[i];
 	double e2OVERe9 = (eMaxSC[iSC]+e2ndSC[iSC])/e3x3SC[iSC];
+	double R9 = e3x3SC[iSC]/energySC[iSC];
+	double HoveE_SC = hOverESC[iSC];
+	double HoverEPho = hOverEPho[i];
+	double sigmaIetaIeta = sqrt(covIEtaIEtaSC[iSC]);
+	double rho_PF_chargedHadISO = chargedHadronIsoPho[i];
+	double rho_PF_NeutralHadISO = neutralHadronIsoPho[i];
+	double rho_PF_PhotonISO = photonIsoPho[i];
+	/*
+	std::cout << "===========================BEFORE SELECTION====================================" << std::endl;
+	std::cout << "PHOTON R9: " << R9 << " HoveE_SC: " << HoveE_SC << " HoverEPho: " << HoverEPho
+                  << " sigmaIetaIeta: " << sigmaIetaIeta << std::endl;
+	std::cout << "===============================================================================" << std::endl;
+	*/
+	if(sigmaIetaIeta > 0.0120 || HoveE_SC > 0.050)continue;
+	/*
+	std::cout << "===========================AFTER SELECTION=====================================" << std::endl;
+	std::cout << "PHOTON R9: " << R9 << " HoveE_SC: " << HoveE_SC << " HoverEPho: " << HoverEPho
+		  << " sigmaIetaIeta: " << sigmaIetaIeta << std::endl;
+	std::cout << "===============================================================================" << std::endl;
+	*/
+	
+	/*
+	std::cout << "rho_PF_chargedHadISO: " << rho_PF_chargedHadISO << " rho_PF_NeutralHadISO: " << rho_PF_NeutralHadISO 
+		  << " rho_PF_PhotonISO: " << rho_PF_PhotonISO << std::endl;
+	*/
 	//	if(e2OVERe9 <= 0.95) {
 	// one jet OR timing [for no-jet events]
 	//	  double time = fabs(timeSC[superClusterIndexPho[i]]);
@@ -374,7 +400,7 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
     }
 
     if(PFPhoton.size() < 2 ) continue; // keep at least 2 objects
-
+    
     // select two highest-pT photons
     // and select what kind of photons we are : isEM[i] or isLoose[i] or isTight[i] 
     int iPh1 = -99;
@@ -393,22 +419,77 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
 	iPh2 = i;
       }
     }
+
+    if(PFPhoton[iPh1].Pt() <= 40.0)continue;//Reject Event without Photons with 40GeV  PT
+    if(PFPhoton.size() == 2 && 
+       ( (PFPhoton[iPh1]+PFPhoton[iPh2]).M() < 110.0 || (PFPhoton[iPh1]+PFPhoton[iPh2]).M() > 170.0 ))continue;
+
+    //Find Highest PT Hgg Candidate if more than one
+    vector<TLorentzVector> HGG_can4V;
+    vector<int> ph1Index;
+    vector<int> ph2Index;
+    if(PFPhoton.size() > 2){
+      //Create all permutations
+      for(int i1 = 0; i1 < PFPhoton.size(); i1++){
+	for(int i2 = i1+1; i2 < PFPhoton.size(); i2++){
+	  if(PFPhoton[i1].Pt() > 40.0 || PFPhoton[i2].Pt() > 40.0){//At least one pho PT > 40
+	    TLorentzVector tmp = PFPhoton[i1] + PFPhoton[i2];
+	    if(tmp.M() > 110.0 && tmp.M() < 170.0){//Invariant Mass Window cut
+	      HGG_can4V.push_back(tmp);
+	      if(PFPhoton[i1].Pt() >= PFPhoton[i2].Pt()){
+		ph1Index.push_back(i1);
+		ph2Index.push_back(i2);
+	      }else{
+		ph1Index.push_back(i2);
+		ph2Index.push_back(i1);
+	      }
+	    }
+	  }
+	}
+      }
+    }
+
+    TLorentzVector HiggsCand;
+    TLorentzVector phCand1;
+    TLorentzVector phCand2;
+    if(HGG_can4V.size() > 1){
+      double ptMax = -99.0;
+      for(int i = 0; i < HGG_can4V.size(); i++){
+	if(HGG_can4V[i].Pt() > ptMax){
+	  HiggsCand = HGG_can4V[i];
+	  phCand1 = PFPhoton[ph1Index[i]];
+	  phCand2 = PFPhoton[ph2Index[i]];
+	  ptMax = HGG_can4V[i].Pt();
+	}
+      }
+    }else{
+      HiggsCand = PFPhoton[iPh1]+PFPhoton[iPh2];
+      phCand1 = PFPhoton[iPh1];
+      phCand2 = PFPhoton[iPh2];
+    }
+
+    /*
     if (runNumber==194912){
       // VERY SPECIFIC TO THESE 7 EVENTS
       iPh1 = 0;
       iPh2 = 2;
     }
+    */
+    
+    /*
     if (runNumber==199436){
       // VERY SPECIFIC TO THESE 7 EVENTS
       iPh1 = 1;
       iPh2 = 2;
     }
-
+    */
+    
+    /*
     if (runNumber==200042){
       iPh1 = 1;
       iPh2 = 2;
     }
-
+    */
 
 
     // Jet selection 
@@ -474,53 +555,30 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
     cout << "iPh1 = " << iPh1 << ", iPh2 = " <<  iPh2 << endl;
     cout << "\nm(ph1+ph2) = "  << (PFPhoton[iPh1]+PFPhoton[iPh2]).M() << endl;
 
+    mGG = HiggsCand.M();
+    pTGG = HiggsCand.Pt();
+    etaGG = HiggsCand.Eta();
+    phiGG = HiggsCand.Phi();
+    
+    /*
     mGG = (PFPhoton[iPh1]+PFPhoton[iPh2]).M();
     pTGG = (PFPhoton[iPh1]+PFPhoton[iPh2]).Pt();
     etaGG = (PFPhoton[iPh1]+PFPhoton[iPh2]).Eta();
     phiGG = (PFPhoton[iPh1]+PFPhoton[iPh2]).Phi();
-      
+    */
+    /*
+    std::cout << "Mgg: " << mGG << " " << HiggsCand.M() << std::endl;
+    std::cout << "PTgg: " << pTGG << " " << HiggsCand.Pt()<< std::endl;
+    std::cout << "Etagg: " << etaGG << " " << HiggsCand.Eta()<< std::endl;
+    std::cout << "Phigg: " << phiGG << " " << HiggsCand.Phi()<< std::endl;
+    */
+
     PFPUcorrJet.push_back(PFPhoton[iPh1]+PFPhoton[iPh2]);
     //    if(iPh1 == -99 && iPh2 == -99) continue;
     Npassed_2Ph += _weight;
 
-    // if only one found, select the highest-pT fake
-    // the first is always the good one
-    if(iPh1 == -99) {
-      iPh1 = iPh2;
-      iPh2 = -99;
-    }
-
-    // if no good photon was found 
-    // use the highest-pT fake
-    if(iPh1 == -99) {
-      phMax1 = 0.;
-      for(int i=0; i<PFPhoton.size(); i++) {
-	if(PFPhoton[i].Pt() > phMax1) {
-	  phMax2 = PFPhoton[i].Pt();
-	  iPh2 = i;
-	}
-      }
-    }
-
-    if(iPh2 == -99) {
-      phMax2 = 0.;
-      for(int i=0; i<PFPhoton.size(); i++) {
-	if(PFPhoton[i].Pt() > phMax2 && i != iPh1 ) {
-	  phMax2 = PFPhoton[i].Pt();
-	  iPh2 = i;
-	}
-      }
-    }
     
-    if(iPh1 == -99) {
-      pTPh1  = -99.;
-      etaPh1 = -99.;
-      phiPh1 = -99.;
-      noPhoton1 = -99;
-      isEMPh1 = -99;
-      isLoosePh1 = -99;
-      isTightPh1 = -99;
-    } else {
+    if(PFPhoton.size() == 2){
       pTPh1  = double(PFPhoton[iPh1].Pt());
       etaPh1 = double(PFPhoton[iPh1].Eta());
       phiPh1 = double(PFPhoton[iPh1].Phi());
@@ -528,18 +586,7 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
       isEMPh1 = int(isEM[iPh1]);
       isLoosePh1 = int(isLoose[iPh1]);
       isTightPh1 = int(isTight[iPh1]);
-    }
-
-    if(iPh2 == -99) {
-      // this is gamma+jets
-      pTPh2  = -99.;
-      etaPh2 = -99.;
-      phiPh2 = -99.;
-      noPhoton2 = -99;
-      isEMPh2 = -99;
-      isLoosePh2 = -99;
-      isTightPh2 = -99;
-    } else {
+      
       pTPh2  = double(PFPhoton[iPh2].Pt());
       etaPh2 = double(PFPhoton[iPh2].Eta());
       phiPh2 = double(PFPhoton[iPh2].Phi());
@@ -547,9 +594,11 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
       isEMPh2 = int(isEM[iPh2]);
       isLoosePh2 = int(isLoose[iPh2]);
       isTightPh2 = int(isTight[iPh2]);
-    }
+    }    
 
-
+    std::cout << "ph1PT: " << pTPh1 << " " << phCand1.Pt() << std::endl;
+    std::cout << "ph2PT: " << pTPh2 << " " << phCand2.Pt() << std::endl;
+    
     // dummy values
     passedPF = 0;
     pTPFHem1 = -9999;
@@ -691,11 +740,12 @@ void RazorHiggsDiPhoton::Loop(string outFileName, int start, int stop) {
     W = _weight;
 
     // Fill the tree per box
+    passCTR++;
     outTree->Fill();
 
   }
 
-  
+  std::cout << "Pass SELECTION: " << passCTR << std::endl;
   // fill efficiency tree
   TTree* effTree = new TTree("effTree", "effTree");
     
@@ -768,9 +818,7 @@ bool RazorHiggsDiPhoton::PhotonIdBarrel(int i, TString Selector) {
     float sigmaIetaIeta = sqrt(covIEtaIEtaSC[iSC]);
     
     //if ( IsPhotonBarrel(i) && ecalRecHitSumEtConeDR04SC[iSC] < 4.2+0.006*pT && hcalTowerSumEtConeDR04SC[iSC] < 2.2+0.0025*pT && hOverESC[iSC] < 0.05 && dr04HollowTkSumPtPho[i]< 2.0+0.001*pT  && sigmaIetaIeta < 0.013 && !hasPixelSeedPho[i])
-    if ( IsPhotonBarrel(i) )
-
-      passed  = true;
+    if ( IsPhotonBarrel(i) )passed  = true;
 
   }else if (Selector == "isLoose"){
 
@@ -794,13 +842,9 @@ bool RazorHiggsDiPhoton::PhotonIdBarrel(int i, TString Selector) {
     */
 
     //if ( IsPhotonBarrel(i) && ecalRecHitSumEtConeDR04SC[iSC] < 4.2+0.006*pT && hcalTowerSumEtConeDR04SC[iSC] < 2.2+0.0025*pT && hOverESC[iSC] < 0.05 && dr04HollowTkSumPtPho[i]< 3.5+0.001*pT  && !hasPixelSeedPho[i])
-    if ( IsPhotonBarrel(i) )
- 
-      passed  = true;
+    if ( IsPhotonBarrel(i) )passed  = true;
 
   }else if (Selector == "isEM"){
-
-
     /*
   //// Photon ID criteria
   if(IsPhotonBarrel(i));
@@ -821,9 +865,7 @@ bool RazorHiggsDiPhoton::PhotonIdBarrel(int i, TString Selector) {
     */
 
     //if ( IsPhotonBarrel(i) && ecalRecHitSumEtConeDR04SC[iSC] < 4.2+0.006*pT && hcalTowerSumEtConeDR04SC[iSC] < 2.2+0.0025*pT && hOverESC[iSC] < 0.05 && !hasPixelSeedPho[i])
-    if ( IsPhotonBarrel(i) )
-
-      passed  = true;
+    if ( IsPhotonBarrel(i) )passed  = true;
 
   }
 
