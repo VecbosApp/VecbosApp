@@ -65,6 +65,10 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/DYJetsHT200To400.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 23;
+  }else if(outFileName.find("QCD") != string::npos){
+    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/DYJetsHT200To400.root");
+    pu_h = (TH1D*)pu_f->Get("pileup");
+    pdgID = 23;
   }else if(outFileName.find("DYJetsHT400") != string::npos){
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/DYJetsHT400.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
@@ -117,6 +121,10 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/ZJetsToNuNu_400_HT_inf.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 23;
+  }else if(outFileName.find("mDm") != string::npos){
+    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/monoBt.root");
+    pu_h = (TH1D*)pu_f->Get("pileup");
+    pdgID = 18;
   }else if(outFileName.find("DMm") != string::npos){
     pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/DMmTotal.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
@@ -141,6 +149,21 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   double w_isr = 0.0;
   double w_isr_up = 0.0;
   double w_isr_down = 0.0;
+
+  double w_pdf_CTEQ66[100];
+  double w_pdf_MRST2006NNLO[100];
+  double w_pdf_NNPDF10100[150];
+
+  double w_pdf_CTEQ66_isr[100];
+  double w_pdf_MRST2006NNLO_isr[100];
+  double w_pdf_NNPDF10100_isr[150];
+
+  double w_pdf_CTEQ66_isr_up = 0.0;
+  double w_pdf_CTEQ66_isr_down = 0.0;
+  double w_pdf_MRST2006NNLO_isr_up = 0.0;
+  double w_pdf_MRST2006NNLO_isr_down = 0.0;
+  double w_pdf_NNPDF10100_isr_up = 0.0;
+  double w_pdf_NNPDF10100_isr_down = 0.0;
 
   double pu_w;
   double jes_up_w;
@@ -368,7 +391,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     outTree->Branch("idMC", idMc, "idMC[nMC]/I");
     outTree->Branch("mothMC", mothMc, "mothMC[nMC]/I");
     outTree->Branch("statusMC", statusMc, "statusMC[nMC]/I");
-    if(outFileName.find("DMm") != string::npos){
+    if(outFileName.find("DMm") != string::npos || outFileName.find("mDm") != string::npos){
       outTree->Branch("nCTEQ66", &nCTEQ66, "nCTEQ66/I");
       outTree->Branch("wCTEQ66", wCTEQ66, "wCTEQ66[nCTEQ66]/D");
       outTree->Branch("nMRST2006NNLO", &nMRST2006NNLO, "nMRST2006NNLO/I");
@@ -424,7 +447,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
       TVector3 aux;
       for(int i=0; i<nMc; i++) {
         if(abs(idMc[i]) == pdgID && statusMc[i] == 3){
-	  std::cout << "PDG: " << idMc[i] << "  Pt: " << pMc[i]/cosh(etaMc[i]) << std::endl;
+	  //std::cout << "PDG: " << idMc[i] << "  Pt: " << pMc[i]/cosh(etaMc[i]) << std::endl;
           aux.SetPtEtaPhi(pMc[i]/cosh(etaMc[i]), etaMc[i], phiMc[i]);
           SYS += aux;
         }
@@ -439,6 +462,29 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     w_isr_up += ISR_up;
     w_isr_down += ISR_down;
     
+    if(outFileName.find("DMm") != string::npos || outFileName.find("mDm") != string::npos){
+      w_pdf_CTEQ66_isr_up += ISR_up*wCTEQ66[0];
+      w_pdf_CTEQ66_isr_down += ISR_down*wCTEQ66[0];
+
+      w_pdf_MRST2006NNLO_isr_up += ISR_up*wMRST2006NNLO[0];
+      w_pdf_MRST2006NNLO_isr_down += ISR_down*wMRST2006NNLO[0];
+
+      w_pdf_NNPDF10100_isr_up += ISR_up*wNNPDF10100[0];
+      w_pdf_NNPDF10100_isr_down += ISR_down*wNNPDF10100[0];
+      
+      for(int l = 0; l < nCTEQ66; l++){
+        w_pdf_CTEQ66[l] += wCTEQ66[l];
+        w_pdf_CTEQ66_isr[l] += ISR*wCTEQ66[l];
+      }
+      for(int l = 0; l < nMRST2006NNLO; l++){
+        w_pdf_MRST2006NNLO[l] += wMRST2006NNLO[l];
+        w_pdf_MRST2006NNLO_isr[l] += ISR*wMRST2006NNLO[l];
+      }
+      for(int l = 0; l < nNNPDF10100; l ++){
+        w_pdf_NNPDF10100[l] += wNNPDF10100[l];
+        w_pdf_NNPDF10100_isr[l] += ISR*wNNPDF10100[l];
+      }
+    }
 
     //IMPORTANT: FOR DATA RELOAD THE TRIGGER MASK PER FILE WHICH IS SUPPOSED TO CONTAIN UNIFORM CONDITIONS X FILE
     if(_isData) {
@@ -697,7 +743,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     }
     // jet ID                                                                 
     if (N_pfJets <= 0 )  continue;// If any Jet is bad (see loop before) event is rejected
-    
+    //std::cout << "JET REQUIREMENT" << std::endl;
     //////////////////////////////////////////////////////////////
     /////////////////////Create Muon Collection///////////////////
     //////////////////////////////////////////////////////////////
@@ -722,8 +768,8 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
         MuLoose.push_back(thisMu);
 	}*/
 
-      if( ( isLooseMuon(i, true) ) && ( thisMu.Pt() > 15. ) ) {                                                                                    
-        iMuLoose.push_back(i);
+      if( ( isLooseMuon(i, true) ) && ( thisMu.Pt() > 15. ) ) {                                            
+	iMuLoose.push_back(i);
 	MuLoose.push_back(thisMu);
       }
       //Standard Isolation
@@ -842,7 +888,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
       JetMetY_down += pfJets_noMu_Down[j].Py();
       
       
-      JetCVS_Map[pfJets_noMu[j].Pt()] = combinedSecondaryVertexBJetTagsAK5Jet[  i_pfJets_noMu[j]  ];
+      JetCVS_Map[pfJets_noMu[j].Pt()] = combinedSecondaryVertexBJetTagsAK5PFNoPUJet[  i_pfJets_noMu[j]  ];
       
       JetEtaMap[pfJets_noMu[j].Pt()] = pfJets_noMu[j].Eta();
       JetEtaMap_up[pfJets_noMu[j].Pt()] = pfJets_noMu_Up[j].Eta();
@@ -888,9 +934,13 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     nBtagTight = 0;
         
     for( int b = 0; b < i_pfJets_noMu.size(); b++ ){
-      if( pfJetPassCSVL( combinedSecondaryVertexBJetTagsAK5Jet[ i_pfJets_noMu[b] ] ) ) nBtag++;//Loose
-      if( pfJetPassCSVM( combinedSecondaryVertexBJetTagsAK5Jet[ i_pfJets_noMu[b] ] ) ) nBtagMed++;//Med
-      if( pfJetPassCSVT( combinedSecondaryVertexBJetTagsAK5Jet[ i_pfJets_noMu[b] ] ) ) nBtagTight++;//Tight  
+      //if( pfJetPassCSVL( combinedSecondaryVertexBJetTagsAK5Jet[ i_pfJets_noMu[b] ] ) ) nBtag++;//Loose
+      //if( pfJetPassCSVM( combinedSecondaryVertexBJetTagsAK5Jet[ i_pfJets_noMu[b] ] ) ) nBtagMed++;//Med
+      //if( pfJetPassCSVT( combinedSecondaryVertexBJetTagsAK5Jet[ i_pfJets_noMu[b] ] ) ) nBtagTight++;//Tight  
+      
+      if( pfJetPassCSVL( combinedSecondaryVertexBJetTagsAK5PFNoPUJet[ i_pfJets_noMu[b] ] ) ) nBtag++;//Loose
+      if( pfJetPassCSVM( combinedSecondaryVertexBJetTagsAK5PFNoPUJet[ i_pfJets_noMu[b] ] ) ) nBtagMed++;//Med
+      if( pfJetPassCSVT( combinedSecondaryVertexBJetTagsAK5PFNoPUJet[ i_pfJets_noMu[b] ] ) ) nBtagTight++;//Tight
     }
         
     ////////////////////////////////////////////
@@ -935,6 +985,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     }
     
     // Tight Tau ID
+    
     vector<int> iTauTight;
     for ( int i = 0; i < nPFTau; i++) {
       TLorentzVector thisTau( pxPFTau[i], pyPFTau[i], pzPFTau[i], energyPFTau[i] );
@@ -942,12 +993,15 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
 	iTauTight.push_back(i);//Fill if the tau is tight and Pt > 20. GeV
       }
     }
-
+    
+    
     // Electron VETO
     if(iEleTight.size()>0) continue;//REMOVE ONLY FOR Trigger TURN_ON    
-    
+    //std::cout << "Pass ELe Veto" << std::endl;
+
     // TAU VETO
-    //if (iTauTight.size()>0) continue;//removed after a bug was found in the tau ID
+    //Using it for QCD sample
+    if (iTauTight.size()>0) continue;//removed after a bug was found in the tau ID
 
     //////////////////////////////////////////////                                                                      
     //////////Indirect Lepton Veto (taus)/////////                                                                      
@@ -971,9 +1025,10 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
       
     }
     
-    if(IsoPF)continue;//Applying ILV
-    Npassed_LepVeto += weightII;//Record how many of th
+    //Remove only for QCD sample
+    //if(IsoPF)continue;//Applying ILV
     
+    Npassed_LepVeto += weightII;//Record how many of th
     //std::cout << "===>OUT OF ILV" << std::endl;
         
     // BOX NUMBER
@@ -1160,6 +1215,25 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   effTree->Branch("Npassed_ISR", &w_isr, "Npassed_ISR/D");
   effTree->Branch("Npassed_ISR_up", &w_isr_up, "Npassed_ISR_up/D");
   effTree->Branch("Npassed_ISR_down", &w_isr_down, "Npassed_ISR_down/D");
+
+  effTree->Branch("nCTEQ66", &nCTEQ66, "nCTEQ66/I");
+  effTree->Branch("N_pdf_CTEQ66", w_pdf_CTEQ66, "N_pdf_CTEQ66[nCTEQ66]/D");
+  effTree->Branch("N_pdf_CTEQ66_isr", w_pdf_CTEQ66_isr, "N_pdf_CTEQ66_isr[nCTEQ66]/D");
+  effTree->Branch("N_pdf_CTEQ66_isr_up", &w_pdf_CTEQ66_isr_up, "N_pdf_CTEQ66_isr_up/D");
+  effTree->Branch("N_pdf_CTEQ66_isr_down", &w_pdf_CTEQ66_isr_down, "N_pdf_CTEQ66_isr_down/D");
+
+  effTree->Branch("nMRST2006NNLO", &nMRST2006NNLO, "nMRST2006NNLO/I");
+  effTree->Branch("N_pdf_MRST2006NNLO", w_pdf_MRST2006NNLO, "N_pdf_MRST2006NNLO[nMRST2006NNLO]/D");
+  effTree->Branch("N_pdf_MRST2006NNLO_isr", w_pdf_MRST2006NNLO_isr, "N_pdf_MRST2006NNLO_isr[nMRST2006NNLO]/D");
+  effTree->Branch("N_pdf_MRST2006NNLO_isr_up", &w_pdf_MRST2006NNLO_isr_up, "N_pdf_MRST2006NNLO_isr_up/D");
+  effTree->Branch("N_pdf_MRST2006NNLO_isr_down", &w_pdf_MRST2006NNLO_isr_down, "N_pdf_MRST2006NNLO_isr_down/D");
+
+  effTree->Branch("nNNPDF10100", &nNNPDF10100, "nNNPDF10100/I");
+  effTree->Branch("N_pdf_NNPDF10100", w_pdf_NNPDF10100, "N_pdf_NNPDF10100[nNNPDF10100]/D");
+  effTree->Branch("N_pdf_NNPDF10100_isr", w_pdf_NNPDF10100_isr, "N_pdf_NNPDF10100_isr[nNNPDF10100]/D");
+  effTree->Branch("N_pdf_NNPDF10100_isr_up", &w_pdf_NNPDF10100_isr_up, "N_pdf_NNPDF10100_isr_up/D");
+  effTree->Branch("N_pdf_NNPDF10100_isr_down", &w_pdf_NNPDF10100_isr_down, "N_pdf_NNPDF10100_isr_down/D");
+  
   effTree->Branch("Npassed_PV", &Npassed_PV, "Npassed_PV/D");
   effTree->Branch("Npassed_2Jet", &Npassed_2Jet, "Npassed_2Jet/D");
   effTree->Branch("Npassed_0btag", &Npassed_0btag, "Npassed_0btag/D");

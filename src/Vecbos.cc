@@ -3102,33 +3102,6 @@ double Vecbos::GetISR(double pt, const char* type = ""){
   
 };
 
-std::pair<double, double> Vecbos::GetPDF(double* w, int n){
-  //returns DeltaWeight
-  double wplus = 0.0;
-  double wminus = 0.0;
-  int npairs = int(n-1/2);
-  for(int i = 0; i < npairs; i++){
-    double wa = w[2*i + 1] - w[0];
-    double wb = w[2*i + 2] - w[0];
-    //wplus
-    if(wa > wb){
-      if(wa > 0.0)wplus += wa*wa;
-    }else{
-      if(wb > 0.0)wplus += wb*wb;
-    }
-    //wminus
-    if( wa < wb){
-      if(wa < 0.0)wminus += wa*wa;
-    }else{
-      if(wb < 0.0)wminus += wb*wb;
-    }    
-  }
-  wplus = sqrt(wplus);
-  wminus = sqrt(wminus);
-  std::pair<double, double> sys(wplus, wminus);
-  return sys;
-}
-
 double Vecbos::CorrrectIsoforMuons(double pt) {
   if(pt <= 0.) return 0.0;
   float Check_Muon_Pt = 0.0;

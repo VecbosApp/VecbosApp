@@ -51,10 +51,10 @@ private:
   double B_SF[500][5], C_SF[500][5], L_SF[500][5];   // Lazy coder here!!
   double B_SF_Error[500][5], C_SF_Error[500][5], L_SF_Error[500][5];
   
-  vector<double> B_Eff_PTBins[50], B_Eff_EtaBins[50];
-  vector<double> C_Eff_PTBins[50], C_Eff_EtaBins[50];
-  vector<double> L_Eff_PTBins[50], L_Eff_EtaBins[50];
-  double B_Eff[50][500][5], C_Eff[50][500][5], L_Eff[50][500][5];   // Lazy coder here!!
+  vector<double> B_Eff_PTBins[1], B_Eff_EtaBins[1];
+  vector<double> C_Eff_PTBins[1], C_Eff_EtaBins[1];
+  vector<double> L_Eff_PTBins[1], L_Eff_EtaBins[1];
+  double B_Eff[1][15000][5], C_Eff[1][15000][5], L_Eff[1][15000][5];   // Lazy coder here!!
   
   vector<double> B_SFFast_PTBins, B_SFFast_EtaBins;
   vector<double> C_SFFast_PTBins, C_SFFast_EtaBins;
@@ -62,13 +62,13 @@ private:
   double B_SFFast[500][5], C_SFFast[500][5], L_SFFast[500][5];   // Lazy...
   double B_SFFast_Error[500][5], C_SFFast_Error[500][5], L_SFFast_Error[500][5];
   
-  vector<double> B_EffFast_PTBins[50], B_EffFast_EtaBins[50];
-  vector<double> C_EffFast_PTBins[50], C_EffFast_EtaBins[50];
-  vector<double> L_EffFast_PTBins[50], L_EffFast_EtaBins[50];
-  double B_EffFast[50][500][5], C_EffFast[50][500][5], L_EffFast[50][500][5];   // Lazy...
+  vector<double> B_EffFast_PTBins[1], B_EffFast_EtaBins[1];
+  vector<double> C_EffFast_PTBins[1], C_EffFast_EtaBins[1];
+  vector<double> L_EffFast_PTBins[1], L_EffFast_EtaBins[1];
+  double B_EffFast[1][15000][5], C_EffFast[1][15000][5], L_EffFast[1][15000][5];   // Lazy...
   
   void ReadFile(vector<double> &PT, vector<double> &Eta,
-		double Array[500][5], double Error[500][5], string FileName,
+		double Array[15000][5], double Error[15000][5], string FileName,
 		bool DoubleError = false);
   void InitializeAllArrays();
   
