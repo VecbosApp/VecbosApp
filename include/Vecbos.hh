@@ -144,14 +144,18 @@ protected:
   double CalcMR(TLorentzVector ja, TLorentzVector jb);
   // compute MR*
   double CalcMRstar(TLorentzVector ja, TLorentzVector jb);
-  // compute gamma*MR*
+  // compute gamma*MR* with Momentum (massless hemispheres)
   double CalcGammaMRstar(TLorentzVector ja, TLorentzVector jb);
+  // compute gamma*MR* with Energy (massive hemispheres)
+  double CalcGammaMRstarE(TLorentzVector ja, TLorentzVector jb);
   // compute M_R'
   double CalcMRP(TLorentzVector ja, TLorentzVector jb, TVector3 met); 
   // compute M_T^R
   double CalcMTR(TLorentzVector ja, TLorentzVector jb, TVector3 met);
   // Razor Hemispheres
   vector<TLorentzVector> CombineJets(vector<TLorentzVector> myjets);
+  vector<int> GetHem1Const(vector<TLorentzVector> myjets);
+  vector<int> GetHem2Const(vector<TLorentzVector> myjets);
 
   //! the list of required triggers
   std::vector<int> m_requiredTriggers;

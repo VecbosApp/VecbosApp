@@ -81,6 +81,8 @@ VecbosApp:  $(SRCDIR)VecbosApp.C \
 	$(OUTLIB)Timing.o \
 	$(OUTLIB)RazorDiMuB.o \
 	$(OUTLIB)RazorDMAnalysis.o \
+	$(OUTLIB)RazorHiggsDiPhoton.o \
+	$(OUTLIB)CMSHemisphere.o \
 	$(OUTLIB)BtagEff.o \
 	$(OUTLIB)MonoJet.o \
 	$(OUTLIB)CandleCalib.o \
@@ -152,6 +154,8 @@ lib: 	$(OUTLIBCOMMON)Conditions.o \
 	$(OUTLIB)Timing.o \
 	$(OUTLIB)RazorDiMuB.o \
 	$(OUTLIB)RazorDMAnalysis.o \
+	$(OUTLIB)RazorHiggsDiPhoton.o \
+	$(OUTLIB)CMSHemisphere.o \
 	$(OUTLIB)BtagEff.o \
 	$(OUTLIB)MonoJet.o \
 	$(OUTLIB)CandleCalib.o \
@@ -244,6 +248,12 @@ $(OUTLIB)RazorDiMuB.o: $(SRCDIR)RazorDiMuB.cc $(OUTLIB)Vecbos.o
 
 $(OUTLIB)RazorDMAnalysis.o: $(SRCDIR)RazorDMAnalysis_pfJets.cc $(OUTLIB)Vecbos.o
 	$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)RazorDMAnalysis.o $<
+
+$(OUTLIB)CMSHemisphere.o: $(SRCDIR)CMSHemisphere.cc 
+	$(CXX) $(CXXFLAGS) $(FASTJETFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)CMSHemisphere.o $<
+
+$(OUTLIB)RazorHiggsDiPhoton.o: $(SRCDIR)RazorHiggsDiPhoton.cc $(OUTLIB)Vecbos.o $(OUTLIB)CMSHemisphere.o 
+	$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)RazorHiggsDiPhoton.o $<
 
 $(OUTLIB)BtagEff.o: $(SRCDIR)BtagEff.cc $(OUTLIB)Vecbos.o
 	$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)BtagEff.o $<

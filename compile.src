@@ -1,9 +1,10 @@
+#this script assumes you have set up a CMSSW area and cloned VecbosApp inside CMSSW_X_Y_Z/src
 export SCRAM_ARCH=slc5_amd64_gcc462
-cmsrel CMSSW_5_3_3_patch3
-cd CMSSW_5_3_3_patch3/src
+#cmsrel CMSSW_5_3_3_patch3
+#cd CMSSW_5_3_3_patch3/src
 eval `scramv1 runtime -sh`
-git clone git@github.com:VecbosApp/VecbosApp.git
-cd VecbosApp
+#git clone git@github.com:VecbosApp/VecbosApp.git
+#cd VecbosApp
 git clone git@github.com:VecbosApp/CommonTools.git
 git clone git@github.com:VecbosApp/EgammaAnalysisTools.git
 git clone git@github.com:VecbosApp/VecbosSamples.git

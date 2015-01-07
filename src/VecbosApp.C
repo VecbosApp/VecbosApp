@@ -132,6 +132,9 @@
 #if Application == 33
 #include <include/Timing.hh>
 #endif
+#if Application == 34
+#include <include/RazorHiggsDiPhoton.hh>
+#endif
 
 using namespace std;
 
@@ -184,10 +187,10 @@ int main(int argc, char* argv[]) {
          theChain->Add(TString(MyRootFile));
    }
    else
-	  theChain->Add("rfio:"+TString(MyRootFile));
+     //theChain->Add("rfio:"+TString(MyRootFile));
 
         // theChain->Add("root://castorcms/"+TString(MyRootFile));
-	//        theChain->Add(TString(MyRootFile));
+     theChain->Add(TString(MyRootFile));
 	std::cout << "chaining " << MyRootFile << std::endl;
 	//	if ( nfiles==1 ) {
 	//	  TFile *firstfile = TFile::Open("root://castorcms/"+TString(MyRootFile));
@@ -206,6 +209,7 @@ int main(int argc, char* argv[]) {
   int signal = 0;
   int start = 0;
   int stop  = theChain->GetEntries();
+  std::cout << "STOP = " << stop << std::endl;
   bool isData = false;
   float lumi = -999.;
   float xsec = -999.;
@@ -766,6 +770,14 @@ int main(int argc, char* argv[]) {
   vecbos.SetWeight(double(weight));
   vecbos.Loop(string(outFileName), start, stop);
 #endif
+
+
+#if Application == 34
+  RazorHiggsDiPhoton vecbos(theChain, string(json), isData, isData);
+  vecbos.SetWeight(double(weight));
+  vecbos.Loop(string(outFileName), start, stop);
+#endif
+
 
   system("rm thisiswhyitcrashed*");
   

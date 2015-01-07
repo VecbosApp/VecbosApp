@@ -33,5 +33,6 @@
 //  31 = RazorDMAnalysis
 //  32 = BtagEfficiency
 //  33 = Timing
+//  34 = RazorHiggsDiPhoton
 
-#define Application 31
+#define Application 34

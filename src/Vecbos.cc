@@ -2130,8 +2130,43 @@ double Vecbos::CalcGammaMRstar(TLorentzVector ja, TLorentzVector jb){
 
   double mygamma = 1./sqrt(1.-mybeta*mybeta);
 
+
   //gamma times MRstar                                                                                                                                                                              
   temp *= mygamma;
+
+  //cout << "old    MR(P) = " << temp << endl;
+  temp = sqrt((A+B)*(A+B)-(az+bz)*(az+bz));
+  //cout << "simple MR(P) = " << temp << endl;
+
+  return temp;
+}
+
+
+double Vecbos::CalcGammaMRstarE(TLorentzVector ja, TLorentzVector jb){
+  double A = ja.E();
+  double B = jb.E();
+  double az = ja.Pz();
+  double bz = jb.Pz();
+  TVector3 jaT, jbT;
+  jaT.SetXYZ(ja.Px(),ja.Py(),0.0);
+  jbT.SetXYZ(jb.Px(),jb.Py(),0.0);
+  double ATBT = (jaT+jbT).Mag2();
+
+  double temp = sqrt((A+B)*(A+B)-(az+bz)*(az+bz)-
+                     (jbT.Dot(jbT)-jaT.Dot(jaT))*(jbT.Dot(jbT)-jaT.Dot(jaT))/(jaT+jbT).Mag2());
+
+  double mybeta = (jbT.Dot(jbT)-jaT.Dot(jaT))/
+    sqrt(ATBT*((A+B)*(A+B)-(az+bz)*(az+bz)));
+
+  double mygamma = 1./sqrt(1.-mybeta*mybeta);
+
+
+  //gamma times MRstar                                                                                                                                                                              
+  temp *= mygamma;
+
+  // cout << "old    MR(E) = " << temp << endl;
+  temp = sqrt((A+B)*(A+B)-(az+bz)*(az+bz));
+  // cout << "simple MR(E) = " << temp << endl;
 
   return temp;
 }
@@ -2179,6 +2214,8 @@ double Vecbos::CalcMTR(TLorentzVector ja, TLorentzVector jb, TVector3 met){
 vector<TLorentzVector> Vecbos::CombineJets(vector<TLorentzVector> myjets){
   
   vector<TLorentzVector> mynewjets;
+  vector<int> j1const;
+  vector<int> j2const;
   TLorentzVector j1, j2;
   bool foundGood = false;
   
@@ -2191,14 +2228,18 @@ vector<TLorentzVector> Vecbos::CombineJets(vector<TLorentzVector> myjets){
   int j_count;
   for(int i = 1; i < N_comb-1; i++){
     TLorentzVector j_temp1, j_temp2;
+    vector<int> j_temp1const;
+    vector<int> j_temp2const;
     int itemp = i;
     j_count = N_comb/2;
     int count = 0;
     while(j_count > 0){
       if(itemp/j_count == 1){
 	j_temp1 += myjets[count];
+	j_temp1const.push_back(count);
       } else {
 	j_temp2 += myjets[count];
+	j_temp2const.push_back(count);
       }
       itemp -= j_count*(itemp/j_count);
       j_count /= 2;
@@ -2210,7 +2251,10 @@ vector<TLorentzVector> Vecbos::CombineJets(vector<TLorentzVector> myjets){
       M_min = M_temp;
       j1 = j_temp1;
       j2 = j_temp2;
+      j1const = j_temp1const;
+      j2const = j_temp2const;
     }
+
   }
 
   // set masses to 0
@@ -2219,13 +2263,162 @@ vector<TLorentzVector> Vecbos::CombineJets(vector<TLorentzVector> myjets){
   
   if(j2.Pt() > j1.Pt()){
     TLorentzVector temp = j1;
+    vector<int> tempconst = j1const;
     j1 = j2;
     j2 = temp;
+    j1const = j2const;
+    j2const = tempconst;
   }
-  
+
   mynewjets.push_back(j1);
   mynewjets.push_back(j2);
   return mynewjets;  
+}
+
+
+vector<int> Vecbos::GetHem1Const(vector<TLorentzVector> myjets){
+  
+  vector<TLorentzVector> mynewjets;
+  vector<int> j1const;
+  vector<int> j2const;
+  TLorentzVector j1, j2;
+  bool foundGood = false;
+  
+  int N_comb = 1;
+  for(int i = 0; i < myjets.size(); i++){
+    N_comb *= 2;
+  }
+  
+  double M_min = 9999999999.0;
+  int j_count;
+  for(int i = 1; i < N_comb-1; i++){
+    TLorentzVector j_temp1, j_temp2;
+    vector<int> j_temp1const;
+    vector<int> j_temp2const;
+    int itemp = i;
+    j_count = N_comb/2;
+    int count = 0;
+    while(j_count > 0){
+      if(itemp/j_count == 1){
+	j_temp1 += myjets[count];
+	j_temp1const.push_back(count);
+      } else {
+	j_temp2 += myjets[count];
+	j_temp2const.push_back(count);
+      }
+      itemp -= j_count*(itemp/j_count);
+      j_count /= 2;
+      count++;
+    }    
+    double M_temp = j_temp1.M2()+j_temp2.M2();
+    //cout << "m1 = " << j_temp1.M() << endl;
+    //cout << "m2 = " << j_temp2.M() << endl;
+    //cout << "m1+m2 = " << j_temp1.M()+j_temp2.M() << endl;
+    // smallest mass
+    if(M_temp < M_min){
+      M_min = M_temp;
+      j1 = j_temp1;
+      j2 = j_temp2;
+      j1const = j_temp1const;
+      j2const = j_temp2const;
+    }
+
+  }
+
+  // set masses to 0
+  // j1.SetPtEtaPhiM(j1.Pt(),j1.Eta(),j1.Phi(),0.0);
+  // j2.SetPtEtaPhiM(j2.Pt(),j2.Eta(),j2.Phi(),0.0);
+  
+  if(j2.Pt() > j1.Pt()){
+    TLorentzVector temp = j1;
+    vector<int> tempconst = j1const;
+    j1 = j2;
+    j2 = temp;
+    j1const = j2const;
+    j2const = tempconst;
+  }
+ std::cout << "hem1 contains:";
+  for (int i=0; i<j1const.size(); i++)
+    std::cout << ' ' << j1const[i];
+  std::cout << '\n';
+
+ std::cout << "hem2 contains:";
+  for (int i=0; i<j2const.size(); i++)
+    std::cout << ' ' << j2const[i];
+  std::cout << '\n';
+
+  mynewjets.push_back(j1);
+  mynewjets.push_back(j2);
+
+  cout << "SMALLEST" << endl;
+  cout << "m1 = " << j1.M() << endl;
+  cout << "m2 = " << j2.M() << endl;
+  cout << "m1+m2 = " << j1.M()+j2.M() << endl;
+  return j1const;
+}
+
+vector<int> Vecbos::GetHem2Const(vector<TLorentzVector> myjets){
+  
+  vector<TLorentzVector> mynewjets;
+  vector<int> j1const;
+  vector<int> j2const;
+  TLorentzVector j1, j2;
+  bool foundGood = false;
+  
+  int N_comb = 1;
+  for(int i = 0; i < myjets.size(); i++){
+    N_comb *= 2;
+  }
+  
+  double M_min = 9999999999.0;
+  int j_count;
+  for(int i = 1; i < N_comb-1; i++){
+    TLorentzVector j_temp1, j_temp2;
+    vector<int> j_temp1const;
+    vector<int> j_temp2const;
+    int itemp = i;
+    j_count = N_comb/2;
+    int count = 0;
+    while(j_count > 0){
+      if(itemp/j_count == 1){
+	j_temp1 += myjets[count];
+	j_temp1const.push_back(count);
+      } else {
+	j_temp2 += myjets[count];
+	j_temp2const.push_back(count);
+      }
+      itemp -= j_count*(itemp/j_count);
+      j_count /= 2;
+      count++;
+    }    
+    double M_temp = j_temp1.M2()+j_temp2.M2();
+    // smallest mass
+    if(M_temp < M_min){
+      M_min = M_temp;
+      j1 = j_temp1;
+      j2 = j_temp2;
+      j1const = j_temp1const;
+      j2const = j_temp2const;
+    }
+
+  }
+
+  // set masses to 0
+  // j1.SetPtEtaPhiM(j1.Pt(),j1.Eta(),j1.Phi(),0.0);
+  // j2.SetPtEtaPhiM(j2.Pt(),j2.Eta(),j2.Phi(),0.0);
+  
+  if(j2.Pt() > j1.Pt()){
+    TLorentzVector temp = j1;
+    vector<int> tempconst = j1const;
+    j1 = j2;
+    j2 = temp;
+    j1const = j2const;
+    j2const = tempconst;
+  }
+
+  mynewjets.push_back(j1);
+  mynewjets.push_back(j2);
+  return j2const;
 }
 
 double Vecbos::GetDiJetMass(std::vector<Jet> jets) {
@@ -2682,7 +2875,8 @@ bool Vecbos::isPFNoPUJetID(int jetIndex, double energyFrac) {
   double EU = uncorrEnergyAK5PFNoPUJet[jetIndex];
     
   double fHAD = (neutralHadronEnergyAK5PFNoPUJet[jetIndex]+chargedHadronEnergyAK5PFNoPUJet[jetIndex])/EU;
-    
+  fHAD = 0;
+
   if(fHAD > 0.99){
     good_jet = false;
   }
@@ -2744,7 +2938,7 @@ bool Vecbos::isPFPUcorrJetID(int jetIndex, double energyFrac) {
   double EU = uncorrEnergyAK5PFPUcorrJet[jetIndex];
     
   double fHAD = (neutralHadronEnergyAK5PFPUcorrJet[jetIndex]+chargedHadronEnergyAK5PFPUcorrJet[jetIndex])/EU;
-    
+  fHAD = 0;
   if(fHAD > 0.99){
     good_jet = false;
   }
