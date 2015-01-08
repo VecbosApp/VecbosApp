@@ -135,6 +135,9 @@
 #if Application == 34
 #include <include/RazorHiggsDiPhoton.hh>
 #endif
+#if Application == 35
+#include <include/RazorRunTwo.hh>
+#endif
 
 using namespace std;
 
@@ -771,13 +774,17 @@ int main(int argc, char* argv[]) {
   vecbos.Loop(string(outFileName), start, stop);
 #endif
 
-
 #if Application == 34
   RazorHiggsDiPhoton vecbos(theChain, string(json), isData, isData);
   vecbos.SetWeight(double(weight));
   vecbos.Loop(string(outFileName), start, stop);
 #endif
 
+#if Application == 35
+  RazorRunTwo vecbos(theChain, json, isData, isData);
+  vecbos.SetWeight(double(weight));
+  vecbos.Loop(string(outFileName), start, stop);
+#endif
 
   system("rm thisiswhyitcrashed*");
   
