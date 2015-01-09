@@ -23,6 +23,7 @@ using namespace std;
 #include "CommonTools/include/LeptonIdBits.h"
 #include "CommonTools/include/TriggerMask.hh"
 #include "RazorRunTwo.hh"
+#include "ControlSampleEvents.hh"
 
 Float_t Jet_Min_Pt = 80.0;//at least 2 jest PT>80 GeV
 
@@ -255,134 +256,10 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
   // ttbar decay: 0 = nolep, 1 = semilep; 2 = fully lep
   int iTopDecay;
   
-  // prepare the output tree
-  TTree* outTree = new TTree("outTree", "outTree");
-  outTree->Branch("run", &run, "run/D");
-  outTree->Branch("evNum", &evNum, "evNum/D");
-  outTree->Branch("bx", &bx, "bx/D");
-  outTree->Branch("ls", &ls, "ls/D");
-  outTree->Branch("orbit", &orbit, "orbit/D");
-  outTree->Branch("nPU", &nPu, "nPU/I");
-  outTree->Branch("pu_w", &pu_w, "pu_w/D");
-  outTree->Branch("mu_w", &mu_w, "mu_w/D");
-  outTree->Branch("mu_w_up", &mu_w_up, "mu_w_up/D");
-  outTree->Branch("mu_w_down", &mu_w_down, "mu_w_down/D");
-  outTree->Branch("ISR", &ISR, "ISR/D");
-  outTree->Branch("ISR_up", &ISR_up, "ISR_up/D");
-  outTree->Branch("ISR_down", &ISR_down, "ISR_down/D");
-  outTree->Branch("BOX_NUM", &BOX_NUM, "BOX_NUM/I");
-  outTree->Branch("BOX", BOX, "BOX[3]/I");
-  //outTree->Branch("ss", &ss, "ss/I");
-  // HLT bits
-  outTree->Branch("HLT_Razor", &HLT_Razor, "HLT_Razor/I"); 
-  outTree->Branch("HLT_Razor_prescaled", &HLT_Razor_prescaled, "HLT_Razor_prescaled/I"); 
-  outTree->Branch("passedHLT", &passedHLT, "passedHLT/I");
-  //  block
-  outTree->Branch("R", R, "R[4]/D");
-  outTree->Branch("R_up", R_up, "R_up[4]/D");
-  outTree->Branch("R_down", R_down, "R_down[4]/D");
-  outTree->Branch("RSQ", RSQ, "RSQ[4]/D");
-  outTree->Branch("RSQ_up", RSQ_up, "RSQ_up[4]/D");
-  outTree->Branch("RSQ_down", RSQ_down, "RSQ_down[4]/D");
-  outTree->Branch("MR", MR, "MR[4]/D");
-  outTree->Branch("MR_up", MR_up, "MR_up[4]/D");
-  outTree->Branch("MR_down", MR_down, "MR_down[4]/D");
-  outTree->Branch("MRT", MRT, "MRT[4]/D");
-  outTree->Branch("MRT_up", MRT_up, "MRT_up[4]/D");
-  outTree->Branch("MRT_down", MRT_down, "MRT_down[4]/D");
-  
-  outTree->Branch("pTHem1", &pTHem1, "pTHem1/D");
-  outTree->Branch("pTHem1_up", &pTHem1_up, "pTHem1_up/D");
-  outTree->Branch("pTHem1_down", &pTHem1_down, "pTHem1_down/D");
-  outTree->Branch("etaHem1", &etaHem1, "etaHem1/D");
-  outTree->Branch("etaHem1_up", &etaHem1_up, "etaHem1_up/D");
-  outTree->Branch("etaHem1_down", &etaHem1_down, "etaHem1_down/D");
-  outTree->Branch("phiHem1", &phiHem1, "phiHem1/D");
-  outTree->Branch("phiHem1_up", &phiHem1_up, "phiHem1_up/D");
-  outTree->Branch("phiHem1_down", &phiHem1_down, "phiHem1_down/D");
-  outTree->Branch("pTHem2", &pTHem2, "pTHem2/D");
-  outTree->Branch("pTHem2_up", &pTHem2_up, "pTHem2_up/D");
-  outTree->Branch("pTHem2_down", &pTHem2_down, "pTHem2_down/D");
-  outTree->Branch("etaHem2", &etaHem2, "etaHem2/D");
-  outTree->Branch("etaHem2_up", &etaHem2_up, "etaHem2_up/D");
-  outTree->Branch("etaHem2_down", &etaHem2_down, "etaHem2_down/D");
-  outTree->Branch("phiHem2", &phiHem2, "phiHem2/D");
-  outTree->Branch("phiHem2_up", &phiHem2_up, "phiHem2_up/D");
-  outTree->Branch("phiHem2_down", &phiHem2_down, "phiHem2_down/D");
-  outTree->Branch("N_Jets", &N_Jets, "N_Jets/I");
-  outTree->Branch("Jet_PT", Jet_PT, "Jet_PT[N_Jets]/D");
-  outTree->Branch("Jet_PT_up", Jet_PT_up, "Jet_PT_up[N_Jets]/D");
-  outTree->Branch("Jet_PT_down", Jet_PT_down, "Jet_PT_down[N_Jets]/D");
-  outTree->Branch("Jet_Eta", Jet_Eta, "Jet_Eta[N_Jets]/D");
-  outTree->Branch("Jet_Eta_up", Jet_Eta_up, "Jet_Eta_up[N_Jets]/D");
-  outTree->Branch("Jet_Eta_down", Jet_Eta_down, "Jet_Eta_down[N_Jets]/D");
-  outTree->Branch("Jet_Phi", Jet_Phi, "Jet_Phi[N_Jets]/D");
-  outTree->Branch("Jet_Phi_up", Jet_Phi_up, "Jet_Phi_up[N_Jets]/D");
-  outTree->Branch("Jet_Phi_down", Jet_Phi_down, "Jet_Phi_down[N_Jets]/D");
-  outTree->Branch("CSV", CSV, "CSV[N_Jets]/D");
-  outTree->Branch("nBtag", &nBtag, "nBtag/I");
-  outTree->Branch("nBtagMed", &nBtagMed, "nBtagMed/I");
-  outTree->Branch("nBtagTight", &nBtagTight, "nBtagTight/I");
-  outTree->Branch("W", &W, "W/D");
-  outTree->Branch("mst", &mst, "mst/D");
-  outTree->Branch("mchi", &mchi, "mchi/D");
-  outTree->Branch("nPV", &nPV, "nPV/I");
-  outTree->Branch("i1", &i1, "i1/I");
-  outTree->Branch("pT1", &pT1, "pT1/D");
-  outTree->Branch("eta1", &eta1, "eta1/D");
-  outTree->Branch("phi1", &phi1, "phi1/D");
-  outTree->Branch("i2", &i2, "i2/I");
-  outTree->Branch("pT2", &pT2, "pT2/D");
-  outTree->Branch("eta2", &eta2, "eta2/D");
-  outTree->Branch("phi2", &phi2, "phi2/D");
-  //outTree->Branch("N_Jets", &N_Jets, "N_Jets/I");
-  outTree->Branch("Mu_Px", Mu_Px_,"Mu_Px_[2]/D");
-  outTree->Branch("Mu_Py", Mu_Py_,"Mu_Py_[2]/D");
-  outTree->Branch("Mu_Pz", Mu_Pz_,"Mu_Pz_[2]/D");
-  outTree->Branch("Mu_E", Mu_E_,"Mu_E_[2]/D");
-  outTree->Branch("iTopDecay", &iTopDecay, "iTopDecay/I");
-  outTree->Branch("mssm", mssm, "mssm[3]/F");
-  //MET Info
-  outTree->Branch("metX", metX, "metX[4]/D");
-  outTree->Branch("metY", metY, "metY[4]/D");
-  outTree->Branch("metCorrX", metCorrX, "metCorrX[4]/D");
-  outTree->Branch("metCorrY", metCorrY, "metCorrY[4]/D");
-  outTree->Branch("metX_up", metX_up, "metX_up[4]/D");
-  outTree->Branch("metX_down", metX_down, "metX_down[4]/D");
-  outTree->Branch("metY_up", metY_up, "metY_up[4]/D");
-  outTree->Branch("metY_down", metY_down, "metY_down[4]/D");
-  outTree->Branch("metCorrX_up", metCorrX_up, "metCorrX_up[4]/D");
-  outTree->Branch("metCorrX_down", metCorrX_down, "metCorrX_down[4]/D");
-  outTree->Branch("metCorrY_up", metCorrY_up, "metCorrY_up[4]/D");
-  outTree->Branch("metCorrY_down", metCorrY_down, "metCorrY_down[4]/D");
-  outTree->Branch("JetMetX", &JetMetX, "JetMetX/D");
-  outTree->Branch("JetMetY", &JetMetY, "JetMetY/D");
-  outTree->Branch("ht", &ht, "ht/D");
-  outTree->Branch("mht", mht, "mht[3]/D");//xyz->[0,1,2]
-  //MC GEN LEVEL INFO
-  if( _isData == 0 ){
-    outTree->Branch("nMC", &nMc, "nMC/I");
-    outTree->Branch("pMC", pMc, "pMC[nMC]/F");
-    outTree->Branch("thetaMC", thetaMc, "thetaMC[nMC]/F");
-    outTree->Branch("etaMC", etaMc, "etaMC[nMC]/F");
-    outTree->Branch("phiMC", phiMc, "phiMC[nMC]/F");
-    outTree->Branch("energyMC", energyMc, "energyMC[nMC]/F");
-    outTree->Branch("vxMC", vxMc, "vxMC[nMC]/F");
-    outTree->Branch("vyMC", vyMc, "vyMC[nMC]/F");
-    outTree->Branch("vzMC", vzMc, "vzMC[nMC]/F");
-    outTree->Branch("idMC", idMc, "idMC[nMC]/I");
-    outTree->Branch("mothMC", mothMc, "mothMC[nMC]/I");
-    outTree->Branch("statusMC", statusMc, "statusMC[nMC]/I");
-    if(outFileName.find("DMm") != string::npos || outFileName.find("mDm") != string::npos){
-      outTree->Branch("nCTEQ66", &nCTEQ66, "nCTEQ66/I");
-      outTree->Branch("wCTEQ66", wCTEQ66, "wCTEQ66[nCTEQ66]/D");
-      outTree->Branch("nMRST2006NNLO", &nMRST2006NNLO, "nMRST2006NNLO/I");
-      outTree->Branch("wMRST2006NNLO", wMRST2006NNLO, "wMRST2006NNLO[nMRST2006NNLO]/D");
-      outTree->Branch("nNNPDF10100", &nNNPDF10100, "nNNPDF10100/I");
-      outTree->Branch("wNNPDF10100", wNNPDF10100, "wNNPDF10100[nNNPDF10100]/D");
-    }
-  }
-  
+  ControlSampleEvents *events = new ControlSampleEvents;
+  events->CreateTree();
+  events->tree_->SetAutoFlush(0);
+
   double Npassed_In = 0;
   double Npassed_PV = 0;
   //Jets
@@ -421,20 +298,28 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
     if (jentry%1000 == 0) cout << ">>> Processing event # " << jentry << endl;
-
+    
+    //Filling Event Info
+    events->weight = 1.0;
+    events->run = runNumber;
+    events->lumi = lumiBlock;
+    events->event = eventNumber;
+    events->processID = 1;
+    events->NPU_0 = nPU[0];
+    
     //Cristian ISR correction
     TVector3 SYS(0.0, 0.0, 0.0);
     if(!_isData){
       TVector3 aux;
       for(int i=0; i<nMc; i++) {
         if(abs(idMc[i]) == pdgID && statusMc[i] == 3){
-	  //std::cout << "PDG: " << idMc[i] << "  Pt: " << pMc[i]/cosh(etaMc[i]) << std::endl;
+	  
           aux.SetPtEtaPhi(pMc[i]/cosh(etaMc[i]), etaMc[i], phiMc[i]);
           SYS += aux;
         }
       }
     }
-    //std::cout << "PT SYS: " << SYS.Pt() << std::endl;
+    //Getting ISR Weight
     ISR = GetISR(SYS.Pt(), "central");
     ISR_up = GetISR(SYS.Pt(), "up");
     ISR_down = GetISR(SYS.Pt(), "down");
@@ -443,6 +328,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     w_isr_up += ISR_up;
     w_isr_down += ISR_down;
     
+    //Getting PDF Weights
     if(outFileName.find("DMm") != string::npos || outFileName.find("mDm") != string::npos){
       w_pdf_CTEQ66_isr_up += ISR_up*wCTEQ66[0];
       w_pdf_CTEQ66_isr_down += ISR_down*wCTEQ66[0];
@@ -548,87 +434,6 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     Npassed_PV += weightII;
     nPV = N_PV_EVENT;
     
-    //////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////
-    ////////////////////////// Calo Jets + JetID /////////////////////// 
-    ////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////
-    
-    /*
-    vector<TLorentzVector> Jet;
-    vector <int> iJet;
-    bool badjet = false;
-    std::cout << "calo jets number " << nAK5Jet << std::endl; 
-    for( int i = 0; i < nAK5Jet; i++ ) {
-      TLorentzVector jet;
-      double px = pxAK5Jet[i];
-      double py = pyAK5Jet[i];
-      double pz = pzAK5Jet[i];
-      double E = sqrt( px*px + py*py + pz*pz );//massless Jet
-      jet.SetPxPyPzE( px, py, pz, E );
-      double pt = sqrt( px*px + py*py );
-      if( fabs( jet.Eta() ) >= 3.0 ) continue;
-      if( nHit90AK5Jet[i] <= 1 || fHPDAK5Jet[i] >= 0.98 ){//What are this variables for???
-	badjet = true;
-	break;
-      }
-      if( fabs( jet.Eta() ) < 2.55 && emFracAK5Jet[i] <= 0.01 ){
-	badjet = true;
-	break;
-      }
-      if( fabs( jet.Eta() ) >= 2.55 && jet.Pt() > 80. && emFracAK5Jet[i] >= 1. ){
-	badjet = true;
-	break;
-      }
-      if( fabs( jet.Eta() ) >= 2.55 && emFracAK5Jet[i] <= -0.9 ){
-	badjet = true;
-	break;
-      }
-      
-      if ( jet.Pt() > 40. && fabs( jet.Eta() ) < 3.0 ) {
-	Jet.push_back(jet);
-	iJet.push_back(i);
-      }
-    }
-    
-    // Number of Jets                                                                                             
-    Jet_Multiplicity[0] = Jet.size();
-    
-    // jet ID                                                                                                 
-    if (badjet == true) continue;// If any Jet is bad (see loop before) event is rejected                    
-    
-    // >= 2Jets with pT> 70 GeV                                                       
-    if( int( Jet.size() ) < 2 ) continue;//At least 2 Jets                                                     
-    int iFirstJet = HighestPt(Jet, -99);
-    int iSecondJet = HighestPt(Jet, iFirstJet);
-    if( Jet[iSecondJet].Pt() < 70. ) continue;//First and second most energetic Jets Must have Pt > 70 GeV        
-    Npassed_2Jet+=weightII;
-    
-    //count btagged jets                                                                                          
-    nBtag[0] = 0;
-    nBtagTight[0] = 0;
-    
-    for( int b = 0; b < iJet.size(); b++ ){
-      if( pfJetPassCSVL( combinedSecondaryVertexBJetTagsAK5Jet[iJet[b]] ) ) nBtag[0]++; //Loose              
-      if( pfJetPassCSVT( combinedSecondaryVertexBJetTagsAK5Jet[ iJet[b] ] ) ) nBtagTight[0]++; //Tight        
-    }
-    //if(nBtag>0) continue;                                                                                       
-    Npassed_0btag+=weightII;//What is the meaning of this variable  
-    
-    /////////////////////////////                                                                                 
-    ////////////HT///////////////                                                                                 
-    /////////////////////////////                                                                            
-
-    ht =  mht[0] = mht[1] = mht[2] = 0;//initialize HT and MHT                                                  
-    for(  std::vector<TLorentzVector>::iterator it = Jet.begin(); it != Jet.end(); ++it){
-      ht += (*it).Pt();//Compute ht, scalar sum of Pt
-      mht[0] += (*it).Px();//Vectorial Sum of vec(P) of the jets                                                  
-      mht[1] += (*it).Py();//Vectorial Sum of vec(P) of the jets                                                  
-      mht[2] += (*it).Pz();//Vectorial Sum of vec(P) of the jets                                                  
-    }
-
-    */
-
     /////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
     //////////////////////// PF JETS + JetID ////////////////////////////////
@@ -810,31 +615,26 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
       ctr++;
     }
     
-    //JEC Up and Down
+    //JEC Up and Down Systematic
     vector<TLorentzVector> pfJets_noMu_Up;
     vector<TLorentzVector> pfJets_noMu_Down;
     for(int j = 0; j < pfJets_noMu.size(); j++){
       //JEC Up
       jec_un->setJetEta(pfJets_noMu[j].Eta());
       jec_un->setJetPt(pfJets_noMu[j].Pt());
-      //std::cout << "Getting JEC"<< std::endl;
+      //Getting JEC;
       double deltaPt = fabs(jec_un->getUncertainty(true));//Fractional Error
-      //std::cout << "------deltaPt: " << pfJets_noMu[j].Pt()*deltaPt << std::endl;
-      //std::cout << "Got JEC"<< std::endl;
-      
       //JEC Up Now
-      //double scl = (pfJets_noMu[j].Pt() + deltaPt)/(pfJets_noMu[j].Pt());
       double scl = 1.0 + deltaPt;
       TLorentzVector aux_J;
       aux_J.SetPxPyPzE(scl*pfJets_noMu[j].Px(), scl*pfJets_noMu[j].Py(), scl*pfJets_noMu[j].Pz(), scl*pfJets_noMu[j].E());
       pfJets_noMu_Up.push_back(aux_J);
       //JEC Down
-      //scl = (pfJets_noMu[j].Pt() - deltaPt)/(pfJets_noMu[j].Pt());
       scl = 1.0 - deltaPt;
       aux_J.SetPxPyPzE(scl*pfJets_noMu[j].Px(), scl*pfJets_noMu[j].Py(), scl*pfJets_noMu[j].Pz(), scl*pfJets_noMu[j].E());
       pfJets_noMu_Down.push_back(aux_J);
     }
-    //std::cout << "===>OUT OF JEC" << std::endl;
+    
     // Number of Jets                                                                                             
     Jet_Multiplicity = pfJets_noMu.size();
     N_Jets = pfJets_noMu.size();
@@ -883,7 +683,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
       JetPtMap_up[pfJets_noMu[j].Pt()] = pfJets_noMu_Up[j].Pt();
       JetPtMap_down[pfJets_noMu[j].Pt()] = pfJets_noMu_Down[j].Pt();
     }
-    //std::cout << "===>OUT OF MAPS" << std::endl;
+    
     std::sort(JetPT.begin(), JetPT.end());
     std::reverse(JetPT.begin(), JetPT.end());
     for(int j = 0; j < pfJets_noMu.size(); j++){
@@ -915,10 +715,6 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     nBtagTight = 0;
         
     for( int b = 0; b < i_pfJets_noMu.size(); b++ ){
-      //if( pfJetPassCSVL( combinedSecondaryVertexBJetTagsAK5Jet[ i_pfJets_noMu[b] ] ) ) nBtag++;//Loose
-      //if( pfJetPassCSVM( combinedSecondaryVertexBJetTagsAK5Jet[ i_pfJets_noMu[b] ] ) ) nBtagMed++;//Med
-      //if( pfJetPassCSVT( combinedSecondaryVertexBJetTagsAK5Jet[ i_pfJets_noMu[b] ] ) ) nBtagTight++;//Tight  
-      
       if( pfJetPassCSVL( combinedSecondaryVertexBJetTagsAK5PFNoPUJet[ i_pfJets_noMu[b] ] ) ) nBtag++;//Loose
       if( pfJetPassCSVM( combinedSecondaryVertexBJetTagsAK5PFNoPUJet[ i_pfJets_noMu[b] ] ) ) nBtagMed++;//Med
       if( pfJetPassCSVT( combinedSecondaryVertexBJetTagsAK5PFNoPUJet[ i_pfJets_noMu[b] ] ) ) nBtagTight++;//Tight
@@ -1188,7 +984,8 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
       pu_w = 1.0;
       mu_w = 1.0;
     }
-    outTree->Fill();
+    //outTree->Fill();
+    events->tree_->Fill();
   }
   
   // fill efficiency tree
@@ -1223,8 +1020,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
 
   effTree->Fill();
   
-  //TFile *file = new TFile(outFileName.c_str(),"RECREATE");
-  outTree->Write();
+  events->tree_->Write();
   effTree->Write();
   file->Close();
 }
