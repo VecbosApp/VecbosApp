@@ -139,8 +139,11 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
   JetCorrectionUncertainty *jec_un =
     new JetCorrectionUncertainty(*(new JetCorrectorParameters("JEC_Uncertainty/Summer13_V5_MC_Uncertainty_AK5PF.txt")));
   
+  //histogram containing total number of processed events (for normalization)
+  TH1F *NEvents = new TH1F("NEvents", "NEvents", 1, 1, 2);
+  
   TFile* file = new TFile(outFileName.c_str(),"RECREATE");
-
+  
   double w_isr = 0.0;
   double w_isr_up = 0.0;
   double w_isr_down = 0.0;
@@ -256,7 +259,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
   // ttbar decay: 0 = nolep, 1 = semilep; 2 = fully lep
   int iTopDecay;
   
-  ControlSampleEvents *events = new ControlSampleEvents;
+  events = new ControlSampleEvents;
   events->CreateTree();
   events->tree_->SetAutoFlush(0);
 
@@ -299,6 +302,8 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     nb = fChain->GetEntry(jentry);   nbytes += nb;
     if (jentry%1000 == 0) cout << ">>> Processing event # " << jentry << endl;
     
+    //Filling Normalization Histogram
+    NEvents->Fill(1.0);
     //Filling Event Info
     events->weight = 1.0;
     events->run = runNumber;
@@ -307,15 +312,21 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     events->processID = 1;
     events->NPU_0 = nPU[0];
     
+    //Set gen level lepton indix
+    ResetGenLeptonIndex();//Resets Lepton indixes
+    SetGenElectronIndex();//Set electron indixes
+    SetGenMuonIndex();//Set muon indixes
+    SetGenTauIndex();//Set tau indexes
+    SetGenLeptonVector();//Set TLorentz vector for the two leading leptons
+    
     //Cristian ISR correction
     TVector3 SYS(0.0, 0.0, 0.0);
     if(!_isData){
       TVector3 aux;
       for(int i=0; i<nMc; i++) {
         if(abs(idMc[i]) == pdgID && statusMc[i] == 3){
-	  
-          aux.SetPtEtaPhi(pMc[i]/cosh(etaMc[i]), etaMc[i], phiMc[i]);
-          SYS += aux;
+	  aux.SetPtEtaPhi(pMc[i]/cosh(etaMc[i]), etaMc[i], phiMc[i]);
+	  SYS += aux;
         }
       }
     }
@@ -422,7 +433,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     //HLT and Data Filter
     //passedHLT = HLT_Razor + HLT_Razor_prescaled;
     passedHLT = HLT_Razor;
-
+    
     if ( _isData == true ) {
       if ( passedHLT == 0 ) continue;//Comment out for getting trigger turn-ons
       if ((ECALTPFilterFlag==0) || (drBoundary==0) || (drDead==0) || (CSCHaloFilterFlag==0) || (trackerFailureFilterFlag==0) || (BEECALFlag==0) || ( HBHENoiseFilterResultFlag ==0 ) || (ecalLaserFilter == 0) || (eeBadScFilterFlag == 0) || (hcalLaserFilter == 0)) continue;
@@ -1029,11 +1040,140 @@ int RazorRunTwo::HighestPt(vector<TLorentzVector> p, int iHIGHEST) {
   
   int iH = -99;
   double highestPT = 0.;
-  for(int i=0; i<p.size();i++) {
-    if((p[i].Pt()>= highestPT) && (i != iHIGHEST)) {
-      iH = i;
-      highestPT = p[i].Pt();
+  for(int i=0; i<p.size();i++)
+    {
+      if((p[i].Pt()>= highestPT) && (i != iHIGHEST))
+	{
+	  iH = i;
+	  highestPT = p[i].Pt();
+	}
     }
-  }
   return iH;
-}
+};
+
+bool RazorRunTwo::SetGenElectronIndex()
+{
+  bool _findLepton = false;
+  for(int i = 0; i < nMc; i++)
+    {
+      float pt = pMc[i]/cosh(etaMc[i]);
+      if( abs(idMc[i]) == 11 && pt > 5.0 && fabs(etaMc[i]) < 2.5 && statusMc[i] == 1 )
+	{
+	  if( ( abs(idMc[mothMc[i]]) == 23 || abs(idMc[mothMc[i]]) == 24 ) || 
+	      ( ( abs(idMc[mothMc[i]]) == 11 || abs(idMc[mothMc[i]]) == 13 || abs(idMc[mothMc[i]]) == 15 ) 
+		&& statusMc[mothMc[i]] == 3 && mothMc[mothMc[i]] >= 0 && 
+		( abs(idMc[mothMc[mothMc[i]]]) == 23 || abs(idMc[mothMc[mothMc[i]]]) == 24 ) 
+		) )
+	    {
+	      genLeptonIndex.push_back(i);
+	      _findLepton =  true;
+	    }
+	}//big if ends
+  }//loop over gen particles
+  
+  return _findLepton;
+  
+};
+
+bool RazorRunTwo::SetGenMuonIndex()
+{
+  bool _findLepton = false;
+  for(int i = 0; i < nMc; i++)
+    {
+      float pt = pMc[i]/cosh(etaMc[i]);
+      if( abs(idMc[i]) == 13 && pt > 5.0 && fabs(etaMc[i]) < 2.4 && statusMc[i] == 1 )
+	{
+	  if( ( abs(idMc[mothMc[i]]) == 23 || abs(idMc[mothMc[i]]) == 24 ) || 
+	      ( ( abs(idMc[mothMc[i]]) == 11 || abs(idMc[mothMc[i]]) == 13 || abs(idMc[mothMc[i]]) == 15 ) 
+		&& statusMc[mothMc[i]] == 3 && mothMc[mothMc[i]] >= 0 && 
+		( abs(idMc[mothMc[mothMc[i]]]) == 23 || abs(idMc[mothMc[mothMc[i]]]) == 24 ) 
+		) )
+	    {
+	      genLeptonIndex.push_back(i);
+	      _findLepton = true;
+	    }
+	}//big if ends
+    }//loop over gen particles
+  
+  return _findLepton;
+  
+};
+
+bool RazorRunTwo::SetGenTauIndex()
+{
+  bool _findLepton = false;
+  for(int i = 0; i < nMc; i++)
+    {
+      float pt = pMc[i]/cosh(etaMc[i]);
+      if( abs(idMc[i]) == 15 && pt > 2.0 && fabs(etaMc[i]) < 2.4 && statusMc[i] == 2 )
+	{
+	  if( ( abs(idMc[mothMc[i]]) == 23 || abs(idMc[mothMc[i]]) == 24 ) || 
+	      ( ( abs(idMc[mothMc[i]]) == 11 || abs(idMc[mothMc[i]]) == 13 || abs(idMc[mothMc[i]]) == 15 ) 
+		&& statusMc[mothMc[i]] == 3 && mothMc[mothMc[i]] >= 0 && 
+		( abs(idMc[mothMc[mothMc[i]]]) == 23 || abs(idMc[mothMc[mothMc[i]]]) == 24 ) 
+		) )
+	    {
+	      genLeptonIndex.push_back(i);
+	      _findLepton = true;
+	    } 
+	}//big if end
+    }//loop over gen particles
+  
+  return _findLepton;
+  
+};
+
+void RazorRunTwo::SetGenLeptonVector()
+{
+  int i_ledLep  = -99;//Indices for leading lepton
+  int i_subLedLep = -99;//Indices for subleading lepton 
+  float max_pt = -99.0;//store max pt in each iteration when appropiate
+  //finds leading PT lepton
+  for( int i : genLeptonIndex )
+    {
+      float pt = pMc[i]/cosh(etaMc[i]);
+      if( pt > max_pt )
+	{
+	  max_pt = pt;
+	  i_ledLep = i;
+	}
+    }
+  //find subleading PT lepton 
+  max_pt = -99.0;//Resetting max_pt
+  for( int i : genLeptonIndex )
+    {
+      float pt = pMc[i]/cosh(etaMc[i]);
+      if( pt > max_pt && i != i_ledLep )
+        {
+          max_pt = pt;
+          i_subLedLep = i;
+        }
+    }
+  
+  //Fill leading lepton information
+  if( i_ledLep  >= 0 )
+    {
+      float pt = pMc[i_ledLep]/cosh(etaMc[i_ledLep]);
+      double mass = 0.000511;
+      if( abs(idMc[i_ledLep]) == 13 )mass = 0.1057;
+      if( abs(idMc[i_ledLep]) == 15 )mass = 1.777;
+      events->genlep1.SetPtEtaPhiM( pt, etaMc[i_ledLep], phiMc[i_ledLep], mass );
+      events->genlep1Type = idMc[i_ledLep];
+    }
+  //Fill subleading lepton information
+  if( i_subLedLep  >= 0 )
+    {
+      float pt = pMc[i_subLedLep]/cosh(etaMc[i_subLedLep]);
+      double mass = 0.000511;
+      if( abs(idMc[i_subLedLep]) == 13 )mass = 0.1057;
+      if( abs(idMc[i_subLedLep]) == 15 )mass = 1.777;
+      events->genlep1.SetPtEtaPhiM( pt, etaMc[i_subLedLep], phiMc[i_subLedLep], mass );
+      events->genlep1Type = idMc[i_subLedLep];
+    }
+  
+};
+
+void RazorRunTwo::ResetGenLeptonIndex()
+{
+  genLeptonIndex.clear();
+};

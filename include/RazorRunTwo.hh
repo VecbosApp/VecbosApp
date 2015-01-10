@@ -21,6 +21,7 @@
 #include "CommonTools/include/LeptonIdBits.h"
 #include "CommonTools/include/TriggerMask.hh"
 #include "JetCorrectorParameters.h"
+#include "ControlSampleEvents.hh"
 
 using namespace std;
 
@@ -33,7 +34,13 @@ public:
   void Loop(string outFileName, int start, int stop);
   void SetConditions(TTree* treeCond);
   void SetWeight(double);
+  bool SetGenElectronIndex();
+  bool SetGenMuonIndex();
+  bool SetGenTauIndex();
+  void SetGenLeptonVector();
+  void ResetGenLeptonIndex();
   double _weight;
+  ControlSampleEvents* events;
 
 private:
   int HighestPt(vector<TLorentzVector> p, int iHIGHEST);
@@ -45,5 +52,6 @@ private:
   TH2F* mu_corr_h;
   TFile* pu_f;
   TH1D* pu_h;
+  std::vector<int> genLeptonIndex;
 };
 #endif
