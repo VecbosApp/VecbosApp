@@ -1147,9 +1147,9 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
     //reset event variables
     events->HT = 0;
     events->NJets40 = 0;
-    events->NBjetsLoose = 0;
-    events->NBjetsMedium = 0;
-    events->NBjetsTight = 0;
+    events->NBJetsLoose = 0;
+    events->NBJetsMedium = 0;
+    events->NBJetsTight = 0;
     events->jet1 = TLorentzVector();
     events->jet2 = TLorentzVector();
     events->bjet1 = TLorentzVector();
@@ -1160,22 +1160,23 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
     events->jet2PassCSVLoose = false;
     events->jet2PassCSVMedium = false;
     events->jet2PassCSVTight = false;
-    events->bjet1PassCSVLoose = false;
-    events->bjet1PassCSVMedium = false;
-    events->bjet1PassCSVTight = false;
-    events->bjet2PassCSVLoose = false;
-    events->bjet2PassCSVMedium = false;
-    events->bjet2PassCSVTight = false;
-    MR = -1; MR_NoDilepton = -1; 
-    Rsq = -1; Rsq_NoDilepton = -1;
-    MET = -1; MET_NoDilepton = -1;
-    minDPhi = -1; minDPhiN = -1;
+    events->bjet1PassLoose = false;
+    events->bjet1PassMedium = false;
+    events->bjet1PassTight = false;
+    events->bjet2PassLoose = false;
+    events->bjet2PassMedium = false;
+    events->bjet2PassTight = false;
+    events->MR = -1; events->MR_NoDilepton = -1; 
+    events->Rsq = -1; events->Rsq_NoDilepton = -1;
+    events->MET = -1; events->MET_NoDilepton = -1;
+    events->minDPhi = -1; events->minDPhiN = -1;
 
     if(GoodJets.size() == 0) return;
 
     //get the PF MET as a TLorentzVector
-    TLorentzVector PFMET(pxPFMet[2], pyPFMet[2], 0, sqrt(pxPFMet[2]*pxPFMet[2], pyPFMet[2]*pyPFMet[2]));
-    events->MET = PFMET.Pt();
+    TLorentzVector PFMET(pxPFMet[2], pyPFMet[2], 0, sqrt(pxPFMet[2]*pxPFMet[2] + pyPFMet[2]*pyPFMet[2]));
+    TVector3 PFMET3(pxPFMet[2], pyPFMet[2], 0);
+    events->MET = PFMET3.Pt();
     TLorentzVector PFMETWithLeptons = PFMET; //will add leptons to this
 
     bool gotLeadJet = false; bool gotSubLeadJet = false;
@@ -1230,32 +1231,33 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
         //fill info on first two b-jets (CSVM)
         if(!gotLeadBJet && pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])){
             events->bjet1 = GoodJets[j];
-            if(pfJetPassCSVL(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet1PassCSVLoose = true;
-            else events->bjet1PassCSVLoose = false;
-            if(pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet1PassCSVMedium = true;
-            else events->bjet1PassCSVMedium = false;
-            if(pfJetPassCSVT(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet1PassCSVTight = true;
-            else events->bjet1PassCSVTight = false;
+            if(pfJetPassCSVL(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet1PassLoose = true;
+            else events->bjet1PassLoose = false;
+            if(pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet1PassMedium = true;
+            else events->bjet1PassMedium = false;
+            if(pfJetPassCSVT(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet1PassTight = true;
+            else events->bjet1PassTight = false;
             gotLeadBJet = true;
         }
         else if(!gotSubLeadBJet && pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])){
             events->bjet2 = GoodJets[j];
-            if(pfJetPassCSVL(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet2PassCSVLoose = true;
-            else events->bjet2PassCSVLoose = false;
-            if(pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet2PassCSVMedium = true;
-            else events->bjet2PassCSVMedium = false;
-            if(pfJetPassCSVT(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet2PassCSVTight = true;
-            else events->bjet2PassCSVTight = false;
+            if(pfJetPassCSVL(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet2PassLoose = true;
+            else events->bjet2PassLoose = false;
+            if(pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet2PassMedium = true;
+            else events->bjet2PassMedium = false;
+            if(pfJetPassCSVT(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet2PassTight = true;
+            else events->bjet2PassTight = false;
             gotSubLeadBJet = true;
         }
     }
 
-    events->MET_NoDilepton = PFMETWithLeptons.Pt();
+    TVector3 PFMET3WithLeptons(PFMETWithLeptons.Px(), PFMETWithLeptons.Py(), 0);
+    events->MET_NoDilepton = PFMET3WithLeptons.Pt();
 
     //compute MR and Rsq
     vector<TLorentzVector> hemispheres = CombineJets(GoodJets);
     events->MR = CalcGammaMRstar(hemispheres[0], hemispheres[1]);
-    double MTR = CalcMTR(hemispheres[0], hemispheres[1], PFMET);
+    double MTR = CalcMTR(hemispheres[0], hemispheres[1], PFMET3);
     double R = -999;
     if(events->MR > 0) R = MTR/events->MR;
     events->Rsq = R*R;
@@ -1263,7 +1265,7 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
     //MR and Rsq with leptons added to MET
     vector<TLorentzVector> hemispheresNoLeps = CombineJets(GoodJetsWithoutLeptons);
     events->MR_NoDilepton = CalcGammaMRstar(hemispheresNoLeps[0], hemispheresNoLeps[1]);
-    double MTRNoLeps = CalcMTR(hemispheresNoLeps[0], hemispheresNoLeps[1], PFMETWithLeptons);
+    double MTRNoLeps = CalcMTR(hemispheresNoLeps[0], hemispheresNoLeps[1], PFMET3WithLeptons);
     double RNoLeps = -999;
     if(events->MR_NoDilepton > 0) RNoLeps = MTRNoLeps/events->MR_NoDilepton;
     events->Rsq_NoDilepton = RNoLeps*RNoLeps;

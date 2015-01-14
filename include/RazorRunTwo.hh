@@ -40,7 +40,7 @@ public:
   void SetGenLeptonVector();
   void ResetGenLeptonIndex();
   int DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<int>& i_pfJets);
-  void FillJetInfo();
+  void FillJetInfo(std::vector<TLorentzVector> GoodJets, std::vector<int> GoodJetIndices, std::vector<TLorentzVector> GoodLeptons);
   double _weight;
   ControlSampleEvents* events;
 
