@@ -39,6 +39,7 @@ public:
   bool SetGenTauIndex();
   void SetGenLeptonVector();
   void ResetGenLeptonIndex();
+  void FillJetInfo();
   double _weight;
   ControlSampleEvents* events;
 
