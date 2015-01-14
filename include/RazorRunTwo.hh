@@ -12,6 +12,7 @@
 #ifndef RazorRunTwo_h
 #define RazorRunTwo_h
 
+//LOCAL INCLUDES
 #include "VecbosBase.hh"
 #include "Vecbos.hh"
 #include "Jet.hh"
@@ -22,6 +23,7 @@
 #include "CommonTools/include/TriggerMask.hh"
 #include "JetCorrectorParameters.h"
 #include "ControlSampleEvents.hh"
+#include "DefineStruct.hh"
 
 using namespace std;
 
@@ -39,8 +41,10 @@ public:
   bool SetGenTauIndex();
   void SetGenLeptonVector();
   void ResetGenLeptonIndex();
-  int DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<int>& i_pfJets);
+  int  DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<int>& i_pfJets);
   void FillJetInfo(std::vector<TLorentzVector> GoodJets, std::vector<int> GoodJetIndices, std::vector<TLorentzVector> GoodLeptons);
+  void SortByPt(std::vector<VecbosLepton>& lepton);
+  void FillLeptons(std::vector<VecbosLepton> lepton);
   double _weight;
   ControlSampleEvents* events;
 
