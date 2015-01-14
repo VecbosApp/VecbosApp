@@ -319,51 +319,6 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     SetGenTauIndex();//Set tau indexes
     SetGenLeptonVector();//Set TLorentz vector for the two leading leptons
     
-    //Cristian ISR correction
-    TVector3 SYS(0.0, 0.0, 0.0);
-    if(!_isData){
-      TVector3 aux;
-      for(int i=0; i<nMc; i++) {
-        if(abs(idMc[i]) == pdgID && statusMc[i] == 3){
-	  aux.SetPtEtaPhi(pMc[i]/cosh(etaMc[i]), etaMc[i], phiMc[i]);
-	  SYS += aux;
-        }
-      }
-    }
-    //Getting ISR Weight
-    ISR = GetISR(SYS.Pt(), "central");
-    ISR_up = GetISR(SYS.Pt(), "up");
-    ISR_down = GetISR(SYS.Pt(), "down");
-    
-    w_isr += ISR;
-    w_isr_up += ISR_up;
-    w_isr_down += ISR_down;
-    
-    //Getting PDF Weights
-    if(outFileName.find("DMm") != string::npos || outFileName.find("mDm") != string::npos){
-      w_pdf_CTEQ66_isr_up += ISR_up*wCTEQ66[0];
-      w_pdf_CTEQ66_isr_down += ISR_down*wCTEQ66[0];
-
-      w_pdf_MRST2006NNLO_isr_up += ISR_up*wMRST2006NNLO[0];
-      w_pdf_MRST2006NNLO_isr_down += ISR_down*wMRST2006NNLO[0];
-
-      w_pdf_NNPDF10100_isr_up += ISR_up*wNNPDF10100[0];
-      w_pdf_NNPDF10100_isr_down += ISR_down*wNNPDF10100[0];
-      
-      for(int l = 0; l < nCTEQ66; l++){
-        w_pdf_CTEQ66[l] += wCTEQ66[l];
-        w_pdf_CTEQ66_isr[l] += ISR*wCTEQ66[l];
-      }
-      for(int l = 0; l < nMRST2006NNLO; l++){
-        w_pdf_MRST2006NNLO[l] += wMRST2006NNLO[l];
-        w_pdf_MRST2006NNLO_isr[l] += ISR*wMRST2006NNLO[l];
-      }
-      for(int l = 0; l < nNNPDF10100; l ++){
-        w_pdf_NNPDF10100[l] += wNNPDF10100[l];
-        w_pdf_NNPDF10100_isr[l] += ISR*wNNPDF10100[l];
-      }
-    }
-
     //IMPORTANT: FOR DATA RELOAD THE TRIGGER MASK PER FILE WHICH IS SUPPOSED TO CONTAIN UNIFORM CONDITIONS X FILE
     if(_isData) {
       setRequiredTriggers(maskHLT_Razor); reloadTriggerMask(true); HLT_Razor = hasPassedHLT();
@@ -399,37 +354,6 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     
     Npassed_In += weightII;
     
-    double m0=9999, m12=9999, mc=9999;
-    _isSMS = false;//Chage to true when running on SMS sample
-    if( _isData == 0  && _isSMS ){
-      int ctr_s = 0;
-      //Read and store MSSM paramenters
-      mssm[0] = mssm[1] = mssm[2] = 0;
-      for (std::vector<string>::iterator it = commentLHE->begin() ; it != commentLHE->end(); ++it){
-	istringstream iss (*it,istringstream::in);
-	string val;
-	for (int n = 0; n < 5; n++){
-	  iss >> val;
-	  if( n == 1){
-	    if( val.compare( "model" ) )break;
-	  }else if( n == 2 ){
-	    cout << val.substr( 0,val.find("_") ) << endl;
-	    string aa1 = val.substr( val.find("_")+ 1 );
-	    string sm0 = aa1.substr( 0, val.find("_")-1 );
-	    string sm1 = aa1.substr( val.find("_") );
-	    std::cout << "sm0: " << sm0 << " sm1:  " << sm1 << std::endl;
-	    mssm[0] = atof(sm0.c_str());
-	    mssm[1] = atof(sm1.c_str());
-	  }else if( n == 3 )mssm[2] = atof( val.c_str() );
-	}
-	ctr_s++;
-      }
-      
-    }
-    
-    mst=m0;
-    mchi=mc;
-    
     //HLT and Data Filter
     //passedHLT = HLT_Razor + HLT_Razor_prescaled;
     passedHLT = HLT_Razor;
@@ -453,91 +377,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     
     vector<TLorentzVector> pfJets;
     vector<int> i_pfJets;
-    vector<double> pfJets_f_photon, pfJets_f_electron, pfJets_f_muon, pfJets_f_neutralhad, pfJets_f_chargedhad,	\
-      pfJets_f_hfhad, pfJets_f_hfem;
-    vector<double> pfJets_mult_photon, pfJets_mult_electron, pfJets_mult_muon, pfJets_mult_neutralhad, \
-      pfJets_mult_chargedhad, pfJets_mult_hfhad, pfJets_mult_hfem;
-    bool bad_pfJet = false;
-    int N_pfJets = 0, pfBtags = 0;
-    double pfHT, pfMHTx, pfMHTy;
-    
-    bool good_pfjet = false;
-    for(int i = 0; i < nAK5PFNoPUJet; i++){
-      TLorentzVector jet;
-      double px = pxAK5PFNoPUJet[i];
-      double py = pyAK5PFNoPUJet[i];
-      double pz = pzAK5PFNoPUJet[i];
-      double E = sqrt(px*px+py*py+pz*pz);
-      double scale = 1.;
-      jet.SetPxPyPzE(scale*px,scale*py,scale*pz,scale*E);
-      
-      good_pfjet = false;
-      double EU = uncorrEnergyAK5PFNoPUJet[i];
-      
-      if(jet.Pt() > 40.0 && fabs(jet.Eta()) < 3.0){
-	double fHAD = (neutralHadronEnergyAK5PFNoPUJet[i]+chargedHadronEnergyAK5PFNoPUJet[i])/EU;
-	if(fHAD > 0.99){
-	  N_pfJets = 0;
-	  break;// clean NOISY event
-	}
-	
-	int nConstituents = chargedHadronMultiplicityAK5PFNoPUJet[i]+neutralHadronMultiplicityAK5PFNoPUJet[i]+photonMultiplicityAK5PFNoPUJet[i]+electronMultiplicityAK5PFNoPUJet[i]+muonMultiplicityAK5PFNoPUJet[i]+HFHadronMultiplicityAK5PFNoPUJet[i]+HFEMMultiplicityAK5PFNoPUJet[i];
-	int chargedMult = chargedHadronMultiplicityAK5PFNoPUJet[i]+electronMultiplicityAK5PFNoPUJet[i]+muonMultiplicityAK5PFNoPUJet[i];
-	
-	float photonFrac = photonEnergyAK5PFNoPUJet[i]/EU;
-	float electronFrac = electronEnergyAK5PFNoPUJet[i]/EU;
-	float muonFrac = muonEnergyAK5PFNoPUJet[i]/EU;
-	float neutralHadFrac = neutralHadronEnergyAK5PFNoPUJet[i]/EU;
-	float chargedHadFrac = chargedHadronEnergyAK5PFNoPUJet[i]/EU;
-	float HFHadFrac = HFHadronEnergyAK5PFNoPUJet[i]/EU;
-	float HFEMFrac = HFEMEnergyAK5PFNoPUJet[i]/EU;
-	int photonMult = photonMultiplicityAK5PFNoPUJet[i];
-	int electronMult = electronMultiplicityAK5PFNoPUJet[i];
-	int muonMult = muonMultiplicityAK5PFNoPUJet[i];
-	int neutralHadMult = neutralHadronMultiplicityAK5PFNoPUJet[i];
-	int chargedHadMult = chargedHadronMultiplicityAK5PFNoPUJet[i];
-	int HFHadMult = HFHadronMultiplicityAK5PFNoPUJet[i];
-	int HFEMMult = HFEMMultiplicityAK5PFNoPUJet[i];
-	
-	if((neutralHadFrac < 0.99) && (photonFrac < 0.99) && (nConstituents > 1)) {
-	  //outside of tracker acceptance, these are the only requirements
-	  if (fabs(jet.Eta())>=2.4) good_pfjet = true;
-	  //inside of the tracker acceptance, there are extra requirements     
-	  else {
-	    if ((chargedHadFrac > 0.0) && (chargedMult > 0) && (electronFrac < 0.99)) good_pfjet = true;
-	  }
-	}
-	
-	if(good_pfjet){
-	  N_pfJets++;
-	  pfJets.push_back(jet);
-	  i_pfJets.push_back(i);
-	  pfHT += jet.Pt();
-	  pfMHTx -= jet.Px();
-	  pfMHTy -= jet.Py();
-	  //pfJets_btag.push_back(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[i]);
-	  if( pfJetPassCSVL( combinedSecondaryVertexBJetTagsAK5PFNoPUJet[i] ) )pfBtags++;
-	  pfJets_f_photon.push_back(photonFrac);
-	  pfJets_f_electron.push_back(electronFrac);
-	  pfJets_f_muon.push_back(muonFrac);
-	  pfJets_f_neutralhad.push_back(neutralHadFrac);
-	  pfJets_f_chargedhad.push_back(chargedHadFrac);
-	  pfJets_f_hfhad.push_back(HFHadFrac);
-	  pfJets_f_hfem.push_back(HFEMFrac);
-	  pfJets_mult_photon.push_back(photonMult);
-	  pfJets_mult_electron.push_back(electronMult);
-	  pfJets_mult_muon.push_back(muonMult);
-	  pfJets_mult_neutralhad.push_back(neutralHadMult);
-	  pfJets_mult_chargedhad.push_back(chargedHadMult);
-	  pfJets_mult_hfhad.push_back(HFHadMult);
-	  pfJets_mult_hfem.push_back(HFEMMult);
-	}else {
-	  //cout << "clean NOISY event JET ID" << endl;
-	  N_pfJets = 0;
-	  break;//Only takes out the pfJets loop! But good_jet = false
-	}
-      }
-    }
+    int N_pfJets = DoPfSelection(pfJets, i_pfJets);
     // jet ID                                                                 
     if (N_pfJets <= 0 )  continue;// If any Jet is bad (see loop before) event is rejected
     
@@ -1176,4 +1016,127 @@ void RazorRunTwo::SetGenLeptonVector()
 void RazorRunTwo::ResetGenLeptonIndex()
 {
   genLeptonIndex.clear();
+};
+
+int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<int>& i_pfJets){
+  vector<double> pfJets_f_photon, pfJets_f_electron, pfJets_f_muon, pfJets_f_neutralhad, pfJets_f_chargedhad, \
+    pfJets_f_hfhad, pfJets_f_hfem;
+  vector<double> pfJets_mult_photon, pfJets_mult_electron, pfJets_mult_muon, pfJets_mult_neutralhad, \
+    pfJets_mult_chargedhad, pfJets_mult_hfhad, pfJets_mult_hfem;
+  bool bad_pfJet = false;
+  int N_pfJets = 0, pfBtags = 0;
+  double pfHT, pfMHTx, pfMHTy;
+  
+  struct pfJetStruct{
+    TLorentzVector Jet;
+    int index;
+  };
+  
+  std::map< double, pfJetStruct > map_pt;
+  std::vector< double > PtVec;
+  
+  bool good_pfjet = false;
+  for(int i = 0; i < nAK5PFNoPUJet; i++){                                                                                     
+    TLorentzVector jet;
+    pfJetStruct aux_pfJetStruct;
+    
+    double px = pxAK5PFNoPUJet[i];                                                                                            
+    double py = pyAK5PFNoPUJet[i];                                                                                            
+    double pz = pzAK5PFNoPUJet[i];                                                                                            
+    double E = sqrt(px*px+py*py+pz*pz);                                                                                       
+    double scale = 1.;                                                                                                        
+    jet.SetPxPyPzE(scale*px,scale*py,scale*pz,scale*E);
+    good_pfjet = false;                                                                                                       
+    double EU = uncorrEnergyAK5PFNoPUJet[i];
+    if( jet.Pt() > 40.0 && fabs(jet.Eta()) < 3.0 )
+      {
+	double fHAD = (neutralHadronEnergyAK5PFNoPUJet[i]+chargedHadronEnergyAK5PFNoPUJet[i])/EU;                              
+	if(fHAD > 0.99)
+	  {                                                                                                       
+	    N_pfJets = 0;                                                                                                      
+	    break;// clean NOISY event
+	  }
+	
+	int nConstituents = chargedHadronMultiplicityAK5PFNoPUJet[i]+neutralHadronMultiplicityAK5PFNoPUJet[i]+
+	  photonMultiplicityAK5PFNoPUJet[i]+electronMultiplicityAK5PFNoPUJet[i]+muonMultiplicityAK5PFNoPUJet[i]+
+	  HFHadronMultiplicityAK5PFNoPUJet[i]+HFEMMultiplicityAK5PFNoPUJet[i];
+	int chargedMult = chargedHadronMultiplicityAK5PFNoPUJet[i]+
+	  electronMultiplicityAK5PFNoPUJet[i]+
+	  muonMultiplicityAK5PFNoPUJet[i];
+    
+	float photonFrac = photonEnergyAK5PFNoPUJet[i]/EU;
+	float electronFrac = electronEnergyAK5PFNoPUJet[i]/EU;
+	float muonFrac = muonEnergyAK5PFNoPUJet[i]/EU;
+	float neutralHadFrac = neutralHadronEnergyAK5PFNoPUJet[i]/EU;
+	float chargedHadFrac = chargedHadronEnergyAK5PFNoPUJet[i]/EU;
+	float HFHadFrac = HFHadronEnergyAK5PFNoPUJet[i]/EU;
+	float HFEMFrac = HFEMEnergyAK5PFNoPUJet[i]/EU;
+	int photonMult = photonMultiplicityAK5PFNoPUJet[i];
+	int electronMult = electronMultiplicityAK5PFNoPUJet[i];
+	int muonMult = muonMultiplicityAK5PFNoPUJet[i];
+	int neutralHadMult = neutralHadronMultiplicityAK5PFNoPUJet[i];
+	int chargedHadMult = chargedHadronMultiplicityAK5PFNoPUJet[i];
+	int HFHadMult = HFHadronMultiplicityAK5PFNoPUJet[i];
+	int HFEMMult = HFEMMultiplicityAK5PFNoPUJet[i];
+    
+	if( (neutralHadFrac < 0.99) && (photonFrac < 0.99) && (nConstituents > 1) ) 
+	  {
+	    //outside of tracker acceptance, these are the only requirements
+	    if (fabs(jet.Eta())>=2.4) good_pfjet = true;
+	    //inside of the tracker acceptance, there are extra requirements              
+	    else {
+	      if ((chargedHadFrac > 0.0) && (chargedMult > 0) && (electronFrac < 0.99)) good_pfjet = true;
+	    }
+	  }
+	
+	if(good_pfjet)
+	  {
+	    N_pfJets++;
+	    //pfJets.push_back(jet);
+	    //i_pfJets.push_back(i);
+	    aux_pfJetStruct.Jet = jet;
+	    aux_pfJetStruct.index = i;
+	    if( map_pt.find(jet.Pt()) == map_pt.end() )
+	      {
+		map_pt[jet.Pt()] = aux_pfJetStruct;
+		PtVec.push_back(jet.Pt());
+	      }
+	    else{
+	      std::cerr << "Identical Jet PT!" << std::endl;
+	    }
+	    pfHT += jet.Pt();
+	    pfMHTx -= jet.Px();
+	    pfMHTy -= jet.Py();
+	    if( pfJetPassCSVL( combinedSecondaryVertexBJetTagsAK5PFNoPUJet[i] ) )pfBtags++;
+	    pfJets_f_photon.push_back(photonFrac);
+	    pfJets_f_electron.push_back(electronFrac);
+	    pfJets_f_muon.push_back(muonFrac);
+	    pfJets_f_neutralhad.push_back(neutralHadFrac);
+	    pfJets_f_chargedhad.push_back(chargedHadFrac);
+	    pfJets_f_hfhad.push_back(HFHadFrac);
+	    pfJets_f_hfem.push_back(HFEMFrac);
+	    pfJets_mult_photon.push_back(photonMult);
+	    pfJets_mult_electron.push_back(electronMult);
+	    pfJets_mult_muon.push_back(muonMult);
+	    pfJets_mult_neutralhad.push_back(neutralHadMult);
+	    pfJets_mult_chargedhad.push_back(chargedHadMult);
+	    pfJets_mult_hfhad.push_back(HFHadMult);
+	    pfJets_mult_hfem.push_back(HFEMMult);
+	  }
+	else 
+	  {
+	    N_pfJets = 0;
+	    break;//Only takes out the pfJets loop! But good_jet = false
+	  }
+      }
+  }
+  
+  std::sort( PtVec.begin(), PtVec.end() );
+  std::reverse( PtVec.begin(), PtVec.end() );
+  for( double tmp : PtVec){
+    pfJets.push_back( map_pt[tmp].Jet );
+    i_pfJets.push_back( map_pt[tmp].index );
+  }
+  return N_pfJets;
+  
 };
