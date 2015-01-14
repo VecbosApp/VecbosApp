@@ -28,11 +28,14 @@ using namespace std;
 Float_t Jet_Min_Pt = 80.0;//at least 2 jest PT>80 GeV
 
 const double ele_mass = 0.000511;
-const ele_pdgID = 11;
+const int ele_pdgID = 11;
 const double muon_mass = 0.1057;
-const muon_pdgID= 13;
+const int muon_pdgID = 13;
 const double tau_mass = 1.777;
-const etau_pdgID= 15;
+const int etau_pdgID = 15;
+
+//Default cone matching
+const double genLepton_DR = 0.1;
 
 RazorRunTwo::RazorRunTwo(TTree *tree) : Vecbos(tree) {
   _goodRunLS = false;
@@ -319,6 +322,11 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     events->processID = 1;
     events->NPU_0 = nPU[0];
     
+    //Init GenLepton Variables
+    InitGenLeptonVariables();
+    //Init Lepton Variables
+    InitLeptonVariables();
+    
     //Set gen level lepton indix
     ResetGenLeptonIndex();//Resets Lepton indixes
     SetGenElectronIndex();//Set electron indixes
@@ -397,7 +405,6 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     /////////////////////Selecting Muons//////////////////////////
     //////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////
-    
     std::vector< VecbosLepton > LooseLepton;
     std::vector< VecbosLepton > TightLepton;
     for( int i = 0; i < nMuon; i++ ) {
@@ -428,7 +435,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     //////////////////////////////////////////////////////////////
     for( int i = 0; i < nEle; i++ ) {
       VecbosLepton tmp;
-      TLorentzVector thisEle(pxEle[i], pyEle[i], pzEle[i], energyEle[i]);
+      TLorentzVector thisEle( pxEle[i], pyEle[i], pzEle[i], energyEle[i] );
       if ( thisEle.Pt() < 15.0 || fabs( thisEle.Eta() ) > 2.5 ) continue;
       //Look for matching muon already store in the collection                                                                      
       bool matchMuon = false;
@@ -443,7 +450,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
       
       tmp.index = i;
       tmp.lepton = thisEle;
-      tmp.charge = chargeMuon[i];
+      tmp.charge = chargeEle[i];
       tmp.mass = ele_mass;
       tmp.pdgID= ele_pdgID;
       tmp._isLoose = isLooseElectron(i);
@@ -451,7 +458,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
       if ( tmp._isLoose )
         {
 	  LooseLepton.push_back( tmp );
-        }
+	}
       
       if ( tmp._isTight )
 	{
@@ -459,8 +466,8 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
         }
     }//end electron loop
     
-
-    
+    //Filling Letptons. PT order taken into account automatically
+    FillLeptons( LooseLepton );
     
     /*
       mu_w = 1.0;
@@ -1364,25 +1371,28 @@ void RazorRunTwo::SortByPt(std::vector<VecbosLepton>& lepton)
 
 void RazorRunTwo::FillLeptons(std::vector<VecbosLepton> lepton)
 {
+  SortByPt( lepton );//Sorting Leptons by PT
   int n_lepton = 0;
   //Fill Two Leading PT leptons
   for ( auto tmp : lepton ){
     if( n_lepton >= 2 ) break;
     if( n_lepton == 0 )
       {
-	events->lep1.SetPtEtaPhiM( tmp.lepton.Pt(), tmp.lepton.Eta(), tmp.lepton.Phi(), tmp.lepton.mass );
+	events->lep1.SetPtEtaPhiM( tmp.lepton.Pt(), tmp.lepton.Eta(), tmp.lepton.Phi(), tmp.mass );
 	events->lep1PassVeto = tmp._isLoose;
 	events->lep1PassLoose = tmp._isLoose;
 	events->lep1PassTight = tmp._isTight;
 	events->lep1Type = tmp.pdgID;
+	events->lep1MatchedGenLepIndex = MatchLeptonGenLevel( tmp.lepton );
       }
     else if ( n_lepton == 1 ) 
       {
-	events->lep2.SetPtEtaPhiM( tmp.lepton.Pt(), tmp.lepton.Eta(), tmp.lepton.Phi(), tmp.lepton.mass );
+	events->lep2.SetPtEtaPhiM( tmp.lepton.Pt(), tmp.lepton.Eta(), tmp.lepton.Phi(), tmp.mass );
 	events->lep2PassVeto = tmp._isLoose;
         events->lep2PassLoose = tmp._isLoose;
         events->lep2PassTight = tmp._isTight;
         events->lep2Type = tmp.pdgID;
+	events->lep2MatchedGenLepIndex = MatchLeptonGenLevel( tmp.lepton );
       }
     n_lepton++;//increase lepton counter
   }//end lepton loop
@@ -1390,5 +1400,66 @@ void RazorRunTwo::FillLeptons(std::vector<VecbosLepton> lepton)
 
 int RazorRunTwo::MatchLeptonGenLevel(TLorentzVector lepton)
 {
+  double deltaR_gen1 = 9999.0;
+  double deltaR_gen2 = 9999.0;
+  //first gen lepton
+  if ( events->genlep1.M() != 0.0 )
+    {
+      if ( lepton.DeltaR( events->genlep1 ) < genLepton_DR )
+	{
+	  deltaR_gen1 = lepton.DeltaR( events->genlep1 );
+	}
+    }
+  //second gen lepton
+  if ( events->genlep2.M() != 0.0 )
+    {
+      if ( lepton.DeltaR( events->genlep2 ) < genLepton_DR )
+        {
+          deltaR_gen2 = lepton.DeltaR( events->genlep2 );
+        }
+    }
+  
+  //return index to closes gen lepton
+  
+  //no match
+  if( deltaR_gen1 == 9999.0 && deltaR_gen2 == 9999.0 ) return -1;
+  
+  if( deltaR_gen1 < deltaR_gen2 )
+    {
+      return 1;
+    }
+  else if ( deltaR_gen1 > deltaR_gen2 )
+    {
+      return 2;
+    }
+  else if ( deltaR_gen1 == deltaR_gen2 && deltaR_gen1 != 9999.0 )
+    {
+      return 3;
+    } 
+
+  //if everything fails return no match
   return -1;  
+};
+
+void RazorRunTwo::InitGenLeptonVariables()
+{
+  events->genlep1.SetPtEtaPhiM(0,0,0,0);
+  events->genlep2.SetPtEtaPhiM(0,0,0,0);;
+  events->genlep1Type = 0;
+  events->genlep2Type = 0;
+};
+void RazorRunTwo::InitLeptonVariables()
+{
+  events->lep1.SetPtEtaPhiM(0,0,0,0);
+  events->lep2.SetPtEtaPhiM(0,0,0,0);
+  events->lep1Type = 0;
+  events->lep2Type = 0;
+  events->lep1MatchedGenLepIndex = -1;
+  events->lep2MatchedGenLepIndex = -1;
+  events->lep1PassVeto = false;
+  events->lep1PassLoose = false;
+  events->lep1PassTight = false;
+  events->lep2PassVeto = false;
+  events->lep2PassLoose = false;
+  events->lep2PassTight = false;
 };

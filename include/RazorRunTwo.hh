@@ -45,6 +45,9 @@ public:
   void FillJetInfo(std::vector<TLorentzVector> GoodJets, std::vector<int> GoodJetIndices, std::vector<TLorentzVector> GoodLeptons);
   void SortByPt(std::vector<VecbosLepton>& lepton);
   void FillLeptons(std::vector<VecbosLepton> lepton);
+  int  MatchLeptonGenLevel(TLorentzVector lepton);
+  void InitGenLeptonVariables();
+  void InitLeptonVariables();
   double _weight;
   ControlSampleEvents* events;
 
