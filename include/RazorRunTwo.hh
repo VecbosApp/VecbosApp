@@ -39,6 +39,7 @@ public:
   bool SetGenTauIndex();
   void SetGenLeptonVector();
   void ResetGenLeptonIndex();
+  int DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<int>& i_pfJets);
   void FillJetInfo();
   double _weight;
   ControlSampleEvents* events;
