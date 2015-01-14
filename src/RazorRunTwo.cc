@@ -1140,3 +1140,43 @@ int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<
   return N_pfJets;
   
 };
+
+void RazorRunTwo::FillJetInfo(vector<pair<TLorentzVector, int> > GoodJets, vector<TLorentzVector> GoodLeptons){
+    if(GoodJets.size() == 0) return;
+
+    //assume for now that GoodJets is sorted by jet pT
+    bool gotLeadJet = false; bool gotSubLeadJet = false;
+    bool gotLeadBJet = false; bool gotSubLeadBJet = false;
+    for(int j = 0; j < GoodJets.size(); j++){
+        //check if this jet matches a good lepton
+        //(if it does, skip it)
+        double dR = -1;
+        for(auto& lep : GoodLeptons){
+            double thisDR = GoodJets[j].first.DeltaR(lep);
+            if(dR < 0 || thisDR < dR) dR = thisDR;
+        }
+        if(dR > 0 && dR < 0.5) continue; //a selected lepton is inside this jet
+
+        //fill info on first two jets
+        if(!gotLeadJet){
+            jet1 = GoodJets[j].first;
+
+            gotLeadJet = true;
+        }
+        else if(!gotSubLeadJet){
+            jet2 = GoodJets[j].first;
+            gotSubLeadJet = true;
+        }
+
+        //fill info on first two b-jets (CSVM)
+        if(!gotLeadBJet && pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJets[j].second])){
+            
+            gotLeadBJet = true;
+        }
+        else if(!gotSubLeadBJet && pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJets[j].second])){
+        
+            gotSubLeadBJet = true;
+        }
+    }
+};
+
