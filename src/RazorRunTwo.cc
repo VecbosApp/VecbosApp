@@ -27,6 +27,16 @@ using namespace std;
 
 Float_t Jet_Min_Pt = 80.0;//at least 2 jest PT>80 GeV
 
+const double ele_mass = 0.000511;
+const int ele_pdgID = 11;
+const double muon_mass = 0.1057;
+const int muon_pdgID = 13;
+const double tau_mass = 1.777;
+const int etau_pdgID = 15;
+
+//Default cone matching
+const double genLepton_DR = 0.1;
+
 RazorRunTwo::RazorRunTwo(TTree *tree) : Vecbos(tree) {
   _goodRunLS = false;
   _isData = false;
@@ -62,71 +72,71 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
   if(fChain == 0) return;
   int pdgID = -99;
   if(outFileName.find("DYJetsHT200To400") != string::npos){
-    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/DYJetsHT200To400.root");
+    pu_f = new TFile("/afs/cern.ch/user/c/cpena/public/PU_Files/DYJetsHT200To400.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 23;
   }else if(outFileName.find("QCD") != string::npos){
-    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/DYJetsHT200To400.root");
+    pu_f = new TFile("/afs/cern.ch/user/c/cpena/public/PU_Files/DYJetsHT200To400.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 23;
   }else if(outFileName.find("DYJetsHT400") != string::npos){
-    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/DYJetsHT400.root");
+    pu_f = new TFile("/afs/cern.ch/user/c/cpena/public/PU_Files/DYJetsHT400.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 23;
   }else if(outFileName.find("TTJetsFullyLeptMGDecays") != string::npos){
-    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/TTj_Lep.root");
+    pu_f = new TFile("/afs/cern.ch/user/c/cpena/public/PU_Files/TTj_Lep.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 6;
   }else if(outFileName.find("TTJetsSemiLeptMGDecays") != string::npos){
-    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/TTj_Semilep.root");
+    pu_f = new TFile("/afs/cern.ch/user/c/cpena/public/PU_Files/TTj_Semilep.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 6;
   }else if(outFileName.find("TTJetsHadMGDecays") != string::npos){
-    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/TTj_Had.root");
+    pu_f = new TFile("/afs/cern.ch/user/c/cpena/public/PU_Files/TTj_Had.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 6;
   }else if(outFileName.find("WJetsToLNu_150_HT_200") != string::npos){
-    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/Wpj_150_HT_200.root");
+    pu_f = new TFile("/afs/cern.ch/user/c/cpena/public/PU_Files/Wpj_150_HT_200.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 24;
   }else if(outFileName.find("WJetsToLNu_200_HT_250") != string::npos){
-    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/Wpj_200_HT_250.root");
+    pu_f = new TFile("/afs/cern.ch/user/c/cpena/public/PU_Files/Wpj_200_HT_250.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 24;
   }else if(outFileName.find("WJetsToLNu_250_HT_300") != string::npos){
-    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/Wpj_250_HT_300.root");
+    pu_f = new TFile("/afs/cern.ch/user/c/cpena/public/PU_Files/Wpj_250_HT_300.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 24;
   }else if(outFileName.find("WJetsToLNu_300_HT_400") != string::npos){
-    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/Wpj_300_HT_400.root");
+    pu_f = new TFile("/afs/cern.ch/user/c/cpena/public/PU_Files/Wpj_300_HT_400.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 24;
   }else if(outFileName.find("WJetsToLNu_400_HT_Inf") != string::npos){
-    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/Wpj_400_HT_inf.root");
+    pu_f = new TFile("/afs/cern.ch/user/c/cpena/public/PU_Files/Wpj_400_HT_inf.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 24;
   }else if(outFileName.find("ZJetsToNuNu_50_HT_100") != string::npos){
-    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/ZJetsToNuNu_50_HT_100.root");
+    pu_f = new TFile("/afs/cern.ch/user/c/cpena/public/PU_Files/ZJetsToNuNu_50_HT_100.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 23;
   }else if(outFileName.find("ZJetsToNuNu_100_HT_200") != string::npos){
-    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/ZJetsToNuNu_100_HT_200.root");
+    pu_f = new TFile("/afs/cern.ch/user/c/cpena/public/PU_Files/ZJetsToNuNu_100_HT_200.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 23;
   }else if(outFileName.find("ZJetsToNuNu_200_HT_400") != string::npos){
-    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/ZJetsToNuNu_200_HT_400.root");
+    pu_f = new TFile("/afs/cern.ch/user/c/cpena/public/PU_Files/ZJetsToNuNu_200_HT_400.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 23;
   }else if(outFileName.find("ZJetsToNuNu_400_HT_inf") != string::npos){
-    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/Files/ZJetsToNuNu_400_HT_inf.root");
+    pu_f = new TFile("/afs/cern.ch/user/c/cpena/public/PU_Files/ZJetsToNuNu_400_HT_inf.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 23;
   }else if(outFileName.find("mDm") != string::npos){
-    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/monoBt.root");
+    pu_f = new TFile("/afs/cern.ch/user/c/cpena/public/PU_Files/monoBt.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 18;
   }else if(outFileName.find("DMm") != string::npos){
-    pu_f = new TFile("/afs/cern.ch/work/c/cpena/scratch_btagEff/CMSSW_5_2_3/src/PileUpCorrection/DMmTotal.root");
+    pu_f = new TFile("/afs/cern.ch/user/c/cpena/public/PU_Files/DMmTotal.root");
     pu_h = (TH1D*)pu_f->Get("pileup");
     pdgID = 18;
   }else{
@@ -312,6 +322,11 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     events->processID = 1;
     events->NPU_0 = nPU[0];
     
+    //Init GenLepton Variables
+    InitGenLeptonVariables();
+    //Init Lepton Variables
+    InitLeptonVariables();
+    
     //Set gen level lepton indix
     ResetGenLeptonIndex();//Resets Lepton indixes
     SetGenElectronIndex();//Set electron indixes
@@ -320,37 +335,39 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     SetGenLeptonVector();//Set TLorentz vector for the two leading leptons
     
     //IMPORTANT: FOR DATA RELOAD THE TRIGGER MASK PER FILE WHICH IS SUPPOSED TO CONTAIN UNIFORM CONDITIONS X FILE
-    if(_isData) {
-      setRequiredTriggers(maskHLT_Razor); reloadTriggerMask(true); HLT_Razor = hasPassedHLT();
-      setRequiredTriggers(maskHLT_Razor_prescaled); reloadTriggerMask(true); HLT_Razor_prescaled = hasPassedHLT();
-      
-      ECALTPFilterFlag = (METFlags >> 0)%2;
-      drBoundary = (METFlags >> 1)%2;
-      drDead = (METFlags >> 2)%2;
-      CSCHaloFilterFlag = (METFlags >> 3)%2;
-      trackerFailureFilterFlag = (METFlags >> 4)%2;
-      BEECALFlag = (METFlags >> 5)%2; 
-      HBHENoiseFilterResultFlag =  (METFlags >> 6)%2;
-      ecalLaserFilter = (METFlags >> 7)%2;
-      eeBadScFilterFlag = (METFlags >> 8)%2;
-      hcalLaserFilter = (METFlags >> 9)%2;
-    }
+    if( _isData ) 
+      {
+	setRequiredTriggers(maskHLT_Razor); reloadTriggerMask(true); HLT_Razor = hasPassedHLT();
+	setRequiredTriggers(maskHLT_Razor_prescaled); reloadTriggerMask(true); HLT_Razor_prescaled = hasPassedHLT();
+	
+	ECALTPFilterFlag = (METFlags >> 0)%2;
+	drBoundary = (METFlags >> 1)%2;
+	drDead = (METFlags >> 2)%2;
+	CSCHaloFilterFlag = (METFlags >> 3)%2;
+	trackerFailureFilterFlag = (METFlags >> 4)%2;
+	BEECALFlag = (METFlags >> 5)%2; 
+	HBHENoiseFilterResultFlag =  (METFlags >> 6)%2;
+	ecalLaserFilter = (METFlags >> 7)%2;
+	eeBadScFilterFlag = (METFlags >> 8)%2;
+	hcalLaserFilter = (METFlags >> 9)%2;
+      }
     
     //Good Run selection
-    if (_isData && _goodRunLS && !isGoodRunLS()) {
-      if ( lastRun != runNumber || lastLumi != lumiBlock) {
+    if ( _isData && _goodRunLS && !isGoodRunLS() ) 
+      {
+	if ( lastRun != runNumber || lastLumi != lumiBlock) 
+	  {
+	    lastRun = runNumber;
+	    lastLumi = lumiBlock;
+	  }
+	continue;
+      }
+    
+    if ( _isData && _goodRunLS && ( lastRun!= runNumber || lastLumi != lumiBlock) ) 
+      {
 	lastRun = runNumber;
 	lastLumi = lumiBlock;
-	//std::cout << "[GoodRunLS]::Run " << lastRun << " LS " << lastLumi << " is rejected" << std::endl;
       }
-      continue;
-    }
-    
-    if (_isData && _goodRunLS && ( lastRun!= runNumber || lastLumi != lumiBlock) ) {
-      lastRun = runNumber;
-      lastLumi = lumiBlock;
-      std::cout << "[GoodRunLS]::Run " << lastRun << " LS " << lastLumi << " is OK" << std::endl;
-    }
     
     Npassed_In += weightII;
     
@@ -358,10 +375,13 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     //passedHLT = HLT_Razor + HLT_Razor_prescaled;
     passedHLT = HLT_Razor;
     
-    if ( _isData == true ) {
-      if ( passedHLT == 0 ) continue;//Comment out for getting trigger turn-ons
-      if ((ECALTPFilterFlag==0) || (drBoundary==0) || (drDead==0) || (CSCHaloFilterFlag==0) || (trackerFailureFilterFlag==0) || (BEECALFlag==0) || ( HBHENoiseFilterResultFlag ==0 ) || (ecalLaserFilter == 0) || (eeBadScFilterFlag == 0) || (hcalLaserFilter == 0)) continue;
-    }
+    if ( _isData == true ) 
+      {
+	if ( passedHLT == 0 ) continue;//Comment out for getting trigger turn-ons
+	if ( (ECALTPFilterFlag==0) || (drBoundary==0) || (drDead==0) || (CSCHaloFilterFlag==0) 
+	     || (trackerFailureFilterFlag==0) || (BEECALFlag==0) || ( HBHENoiseFilterResultFlag ==0 )
+	     || (ecalLaserFilter == 0) || (eeBadScFilterFlag == 0) || (hcalLaserFilter == 0)) continue;
+      }
     
     // find highest-pT PV [replace with Sagar's code]
     int iPV = passPV();
@@ -382,43 +402,79 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     if (N_pfJets <= 0 )  continue;// If any Jet is bad (see loop before) event is rejected
     
     //////////////////////////////////////////////////////////////
-    /////////////////////Create Muon Collection///////////////////
+    /////////////////////Selecting Muons//////////////////////////
     //////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////
-
-    vector<int> iMuLoose;
-    vector<TLorentzVector> MuLoose;
-    vector<int> iMuLoose_StdIso;
-    vector<TLorentzVector> MuLoose_StdIso;
-    vector<int> iMuTight;
-    vector<TLorentzVector> MuTight;
-
+    std::vector< VecbosLepton > LooseLepton;
+    std::vector< VecbosLepton > TightLepton;
     for( int i = 0; i < nMuon; i++ ) {
+      VecbosLepton tmp;
       TLorentzVector thisMu( pxMuon[i], pyMuon[i], pzMuon[i], energyMuon[i] );
-      /*if( ( isTightMuon(i, true) ) && ( thisMu.Pt() > 15. ) ) {
-        iMuTight.push_back(i);
-        MuTight.push_back(thisMu);
-	iMuLoose.push_back(i);
-        MuLoose.push_back(thisMu);
-      }else if( ( isLooseMuon(i, true) ) && ( thisMu.Pt() > 15. ) ) {
-        iMuLoose.push_back(i);
-        MuLoose.push_back(thisMu);
-	}*/
+      if ( thisMu.Pt() < 15.0 || fabs( thisMu.Eta() ) > 2.4 ) continue;
+      tmp.index = i;
+      tmp.lepton = thisMu;
+      tmp.charge = chargeMuon[i];
+      tmp.mass = muon_mass;
+      tmp.pdgID = muon_pdgID;
+      tmp._isLoose = isLooseMuon(i, true);
+      tmp._isTight = isTightMuon(i, true);
+      if ( tmp._isLoose ) 
+	{                                            
+	  LooseLepton.push_back(tmp);
+	}
+      
+      if ( tmp._isTight )
+	{
+	  TightLepton.push_back(tmp);
+	}
+    }//end muon loop
 
-      if( ( isLooseMuon(i, true) ) && ( thisMu.Pt() > 15. ) ) {                                            
-	iMuLoose.push_back(i);
-	MuLoose.push_back(thisMu);
-      }
-      //Standard Isolation
-      if(( isLooseMuon(i, false) ) && ( thisMu.Pt() > 15. )){
-	iMuLoose_StdIso.push_back(i);
-        MuLoose_StdIso.push_back(thisMu);
-      }
-    }
+    //////////////////////////////////////////////////////////////
+    /////////////////////Selecting Electrons///////////////////////
+    //////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////
+    for( int i = 0; i < nEle; i++ ) {
+      VecbosLepton tmp;
+      TLorentzVector thisEle( pxEle[i], pyEle[i], pzEle[i], energyEle[i] );
+      if ( thisEle.Pt() < 15.0 || fabs( thisEle.Eta() ) > 2.5 ) continue;
+      //Look for matching muon already store in the collection                                                                      
+      bool matchMuon = false;
+      for ( auto lep : LooseLepton ) {
+	if ( lep.lepton.DeltaR( thisEle ) < 0.1 )
+	  {
+	    matchMuon = true;
+	    break;
+	  }
+      }//end loose lepton loop
+      if( matchMuon ) break;//Discard electron if matches a muon
+      
+      tmp.index = i;
+      tmp.lepton = thisEle;
+      tmp.charge = chargeEle[i];
+      tmp.mass = ele_mass;
+      tmp.pdgID= ele_pdgID;
+      tmp._isLoose = isLooseElectron(i);
+      tmp._isTight = isTightElectron(i);
+      if ( tmp._isLoose )
+        {
+	  LooseLepton.push_back( tmp );
+	}
+      
+      if ( tmp._isTight )
+	{
+          TightLepton.push_back( tmp );
+        }
+    }//end electron loop
     
-    mu_w = 1.0;
-    double mu_err_sqr = 0.0;
-    for(int j = 0; j < MuLoose.size(); j++){
+    //Veto Event if there are no muons or electrons
+    if ( LooseLepton.size() == 0 ) continue;
+    //Filling Letptons. PT order taken into account automatically
+    FillLeptons( LooseLepton );
+    
+    /*
+      mu_w = 1.0;
+      double mu_err_sqr = 0.0;
+      for(int j = 0; j < MuLoose.size(); j++){
       if(MuLoose[j].Pt() <= 100 && fabs(MuLoose[j].PseudoRapidity()) <= 2.4){
 	mu_w *= mu_corr_h->GetBinContent( mu_corr_h->FindBin( MuLoose[j].Pt(), MuLoose[j].PseudoRapidity() ) );
 	mu_err_sqr += pow(mu_corr_h->GetBinError( mu_corr_h->FindBin( MuLoose[j].Pt(), MuLoose[j].PseudoRapidity() ) ), 2);
@@ -439,6 +495,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     
     mu_w_up = mu_w + sqrt(mu_err_sqr);
     mu_w_down = mu_w - sqrt(mu_err_sqr);
+    */
     
     ////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////
@@ -446,7 +503,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     ////////////////  pfJets muon subtracted ////////////
     /////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    
+    /*
     vector<TLorentzVector> pfJets_noMu;
     int ctr = 0;
     vector<int> i_pfJets_noMu;
@@ -465,7 +522,8 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
       }
       ctr++;
     }
-    
+    */
+    /*
     //JEC Up and Down Systematic
     vector<TLorentzVector> pfJets_noMu_Up;
     vector<TLorentzVector> pfJets_noMu_Down;
@@ -485,7 +543,9 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
       aux_J.SetPxPyPzE(scl*pfJets_noMu[j].Px(), scl*pfJets_noMu[j].Py(), scl*pfJets_noMu[j].Pz(), scl*pfJets_noMu[j].E());
       pfJets_noMu_Down.push_back(aux_J);
     }
-    
+    */
+
+    /*
     // Number of Jets                                                                                             
     Jet_Multiplicity = pfJets_noMu.size();
     N_Jets = pfJets_noMu.size();
@@ -778,6 +838,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     }
     
     //std::cout << "===>OUT OF MR and R2" << std::endl;
+    */
     
     //gen-level info
     pT1 = -999;
@@ -1007,8 +1068,8 @@ void RazorRunTwo::SetGenLeptonVector()
       double mass = 0.000511;
       if( abs(idMc[i_subLedLep]) == 13 )mass = 0.1057;
       if( abs(idMc[i_subLedLep]) == 15 )mass = 1.777;
-      events->genlep1.SetPtEtaPhiM( pt, etaMc[i_subLedLep], phiMc[i_subLedLep], mass );
-      events->genlep1Type = idMc[i_subLedLep];
+      events->genlep2.SetPtEtaPhiM( pt, etaMc[i_subLedLep], phiMc[i_subLedLep], mass );
+      events->genlep2Type = idMc[i_subLedLep];
     }
   
 };
@@ -1018,7 +1079,8 @@ void RazorRunTwo::ResetGenLeptonIndex()
   genLeptonIndex.clear();
 };
 
-int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<int>& i_pfJets){
+int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<int>& i_pfJets)
+{
   vector<double> pfJets_f_photon, pfJets_f_electron, pfJets_f_muon, pfJets_f_neutralhad, pfJets_f_chargedhad, \
     pfJets_f_hfhad, pfJets_f_hfem;
   vector<double> pfJets_mult_photon, pfJets_mult_electron, pfJets_mult_muon, pfJets_mult_neutralhad, \
@@ -1288,3 +1350,135 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
     }
 }
 
+void RazorRunTwo::SortByPt(std::vector<VecbosLepton>& lepton)
+{
+  std::vector< VecbosLepton > aux;
+  //Pt key map for lepton
+  std::map< double, VecbosLepton > lepton_map;
+  std::vector< double > lepton_pt;
+  for ( auto tmp : lepton ) {
+    if ( lepton_map.find( tmp.lepton.Pt() ) == lepton_map.end() )
+      {
+	lepton_map[ tmp.lepton.Pt() ] = tmp;
+	lepton_pt.push_back( tmp.lepton.Pt() );
+      }
+    else
+      {
+	std::cerr << "[ERROR]: Identical lepton PT" << std::endl;
+      }
+  }//end lepton loop
+  
+  //sorting by pt 
+  std::sort( lepton_pt.begin(), lepton_pt.end() );
+  std::reverse( lepton_pt.begin(), lepton_pt.end() );
+  
+  //Cleaning lepton vector
+  lepton.clear();
+  //Filling PT ordered lepton vector
+  for ( double tmp : lepton_pt ){
+    if ( lepton_map.find( tmp ) != lepton_map.end() )
+      {
+	lepton.push_back( lepton_map[tmp] );
+      }
+    else
+      {
+	std::cerr << "[ERROR]: lepton PT not found" << std::endl;
+      }
+  }
+  
+};
+
+void RazorRunTwo::FillLeptons(std::vector<VecbosLepton> lepton)
+{
+  SortByPt( lepton );//Sorting Leptons by PT
+  int n_lepton = 0;
+  //Fill Two Leading PT leptons
+  for ( auto tmp : lepton ){
+    if( n_lepton >= 2 ) break;
+    if( n_lepton == 0 )
+      {
+	events->lep1.SetPtEtaPhiM( tmp.lepton.Pt(), tmp.lepton.Eta(), tmp.lepton.Phi(), tmp.mass );
+	events->lep1PassVeto = tmp._isLoose;
+	events->lep1PassLoose = tmp._isLoose;
+	events->lep1PassTight = tmp._isTight;
+	events->lep1Type = -1.0*tmp.pdgID*tmp.charge;
+	events->lep1MatchedGenLepIndex = MatchLeptonGenLevel( tmp.lepton );
+      }
+    else if ( n_lepton == 1 ) 
+      {
+	events->lep2.SetPtEtaPhiM( tmp.lepton.Pt(), tmp.lepton.Eta(), tmp.lepton.Phi(), tmp.mass );
+	events->lep2PassVeto = tmp._isLoose;
+        events->lep2PassLoose = tmp._isLoose;
+        events->lep2PassTight = tmp._isTight;
+        events->lep2Type = -1.0*tmp.pdgID*tmp.charge;
+	events->lep2MatchedGenLepIndex = MatchLeptonGenLevel( tmp.lepton );
+      }
+    n_lepton++;//increase lepton counter
+  }//end lepton loop
+};
+
+int RazorRunTwo::MatchLeptonGenLevel(TLorentzVector lepton)
+{
+  double deltaR_gen1 = 9999.0;
+  double deltaR_gen2 = 9999.0;
+  //first gen lepton
+  if ( events->genlep1.M() != 0.0 )
+    {
+      if ( lepton.DeltaR( events->genlep1 ) < genLepton_DR )
+	{
+	  deltaR_gen1 = lepton.DeltaR( events->genlep1 );
+	}
+    }
+  //second gen lepton
+  if ( events->genlep2.M() != 0.0 )
+    {
+      if ( lepton.DeltaR( events->genlep2 ) < genLepton_DR )
+        {
+          deltaR_gen2 = lepton.DeltaR( events->genlep2 );
+        }
+    }
+  
+  //return index to closes gen lepton
+  
+  //no match
+  if( deltaR_gen1 == 9999.0 && deltaR_gen2 == 9999.0 ) return -1;
+  
+  if( deltaR_gen1 < deltaR_gen2 )
+    {
+      return 1;
+    }
+  else if ( deltaR_gen1 > deltaR_gen2 )
+    {
+      return 2;
+    }
+  else if ( deltaR_gen1 == deltaR_gen2 && deltaR_gen1 != 9999.0 )
+    {
+      return 3;
+    } 
+
+  //if everything fails return no match
+  return -1;  
+};
+
+void RazorRunTwo::InitGenLeptonVariables()
+{
+  events->genlep1.SetPtEtaPhiM(0,0,0,0);
+  events->genlep2.SetPtEtaPhiM(0,0,0,0);;
+  events->genlep1Type = 0;
+  events->genlep2Type = 0;
+};
+void RazorRunTwo::InitLeptonVariables()
+{
+  events->lep1.SetPtEtaPhiM(0,0,0,0);
+  events->lep2.SetPtEtaPhiM(0,0,0,0);
+  events->lep1Type = 0;
+  events->lep2Type = 0;
+  events->lep1MatchedGenLepIndex = -1;
+  events->lep2MatchedGenLepIndex = -1;
+  events->lep1PassVeto = false;
+  events->lep1PassLoose = false;
+  events->lep1PassTight = false;
+  events->lep2PassVeto = false;
+  events->lep2PassLoose = false;
+  events->lep2PassTight = false;
+};
