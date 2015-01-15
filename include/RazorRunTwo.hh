@@ -42,7 +42,7 @@ public:
   void SetGenLeptonVector();
   void ResetGenLeptonIndex();
   int  DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<int>& i_pfJets);
-  void FillJetInfo(std::vector<TLorentzVector> GoodJets, std::vector<int> GoodJetIndices, std::vector<TLorentzVector> GoodLeptons);
+  void FillJetInfo(std::vector<TLorentzVector> GoodJets, std::vector<int> GoodJetIndices, std::vector<VecbosLepton> GoodLeptons);
   void SortByPt(std::vector<VecbosLepton>& lepton);
   void FillLeptons(std::vector<VecbosLepton> lepton);
   int  MatchLeptonGenLevel(TLorentzVector lepton);

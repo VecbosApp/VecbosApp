@@ -471,6 +471,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     //Filling Letptons. PT order taken into account automatically
     FillLeptons( LooseLepton );
     SortByPt( LooseLepton );
+    FillJetInfo(pfJets, i_pfJets, LooseLepton);
     
     /*
       mu_w = 1.0;
@@ -1204,7 +1205,7 @@ int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<
   
 };
 
-void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJetIndices, vector<TLorentzVector> GoodLeptons){
+void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJetIndices, vector<VecbosLepton> GoodLeptons){
     //NOTE: GoodJets should be sorted by jet pT!
 
     //reset event variables
@@ -1229,36 +1230,58 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
     events->bjet2PassLoose = false;
     events->bjet2PassMedium = false;
     events->bjet2PassTight = false;
-    events->MR = -1; events->MR_NoDilepton = -1; 
-    events->Rsq = -1; events->Rsq_NoDilepton = -1;
-    events->MET = -1; events->MET_NoDilepton = -1;
+    events->MR = -1; events->MR_LeptonsAsMET = -1; events->MR_LeadLeptonsAsMET = -1;
+    events->Rsq = -1; events->Rsq_LeptonsAsMET = -1; events->Rsq_LeadLeptonsAsMET = -1;
+    events->MET = -1; events->MET_LeptonsAsMET = -1; events->MET_LeadLeptonsAsMET = -1;
     events->minDPhi = -1; events->minDPhiN = -1;
+    events->dPhiHemHem = -1;
+    events->dPhiHemHem_LeptonsAsMET = -1;
+    events->dPhiHemHem_LeadLeptonsAsMET = -1;
 
     if(GoodJets.size() == 0) return;
 
-    //get the PF MET as a TLorentzVector
-    TLorentzVector PFMET(pxPFMet[2], pyPFMet[2], 0, sqrt(pxPFMet[2]*pxPFMet[2] + pyPFMet[2]*pyPFMet[2]));
-    TVector3 PFMET3(pxPFMet[2], pyPFMet[2], 0);
-    events->MET = PFMET3.Pt();
-    TLorentzVector PFMETWithLeptons = PFMET; //will add leptons to this
+    //get the PF MET as a TVector3
+    TVector3 PFMET(pxPFMet[2], pyPFMet[2], 0);
+    events->MET = PFMET.Pt();
+    TVector3 PFMETWithLeptons = PFMET; //add leptons to this
+    TVector3 PFMETWithLeadingLeptons = PFMET; //add the two highest pt leptons to this
+    int nLepsAddedToMET = 0;
+    for(auto& lep : GoodLeptons){
+        //add to PFMETWithLeptons
+        PFMETWithLeptons = PFMETWithLeptons + lep.lepton.Vect();
+        PFMETWithLeptons.SetZ(0.0);
+        //add first two leptons to PFMETWithLeadingLeptons
+        if(nLepsAddedToMET < 2){
+            PFMETWithLeadingLeptons = PFMETWithLeadingLeptons + lep.lepton.Vect();
+            PFMETWithLeadingLeptons.SetZ(0.0);
+            nLepsAddedToMET++;
+        }
+    }
+    events->MET_LeptonsAsMET = PFMETWithLeptons.Pt();
+    events->MET_LeadLeptonsAsMET = PFMETWithLeadingLeptons.Pt();
 
     bool gotLeadJet = false; bool gotSubLeadJet = false;
     bool gotLeadBJet = false; bool gotSubLeadBJet = false;
     vector<TLorentzVector> GoodJetsWithoutLeptons;
+    vector<TLorentzVector> GoodJetsWithoutLeadingLeptons;
     for(int j = 0; j < GoodJets.size(); j++){
         //check if this jet matches a good lepton
         //(if it does, skip it)
         double dR = -1;
+        int nLepsFoundInJetCollection = 0;
         for(auto& lep : GoodLeptons){
-            double thisDR = GoodJets[j].DeltaR(lep);
+            double thisDR = GoodJets[j].DeltaR(lep.lepton);
             if(dR < 0 || thisDR < dR) dR = thisDR;
         }
-        if(dR > 0 && dR < 0.5){ //a selected lepton is inside this jet -- add to PFMETWithLeptons
-            PFMETWithLeptons = PFMETWithLeptons + GoodJets[j];
+        if(dR > 0 && dR < 0.5){ //a selected lepton is inside this jet
+            //if we already have identified two leptons in the jet collection, add the jet to GoodJetsWithoutLeadingLeptons
+            if(nLepsFoundInJetCollection >= 2) GoodJetsWithoutLeadingLeptons.push_back(GoodJets[j]);
+            nLepsFoundInJetCollection++;
             continue; 
         }
 
         GoodJetsWithoutLeptons.push_back(GoodJets[j]);
+        GoodJetsWithoutLeadingLeptons.push_back(GoodJets[j]);
 
         if(GoodJets[j].Pt() > 40) events->NJets40++;
         events->HT += GoodJets[j].Pt();
@@ -1266,8 +1289,9 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
         if(pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->NBJetsMedium++;
         if(pfJetPassCSVT(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->NBJetsTight++;
         //minDPhiN: min phi angle between jet and MET
-        double thisDPhi = GoodJets[j].DeltaPhi(PFMET);
-        if(events->minDPhi < 0 || thisDPhi < events->minDPhi) events->minDPhi = thisDPhi;
+        double thisDPhi = GoodJets[j].Vect().DeltaPhi(PFMET);
+        double thisFoldedDPhi = min(thisDPhi, fabs(3.14159 - thisDPhi)); // we want the jet closest to being aligned OR anti-aligned with the MET
+        if(events->minDPhi < 0 || thisFoldedDPhi < events->minDPhi) events->minDPhi = thisFoldedDPhi;
 
         //fill info on first two jets
         if(!gotLeadJet){
@@ -1314,29 +1338,41 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
         }
     }
 
-    TVector3 PFMET3WithLeptons(PFMETWithLeptons.Px(), PFMETWithLeptons.Py(), 0);
-    events->MET_NoDilepton = PFMET3WithLeptons.Pt();
-
     //compute MR and Rsq
     vector<TLorentzVector> hemispheres = CombineJets(GoodJets);
     events->MR = CalcGammaMRstar(hemispheres[0], hemispheres[1]);
-    double MTR = CalcMTR(hemispheres[0], hemispheres[1], PFMET3);
+    double MTR = CalcMTR(hemispheres[0], hemispheres[1], PFMET);
     double R = -999;
     if(events->MR > 0) R = MTR/events->MR;
     events->Rsq = R*R;
+    //compute the transverse angle between the two hemispheres
+    events->dPhiHemHem = hemispheres[0].DeltaPhi(hemispheres[1]);
 
     //MR and Rsq with leptons added to MET
     vector<TLorentzVector> hemispheresNoLeps = CombineJets(GoodJetsWithoutLeptons);
-    events->MR_NoDilepton = CalcGammaMRstar(hemispheresNoLeps[0], hemispheresNoLeps[1]);
-    double MTRNoLeps = CalcMTR(hemispheresNoLeps[0], hemispheresNoLeps[1], PFMET3WithLeptons);
+    events->MR_LeptonsAsMET = CalcGammaMRstar(hemispheresNoLeps[0], hemispheresNoLeps[1]);
+    double MTRNoLeps = CalcMTR(hemispheresNoLeps[0], hemispheresNoLeps[1], PFMETWithLeptons);
     double RNoLeps = -999;
-    if(events->MR_NoDilepton > 0) RNoLeps = MTRNoLeps/events->MR_NoDilepton;
-    events->Rsq_NoDilepton = RNoLeps*RNoLeps;
+    if(events->MR_LeptonsAsMET > 0) RNoLeps = MTRNoLeps/events->MR_LeptonsAsMET;
+    events->Rsq_LeptonsAsMET = RNoLeps*RNoLeps;
+    //compute the transverse angle between the two hemispheres
+    events->dPhiHemHem_LeptonsAsMET = hemispheresNoLeps[0].DeltaPhi(hemispheresNoLeps[1]);
+
+    //MR and Rsq with leading leptons added to MET
+    vector<TLorentzVector> hemispheresNoLeadLeps = CombineJets(GoodJetsWithoutLeadingLeptons);
+    events->MR_LeadLeptonsAsMET = CalcGammaMRstar(hemispheresNoLeadLeps[0], hemispheresNoLeadLeps[1]);
+    double MTRNoLeadLeps = CalcMTR(hemispheresNoLeadLeps[0], hemispheresNoLeadLeps[1], PFMETWithLeadingLeptons);
+    double RNoLeadLeps = -999;
+    if(events->MR_LeadLeptonsAsMET > 0) RNoLeadLeps = MTRNoLeadLeps/events->MR_LeadLeptonsAsMET;
+    events->Rsq_LeadLeptonsAsMET = RNoLeadLeps*RNoLeadLeps;
+    //compute the transverse angle between the two hemispheres
+    events->dPhiHemHem_LeadLeptonsAsMET = hemispheresNoLeadLeps[0].DeltaPhi(hemispheresNoLeadLeps[1]);
 
     //compute minDeltaPhiN (see Appendix D in CMS note AN-2011-409)
     for(int i = 0; i < GoodJetsWithoutLeptons.size(); i++){
         //compute deltaPhi between jet and MET
-        double thisDPhi = GoodJetsWithoutLeptons[i].DeltaPhi(PFMET);
+        double thisDPhi = GoodJetsWithoutLeptons[i].Vect().DeltaPhi(PFMET);
+        double thisFoldedDPhi = min(thisDPhi, fabs(3.14159 - thisDPhi));
         //compute estimated 'perpendicular missing energy' change due to possible jet mismeasurements
         //first compute sum((px_i*py_j - py_i*px_j)^2), summing over all other jets
         double sum = 0;
@@ -1346,7 +1382,7 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
         }
         double thisDeltaT = 0.1*sqrt(sum)/GoodJetsWithoutLeptons[i].Pt();
         //compute the normalized delta phi
-        double thisDeltaPhiN = thisDPhi/atan(thisDeltaT/PFMET.Pt());
+        double thisDeltaPhiN = thisFoldedDPhi/atan(thisDeltaT/PFMET.Pt());
         if(events->minDPhiN < 0 || thisDeltaPhiN < events->minDPhiN) events->minDPhiN = thisDeltaPhiN;
     }
 }
@@ -1486,5 +1522,8 @@ void RazorRunTwo::InitLeptonVariables()
 
 float RazorRunTwo::GetMTLep()
 {
-  return sqrt(events->lep1.M2() + 2*metPt*events->lep1.Pt()*(1 - cos(deltaPhi(metPhi,events->lep1.Phi()))));
+    double metPhi = -999;
+    if(pxMet[2] > 0) metPhi = atan(pyMet[2]/pxMet[2]);
+    else metPhi = atan(pyMet[2]/pxMet[2]) + 3.14159;
+  return sqrt(events->lep1.M2() + 2*sqrt(pxMet[2]*pxMet[2] + pyMet[2]*pyMet[2])*events->lep1.Pt()*(1 - cos(DeltaPhi(metPhi,events->lep1.Phi()))));
 };
