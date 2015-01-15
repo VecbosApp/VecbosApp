@@ -466,6 +466,8 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
         }
     }//end electron loop
     
+    //Veto Event if there are no muons or electrons
+    if ( LooseLepton.size() == 0 ) continue;
     //Filling Letptons. PT order taken into account automatically
     FillLeptons( LooseLepton );
     
@@ -1066,8 +1068,8 @@ void RazorRunTwo::SetGenLeptonVector()
       double mass = 0.000511;
       if( abs(idMc[i_subLedLep]) == 13 )mass = 0.1057;
       if( abs(idMc[i_subLedLep]) == 15 )mass = 1.777;
-      events->genlep1.SetPtEtaPhiM( pt, etaMc[i_subLedLep], phiMc[i_subLedLep], mass );
-      events->genlep1Type = idMc[i_subLedLep];
+      events->genlep2.SetPtEtaPhiM( pt, etaMc[i_subLedLep], phiMc[i_subLedLep], mass );
+      events->genlep2Type = idMc[i_subLedLep];
     }
   
 };
@@ -1382,7 +1384,7 @@ void RazorRunTwo::FillLeptons(std::vector<VecbosLepton> lepton)
 	events->lep1PassVeto = tmp._isLoose;
 	events->lep1PassLoose = tmp._isLoose;
 	events->lep1PassTight = tmp._isTight;
-	events->lep1Type = tmp.pdgID;
+	events->lep1Type = -1.0*tmp.pdgID*tmp.charge;
 	events->lep1MatchedGenLepIndex = MatchLeptonGenLevel( tmp.lepton );
       }
     else if ( n_lepton == 1 ) 
@@ -1391,7 +1393,7 @@ void RazorRunTwo::FillLeptons(std::vector<VecbosLepton> lepton)
 	events->lep2PassVeto = tmp._isLoose;
         events->lep2PassLoose = tmp._isLoose;
         events->lep2PassTight = tmp._isTight;
-        events->lep2Type = tmp.pdgID;
+        events->lep2Type = -1.0*tmp.pdgID*tmp.charge;
 	events->lep2MatchedGenLepIndex = MatchLeptonGenLevel( tmp.lepton );
       }
     n_lepton++;//increase lepton counter
