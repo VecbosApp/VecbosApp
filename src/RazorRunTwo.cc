@@ -1214,6 +1214,7 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
     //reset event variables
     events->HT = 0;
     events->NJets40 = 0;
+    events->NJets80 = 0;
     events->NBJetsLoose = 0;
     events->NBJetsMedium = 0;
     events->NBJetsTight = 0;
@@ -1236,10 +1237,11 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
     events->MR = -1; events->MR_LeptonsAsMET = -1; events->MR_LeadLeptonsAsMET = -1;
     events->Rsq = -1; events->Rsq_LeptonsAsMET = -1; events->Rsq_LeadLeptonsAsMET = -1;
     events->MET = -1; events->MET_LeptonsAsMET = -1; events->MET_LeadLeptonsAsMET = -1;
-    events->minDPhi = -1; events->minDPhiN = -1;
-    events->dPhiHemHem = -1;
-    events->dPhiHemHem_LeptonsAsMET = -1;
-    events->dPhiHemHem_LeadLeptonsAsMET = -1;
+    events->minDPhi = -1; events->minDPhiN = -1; 
+    events->minDPhiFolded = -1; events->minDPhiNFolded = -1;
+    events->dPhiHemHem = -99;
+    events->dPhiHemHem_LeptonsAsMET = -99;
+    events->dPhiHemHem_LeadLeptonsAsMET = -99;
 
     if(GoodJets.size() == 0) return;
 
@@ -1287,14 +1289,16 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
         GoodJetsWithoutLeadingLeptons.push_back(GoodJets[j]);
 
         if(GoodJets[j].Pt() > 40) events->NJets40++;
+        if(GoodJets[j].Pt() > 80) events->NJets80++;
         events->HT += GoodJets[j].Pt();
         if(pfJetPassCSVL(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->NBJetsLoose++;
         if(pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->NBJetsMedium++;
         if(pfJetPassCSVT(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->NBJetsTight++;
         //minDPhiN: min phi angle between jet and MET
-        double thisDPhi = GoodJets[j].Vect().DeltaPhi(PFMET);
+        double thisDPhi = fabs(GoodJets[j].Vect().DeltaPhi(PFMET));
         double thisFoldedDPhi = min(thisDPhi, fabs(3.14159 - thisDPhi)); // we want the jet closest to being aligned OR anti-aligned with the MET
-        if(events->minDPhi < 0 || thisFoldedDPhi < events->minDPhi) events->minDPhi = thisFoldedDPhi;
+        if(events->minDPhiFolded < 0 || thisFoldedDPhi < events->minDPhiFolded) events->minDPhiFolded = thisFoldedDPhi;
+        if(events->minDPhi < 0 || thisDPhi < events->minDPhi) events->minDPhi = thisDPhi;
 
         //fill info on first two jets
         if(!gotLeadJet){
@@ -1385,7 +1389,9 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
         }
         double thisDeltaT = 0.1*sqrt(sum)/GoodJetsWithoutLeptons[i].Pt();
         //compute the normalized delta phi
-        double thisDeltaPhiN = thisFoldedDPhi/atan(thisDeltaT/PFMET.Pt());
+        double thisDeltaPhiN = thisDPhi/atan(thisDeltaT/PFMET.Pt());
+        double thisDeltaPhiNFolded = thisFoldedDPhi/atan(thisDeltaT/PFMET.Pt());
+        if(events->minDPhiNFolded < 0 || thisDeltaPhiNFolded < events->minDPhiNFolded) events->minDPhiNFolded = thisDeltaPhiNFolded;
         if(events->minDPhiN < 0 || thisDeltaPhiN < events->minDPhiN) events->minDPhiN = thisDeltaPhiN;
     }
 }

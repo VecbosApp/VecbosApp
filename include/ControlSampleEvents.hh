@@ -85,10 +85,13 @@
       Float_t                 MET_LeptonsAsMET;
       Float_t                 minDPhi;
       Float_t                 minDPhiN;
+      Float_t                 minDPhiFolded;
+      Float_t                 minDPhiNFolded;
       Float_t                 dPhiHemHem;
       Float_t                 dPhiHemHem_LeptonsAsMET;
       Float_t                 dPhiHemHem_LeadLeptonsAsMET;
       UInt_t                  NJets40;
+      UInt_t                  NJets80;
       UInt_t                  NBJetsLoose;
       UInt_t                  NBJetsMedium;
       UInt_t                  NBJetsTight;
@@ -178,6 +181,7 @@
         dPhiHemHem_LeptonsAsMET          = -1.0;
         dPhiHemHem_LeadLeptonsAsMET           = -1.0;
 	NJets40              = 0.0;
+	NJets80              = 0.0;
 	NBJetsLoose          = 0.0;
 	NBJetsMedium         = 0.0;
 	NBJetsTight          = 0.0;
@@ -247,6 +251,7 @@
 	tree_->Branch("dPhiHemHem_LeptonsAsMET",&dPhiHemHem_LeptonsAsMET,"dPhiHemHem_LeptonsAsMET/F");
 	tree_->Branch("dPhiHemHem_LeadLeptonsAsMET",&dPhiHemHem_LeadLeptonsAsMET,"dPhiHemHem_LeadLeptonsAsMET/F");
 	tree_->Branch("NJets40",&NJets40,"NJets40/i");
+	tree_->Branch("NJets80",&NJets80,"NJets80/i");
 	tree_->Branch("NBJetsLoose",&NBJetsLoose,"NBJetsLoose/i");
 	tree_->Branch("NBJetsMedium",&NBJetsMedium,"NBJetsMedium/i");
 	tree_->Branch("NBJetsTight",&NBJetsTight,"NBJetsTight/i");
@@ -318,6 +323,7 @@
 	tree_->SetBranchAddress("dPhiHemHem_LeptonsAsMET",&dPhiHemHem_LeptonsAsMET);
 	tree_->SetBranchAddress("dPhiHemHem_LeadLeptonsAsMET",&dPhiHemHem_LeadLeptonsAsMET);
 	tree_->SetBranchAddress("NJets40",&NJets40);
+	tree_->SetBranchAddress("NJets80",&NJets80);
 	tree_->SetBranchAddress("NBJetsLoose",&NBJetsLoose);
 	tree_->SetBranchAddress("NBJetsMedium",&NBJetsMedium);
 	tree_->SetBranchAddress("NBJetsTight",&NBJetsTight);
