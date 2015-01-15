@@ -470,6 +470,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     if ( LooseLepton.size() == 0 ) continue;
     //Filling Letptons. PT order taken into account automatically
     FillLeptons( LooseLepton );
+    SortByPt( LooseLepton );
     
     /*
       mu_w = 1.0;
@@ -1464,4 +1465,9 @@ void RazorRunTwo::InitLeptonVariables()
   events->lep2PassVeto = false;
   events->lep2PassLoose = false;
   events->lep2PassTight = false;
+};
+
+float RazorRunTwo::GetMTLep()
+{
+  return sqrt(events->lep1.M2() + 2*metPt*events->lep1.Pt()*(1 - cos(deltaPhi(metPhi,events->lep1.Phi()))));
 };

@@ -48,6 +48,7 @@ public:
   int  MatchLeptonGenLevel(TLorentzVector lepton);
   void InitGenLeptonVariables();
   void InitLeptonVariables();
+  float GetMTLep();
   double _weight;
   ControlSampleEvents* events;
 
