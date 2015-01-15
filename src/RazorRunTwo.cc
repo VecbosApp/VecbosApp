@@ -1237,8 +1237,8 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
     events->MR = -1; events->MR_LeptonsAsMET = -1; events->MR_LeadLeptonsAsMET = -1;
     events->Rsq = -1; events->Rsq_LeptonsAsMET = -1; events->Rsq_LeadLeptonsAsMET = -1;
     events->MET = -1; events->MET_LeptonsAsMET = -1; events->MET_LeadLeptonsAsMET = -1;
-    events->minDPhi = -1; events->minDPhiN = -1; 
-    events->minDPhiFolded = -1; events->minDPhiNFolded = -1;
+    events->minDPhi = -1; events->minDPhiN = -999; 
+    events->minDPhiFolded = -1; events->minDPhiNFolded = -999;
     events->dPhiHemHem = -99;
     events->dPhiHemHem_LeptonsAsMET = -99;
     events->dPhiHemHem_LeadLeptonsAsMET = -99;
