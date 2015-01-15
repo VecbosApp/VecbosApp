@@ -472,6 +472,9 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     FillLeptons( LooseLepton );
     SortByPt( LooseLepton );
     
+    //Filling MTlepton
+    FillMTLep();
+    
     /*
       mu_w = 1.0;
       double mu_err_sqr = 0.0;
@@ -1332,23 +1335,6 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
     double RNoLeps = -999;
     if(events->MR_NoDilepton > 0) RNoLeps = MTRNoLeps/events->MR_NoDilepton;
     events->Rsq_NoDilepton = RNoLeps*RNoLeps;
-
-    //compute minDeltaPhiN (see Appendix D in CMS note AN-2011-409)
-    for(int i = 0; i < GoodJetsWithoutLeptons.size(); i++){
-        //compute deltaPhi between jet and MET
-        double thisDPhi = GoodJetsWithoutLeptons[i].DeltaPhi(PFMET);
-        //compute estimated 'perpendicular missing energy' change due to possible jet mismeasurements
-        //first compute sum((px_i*py_j - py_i*px_j)^2), summing over all other jets
-        double sum = 0;
-        for(int j = 0; j < GoodJetsWithoutLeptons.size(); j++){
-            if(i == j) continue;
-            sum = sum + pow(GoodJetsWithoutLeptons[i].Px()*GoodJetsWithoutLeptons[j].Py() - GoodJetsWithoutLeptons[i].Py()*GoodJetsWithoutLeptons[j].Px(), 2);
-        }
-        double thisDeltaT = 0.1*sqrt(sum)/GoodJetsWithoutLeptons[i].Pt();
-        //compute the normalized delta phi
-        double thisDeltaPhiN = thisDPhi/atan(thisDeltaT/PFMET.Pt());
-        if(events->minDPhiN < 0 || thisDeltaPhiN < events->minDPhiN) events->minDPhiN = thisDeltaPhiN;
-    }
 }
 
 void RazorRunTwo::SortByPt(std::vector<VecbosLepton>& lepton)
@@ -1486,5 +1472,14 @@ void RazorRunTwo::InitLeptonVariables()
 
 float RazorRunTwo::GetMTLep()
 {
-  return sqrt(events->lep1.M2() + 2*metPt*events->lep1.Pt()*(1 - cos(deltaPhi(metPhi,events->lep1.Phi()))));
+  TVector3 lepton( events->lep1.Px(), events->lep1.Py(), events->lep1.Pz() );
+  TVector3 met( pxPFMet[2], pyPFMet[2], 0.0 );
+  double deltaPhi = lepton.DeltaPhi( met );
+  double LeptonM2 = events->lep1.M2();
+  return sqrt( LeptonM2 + 2*met.Pt()*lepton.Pt()*( 1.0 - cos( deltaPhi ) ) );
+};
+
+void RazorRunTwo::FillMTLep()
+{
+  events->lep1MT = GetMTLep();
 };
