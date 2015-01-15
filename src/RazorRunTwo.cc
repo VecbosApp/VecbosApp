@@ -473,6 +473,9 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     SortByPt( LooseLepton );
     FillJetInfo(pfJets, i_pfJets, LooseLepton);
     
+    //Filling MTlepton
+    FillMTLep();
+    
     /*
       mu_w = 1.0;
       double mu_err_sqr = 0.0;
@@ -1522,8 +1525,14 @@ void RazorRunTwo::InitLeptonVariables()
 
 float RazorRunTwo::GetMTLep()
 {
-    double metPhi = -999;
-    if(pxMet[2] > 0) metPhi = atan(pyMet[2]/pxMet[2]);
-    else metPhi = atan(pyMet[2]/pxMet[2]) + 3.14159;
-  return sqrt(events->lep1.M2() + 2*sqrt(pxMet[2]*pxMet[2] + pyMet[2]*pyMet[2])*events->lep1.Pt()*(1 - cos(DeltaPhi(metPhi,events->lep1.Phi()))));
+  TVector3 lepton( events->lep1.Px(), events->lep1.Py(), events->lep1.Pz() );
+  TVector3 met( pxPFMet[2], pyPFMet[2], 0.0 );
+  double deltaPhi = lepton.DeltaPhi( met );
+  double LeptonM2 = events->lep1.M2();
+  return sqrt( LeptonM2 + 2*met.Pt()*lepton.Pt()*( 1.0 - cos( deltaPhi ) ) );
+};
+
+void RazorRunTwo::FillMTLep()
+{
+  events->lep1MT = GetMTLep();
 };
