@@ -381,9 +381,13 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
           TightLepton.push_back( tmp );
         }
     }//end electron loop
+
+    //photons
+    int nGoodPhotons = FillPhotonInfo(iPV);
     
-    //Veto Event if there are no muons or electrons
-    if ( LooseLepton.size() == 0 ) continue;
+    //Veto Event if there are no muons or electrons, or photons with pt above 20 GeV
+    if ( LooseLepton.size() == 0 && nGoodPhotons == 0) continue;
+
     //Filling Letptons. PT order taken into account automatically
     FillLeptons( LooseLepton );
     SortByPt( LooseLepton );
@@ -679,6 +683,61 @@ int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<
   return N_pfJets;
   
 };
+
+int RazorRunTwo::FillPhotonInfo(int iPV){ //iPV should be the index of the primary vertex in the vertex collection
+    //returns the number of selected photons with pt above 20 GeV
+    //reset event variables
+    events->nPhotonsAbove20 = 0;
+    events->photon1Pt = -999;
+    events->photon1Eta = -999;
+    events->photon1Phi = -999;
+    events->photon1SCEta = -999;
+    events->photon2Pt = -999;
+    events->photon2Eta = -999;
+    events->photon2Phi = -999;
+    events->photon2SCEta = -999;
+
+    //find the two leading photons
+    double leadPt = -1;
+    double subLeadPt = -1;
+    int leadIndex = -1;
+    int subLeadIndex = -1;
+    for(int i = 0; i < nPho; i++){
+        if(!isMediumCutsBasedPhoton(i, iPV)) continue;
+        double ptPho = sqrt(pxPho[i]*pxPho[i] + pyPho[i]*pyPho[i]);
+        if(ptPho < 20) continue;
+        events->nPhotonsAbove20++;
+
+        if(ptPho > leadPt){
+            //move leading photon to subleading
+            subLeadPt = leadPt;
+            subLeadIndex = leadIndex;
+
+            //make this the leading photon
+            leadPt = ptPho;
+            leadIndex = i;
+        }
+        else if(ptPho > subLeadPt){
+            //make this the subleading photon
+            subLeadPt = ptPho;
+            subLeadIndex = i;
+        }
+    }
+
+    if(events->nPhotonsAbove20 > 0){ //fill leading photon info
+        events->photon1Pt = sqrt(pxPho[leadIndex]*pxPho[leadIndex] + pyPho[leadIndex]*pyPho[leadIndex]);
+        events->photon1Eta = etaPho[leadIndex];
+        events->photon1Phi = phiPho[leadIndex];
+        events->photon1SCEta = etaSC[superClusterIndexPho[leadIndex]];
+    }
+    if(events->nPhotonsAbove20 > 1){ //fill subleading photon info
+        events->photon2Pt = sqrt(pxPho[subLeadIndex]*pxPho[subLeadIndex] + pyPho[subLeadIndex]*pyPho[subLeadIndex]);
+        events->photon2Eta = etaPho[subLeadIndex];
+        events->photon2Phi = phiPho[subLeadIndex];
+        events->photon2SCEta = etaSC[superClusterIndexPho[subLeadIndex]];
+    }   
+    return events->nPhotonsAbove20;
+}
 
 void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJetIndices, vector<VecbosLepton> GoodLeptons){
     //NOTE: GoodJets should be sorted by jet pT!
