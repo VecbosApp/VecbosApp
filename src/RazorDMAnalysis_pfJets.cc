@@ -144,6 +144,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   JetCorrectionUncertainty *jec_un =
     new JetCorrectionUncertainty(*(new JetCorrectorParameters("JEC_Uncertainty/Summer13_V5_MC_Uncertainty_AK5PF.txt")));
     
+  CreateHistoEntries();
   TFile* file = new TFile(outFileName.c_str(),"RECREATE");
 
   double w_isr = 0.0;
@@ -248,6 +249,8 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   double metX[4], metY[4], metCorrX[4], metCorrY[4], JetMetX, JetMetY, JetMetX_up, JetMetX_down, JetMetY_up, JetMetY_down, ht;
   double metX_up[4], metX_down[4], metY_up[4], metY_down[4], metCorrX_up[4], metCorrX_down[4], metCorrY_up[4], metCorrY_down[4];
   double mht[3];//xyz
+  
+  float Qtr;
   
   //Cristian MC information
   
@@ -398,6 +401,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
       outTree->Branch("wMRST2006NNLO", wMRST2006NNLO, "wMRST2006NNLO[nMRST2006NNLO]/D");
       outTree->Branch("nNNPDF10100", &nNNPDF10100, "nNNPDF10100/I");
       outTree->Branch("wNNPDF10100", wNNPDF10100, "wNNPDF10100[nNNPDF10100]/D");
+      outTree->Branch("Qtr", &Qtr, "Qtr/F");
     }
   }
   
@@ -520,6 +524,8 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
     }
     
     Npassed_In += weightII;
+    SetLambdaEntries();
+    Qtr = GetQtr();
     
     double m0=9999, m12=9999, mc=9999;
     _isSMS = false;//Chage to true when running on SMS sample
@@ -1244,6 +1250,7 @@ void RazorDMAnalysis::Loop(string outFileName, int start, int stop) {
   //TFile *file = new TFile(outFileName.c_str(),"RECREATE");
   outTree->Write();
   effTree->Write();
+  h_entries->Write();
   file->Close();
 }
 
@@ -1258,4 +1265,39 @@ int RazorDMAnalysis::HighestPt(vector<TLorentzVector> p, int iHIGHEST) {
     }
   }
   return iH;
-}
+};
+
+void RazorDMAnalysis::CreateHistoEntries()
+{
+  h_entries = new TH1F( "h_entries", "h_entries" , 100, 0.0, 5000.0 );
+};
+
+void RazorDMAnalysis::SetLambdaEntries()
+{
+  h_entries->Fill( GetQtr() );
+};
+
+float RazorDMAnalysis::GetQtr()
+{
+  TLorentzVector chi1, chi2, Qtr;
+  bool firstChi = false;
+  bool secondChi = false;
+  for ( int i  = 0; i < nMc; i++ ){
+    if( abs( idMc[i] ) == 18 && firstChi == false )
+      {
+	chi1.SetPtEtaPhiE( pMc[i]/cosh( etaMc[i] ), etaMc[i], phiMc[i], energyMc[i] );
+	firstChi = true;
+      }
+    else if ( abs( idMc[i] ) == 18 && firstChi == true )
+      {
+	chi2.SetPtEtaPhiE( pMc[i]/cosh( etaMc[i] ), etaMc[i], phiMc[i], energyMc[i] );
+	secondChi = true;
+	break;
+      }
+  }//end mc loop
+  
+  Qtr = chi1 + chi2;
+  if ( secondChi == true ) return Qtr.M();//Magnitude of the momentum tranfer
+  
+  return -99.0;
+};
