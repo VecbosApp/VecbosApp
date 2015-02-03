@@ -12,6 +12,7 @@
 //    Caltech
 //    Yi Chen (adding electron/muon function, b-tag working points and hcal noise wrapper function)
 //    Cristian Pena (adding ILV, correcting ISO for muons in isLooseMuon )
+//    Dustin Anderson (adding photon ID)
 //--------------------------------------------------------------
 
 /// The Vecbos class is an auxiliary class which contains basic
@@ -416,6 +417,16 @@ protected:
   bool isLooseTau(int iTau);
   bool isMediumTau(int iTau);
   bool isTightTau(int iTau);
+
+  //Photon selection 2012
+  bool isLooseCutsBasedPhoton(int iPhoton, int iPV);
+  bool isMediumCutsBasedPhoton(int iPhoton, int iPV);
+  bool isTightCutsBasedPhoton(int iPhoton, int iPV);
+  double getPhoEffAreaChHadrons(int iPhoton);
+  double getPhoEffAreaNeuHadrons(int iPhoton);
+  double getPhoEffAreaPhotons(int iPhoton);
+  bool photonMatchesElectron(int iPhoton);
+  bool passesCutsBasedPhotonID(int iPhoton, int iPV, double hOverECut, double sigmaIetaIetaCut, double chHadIsoCut, double neuHadIsoCut, double neuHadIsoSlope, double photIsoCut, double photIsoSlope);
   /// 2012 good PV selection (returns highest-pV good vtx
   int passPV();  
   int N_PV_EVENT;
