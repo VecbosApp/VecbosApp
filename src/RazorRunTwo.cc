@@ -204,13 +204,17 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
   unsigned int lastRun = 0;
   
   std::vector<std::string> maskHLT_Razor; 
-  maskHLT_Razor.push_back("HLT_RsqMR55_Rsq0p09_MR150");
-  maskHLT_Razor.push_back("HLT_RsqMR60_Rsq0p09_MR150");
-  maskHLT_Razor.push_back("HLT_RsqMR65_Rsq0p09_MR150");
+  //normal triggers
+  //maskHLT_Razor.push_back("HLT_RsqMR55_Rsq0p09_MR150");
+  //maskHLT_Razor.push_back("HLT_RsqMR60_Rsq0p09_MR150");
+  //maskHLT_Razor.push_back("HLT_RsqMR65_Rsq0p09_MR150");
   
+  //ParkedTrigger
+  maskHLT_Razor.push_back("HLT_RsqMR45_Rsq0p09");
+  
+  //Prescaled
   std::vector<std::string> maskHLT_Razor_prescaled; 
   maskHLT_Razor_prescaled.push_back("HLT_RsqMR40_Rsq0p04");
-  //maskHLT_Razor_prescaled.push_back("HLT_RsqMR45_Rsq0p09");  
   /*
   std::vector<std::string> maskHLT_Razor;                                         
   maskHLT_Razor.push_back("HLT_Mu17_Mu8");                                         
@@ -288,7 +292,6 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     Npassed_In += weightII;
     
     //HLT and Data Filter
-    //passedHLT = HLT_Razor + HLT_Razor_prescaled;
     passedHLT = HLT_Razor;
     
     if ( _isData == true ) 
@@ -315,7 +318,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     vector<int> i_pfJets;
     int N_pfJets = DoPfSelection(pfJets, i_pfJets);
     // jet ID                                                                 
-    if (N_pfJets <= 0 )  continue;// If any Jet is bad (see loop before) event is rejected
+    if (N_pfJets == 0 )  continue;// If any Jet is bad (see loop before) event is rejected
     
     //////////////////////////////////////////////////////////////
     /////////////////////Selecting Muons//////////////////////////
@@ -362,7 +365,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
 	    break;
 	  }
       }//end loose lepton loop
-      if( matchMuon ) break;//Discard electron if matches a muon
+      if( matchMuon ) continue;//Discard current electron if matches a muon
       
       tmp.index = i;
       tmp.lepton = thisEle;
@@ -381,14 +384,17 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
           TightLepton.push_back( tmp );
         }
     }//end electron loop
+
+    //photons
+    int nGoodPhotons = FillPhotonInfo(iPV);
     
-    //Veto Event if there are no muons or electrons
-    if ( LooseLepton.size() == 0 ) continue;
+    //Veto Event if there are no muons or electrons, or photons with pt above 20 GeV
+    if ( LooseLepton.size() == 0 && nGoodPhotons == 0) continue;
+
     //Filling Letptons. PT order taken into account automatically
     FillLeptons( LooseLepton );
     SortByPt( LooseLepton );
     FillJetInfo(pfJets, i_pfJets, LooseLepton);
-    
     //Filling MTlepton
     FillMTLep();
     events->tree_->Fill();
@@ -408,9 +414,10 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
   effTree->Branch("Npassed_LepVeto", &Npassed_LepVeto, "Npassed_LepVeto/D");
 
   effTree->Fill();
-  
+
   events->tree_->Write();
   effTree->Write();
+  NEvents->Write();
   file->Close();
 }
 
@@ -575,24 +582,24 @@ int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<
   std::vector< double > PtVec;
   
   bool good_pfjet = false;
-  for(int i = 0; i < nAK5PFNoPUJet; i++){                                                                                     
+  for(int i = 0; i < nAK5PFNoPUJet; i++){                                             
     TLorentzVector jet;
     pfJetStruct aux_pfJetStruct;
-    
-    double px = pxAK5PFNoPUJet[i];                                                                                            
-    double py = pyAK5PFNoPUJet[i];                                                                                            
-    double pz = pzAK5PFNoPUJet[i];                                                                                            
-    double E = sqrt(px*px+py*py+pz*pz);                                                                                       
-    double scale = 1.;                                                                                                        
+    double px = pxAK5PFNoPUJet[i];                                                          
+    double py = pyAK5PFNoPUJet[i];                                                
+    double pz = pzAK5PFNoPUJet[i];                                           
+    double E = sqrt(px*px+py*py+pz*pz);                                                      
+    double scale = 1.;                                                                  
     jet.SetPxPyPzE(scale*px,scale*py,scale*pz,scale*E);
-    good_pfjet = false;                                                                                                       
+    good_pfjet = false;                                                      
     double EU = uncorrEnergyAK5PFNoPUJet[i];
+    
     if( jet.Pt() > 40.0 && fabs(jet.Eta()) < 3.0 )
       {
 	double fHAD = (neutralHadronEnergyAK5PFNoPUJet[i]+chargedHadronEnergyAK5PFNoPUJet[i])/EU;                              
 	if(fHAD > 0.99)
-	  {                                                                                                       
-	    N_pfJets = 0;                                                                                                      
+	  {
+	    N_pfJets = 0;
 	    break;// clean NOISY event
 	  }
 	
@@ -631,8 +638,6 @@ int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<
 	if(good_pfjet)
 	  {
 	    N_pfJets++;
-	    //pfJets.push_back(jet);
-	    //i_pfJets.push_back(i);
 	    aux_pfJetStruct.Jet = jet;
 	    aux_pfJetStruct.index = i;
 	    if( map_pt.find(jet.Pt()) == map_pt.end() )
@@ -665,10 +670,10 @@ int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<
 	else 
 	  {
 	    N_pfJets = 0;
-	    break;//Only takes out the pfJets loop! But good_jet = false
+	    break;//Quits pf loop; if N_pfJets == 0 reject event;
 	  }
       }
-  }
+  }//end pf candidates loop;
   
   std::sort( PtVec.begin(), PtVec.end() );
   std::reverse( PtVec.begin(), PtVec.end() );
@@ -679,6 +684,61 @@ int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<
   return N_pfJets;
   
 };
+
+int RazorRunTwo::FillPhotonInfo(int iPV){ //iPV should be the index of the primary vertex in the vertex collection
+    //returns the number of selected photons with pt above 20 GeV
+    //reset event variables
+    events->nPhotonsAbove20 = 0;
+    events->photon1Pt = -999;
+    events->photon1Eta = -999;
+    events->photon1Phi = -999;
+    events->photon1SCEta = -999;
+    events->photon2Pt = -999;
+    events->photon2Eta = -999;
+    events->photon2Phi = -999;
+    events->photon2SCEta = -999;
+
+    //find the two leading photons
+    double leadPt = -1;
+    double subLeadPt = -1;
+    int leadIndex = -1;
+    int subLeadIndex = -1;
+    for(int i = 0; i < nPho; i++){
+        if(!isMediumCutsBasedPhoton(i, iPV)) continue;
+        double ptPho = sqrt(pxPho[i]*pxPho[i] + pyPho[i]*pyPho[i]);
+        if(ptPho < 20) continue;
+        events->nPhotonsAbove20++;
+
+        if(ptPho > leadPt){
+            //move leading photon to subleading
+            subLeadPt = leadPt;
+            subLeadIndex = leadIndex;
+
+            //make this the leading photon
+            leadPt = ptPho;
+            leadIndex = i;
+        }
+        else if(ptPho > subLeadPt){
+            //make this the subleading photon
+            subLeadPt = ptPho;
+            subLeadIndex = i;
+        }
+    }
+
+    if(events->nPhotonsAbove20 > 0){ //fill leading photon info
+        events->photon1Pt = sqrt(pxPho[leadIndex]*pxPho[leadIndex] + pyPho[leadIndex]*pyPho[leadIndex]);
+        events->photon1Eta = etaPho[leadIndex];
+        events->photon1Phi = phiPho[leadIndex];
+        events->photon1SCEta = etaSC[superClusterIndexPho[leadIndex]];
+    }
+    if(events->nPhotonsAbove20 > 1){ //fill subleading photon info
+        events->photon2Pt = sqrt(pxPho[subLeadIndex]*pxPho[subLeadIndex] + pyPho[subLeadIndex]*pyPho[subLeadIndex]);
+        events->photon2Eta = etaPho[subLeadIndex];
+        events->photon2Phi = phiPho[subLeadIndex];
+        events->photon2SCEta = etaSC[superClusterIndexPho[subLeadIndex]];
+    }   
+    return events->nPhotonsAbove20;
+}
 
 void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJetIndices, vector<VecbosLepton> GoodLeptons){
     //NOTE: GoodJets should be sorted by jet pT!

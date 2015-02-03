@@ -97,7 +97,15 @@
       UInt_t                  NBJetsTight;
       Float_t                 HT;
       Float_t                 lep1MT;
-     
+      UInt_t                  nPhotonsAbove20;
+      Float_t                 photon1Pt;
+      Float_t                 photon1Eta;
+      Float_t                 photon1Phi;
+      Float_t                 photon1SCEta;
+      Float_t                 photon2Pt;
+      Float_t                 photon2Eta;
+      Float_t                 photon2Phi;
+      Float_t                 photon2SCEta;
 
     public:
       /// this is the main element

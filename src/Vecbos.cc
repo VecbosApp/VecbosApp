@@ -3434,3 +3434,124 @@ float Vecbos::getOfflineEff(float pT, float eta, TString flavor) {
 
   return theEff;
 }
+
+bool Vecbos::isLooseCutsBasedPhoton(int iPhoton, int iPV){
+    double theSCEta = etaSC[superClusterIndexPho[iPhoton]];
+    if(fabs(theSCEta < 1.479)) //barrel cuts
+        return passesCutsBasedPhotonID(iPhoton, iPV, 0.05, 0.012, 2.6, 3.5, 0.04, 1.3, 0.005);
+    else
+        return passesCutsBasedPhotonID(iPhoton, iPV, 0.05, 0.034, 2.3, 2.9, 0.04, 9999, 0.0); //no photon isolation requirement
+}
+
+bool Vecbos::isMediumCutsBasedPhoton(int iPhoton, int iPV){
+    double theSCEta = etaSC[superClusterIndexPho[iPhoton]];
+    if(fabs(theSCEta < 1.479)) //barrel cuts
+        return passesCutsBasedPhotonID(iPhoton, iPV, 0.05, 0.011, 1.5, 1.0, 0.04, 0.7, 0.005);
+    else
+        return passesCutsBasedPhotonID(iPhoton, iPV, 0.05, 0.033, 1.2, 1.5, 0.04, 1.0, 0.005);
+}
+
+bool Vecbos::isTightCutsBasedPhoton(int iPhoton, int iPV){
+    double theSCEta = etaSC[superClusterIndexPho[iPhoton]];
+    if(fabs(theSCEta < 1.479)) //barrel cuts
+        return passesCutsBasedPhotonID(iPhoton, iPV, 0.05, 0.011, 0.7, 0.4, 0.04, 0.5, 0.005);
+    else
+        return passesCutsBasedPhotonID(iPhoton, iPV, 0.05, 0.031, 0.5, 1.5, 0.04, 1.0, 0.005);
+}
+
+double Vecbos::getPhoEffAreaChHadrons(int iPhoton){
+    //returns the effective photon area for computing the charged hadron isolation, using the eta value of the photon's supercluster
+    double theSCEta = etaSC[superClusterIndexPho[iPhoton]];
+    if(fabs(theSCEta) < 1.0) return 0.012;
+    else if(fabs(theSCEta) < 1.479) return 0.010;
+    else if(fabs(theSCEta) < 2.0) return 0.014;
+    else if(fabs(theSCEta) < 2.2) return 0.012;
+    else if(fabs(theSCEta) < 2.3) return 0.016;
+    else if(fabs(theSCEta) < 2.4) return 0.020;
+    else return 0.012;
+
+    cout << "Warning in getPhoEffAreaChHadrons! Check the code!" << endl;
+    return -9999;
+}
+
+double Vecbos::getPhoEffAreaNeuHadrons(int iPhoton){
+    //returns the effective photon area for computing the neutral hadron isolation, using the eta value of the photon's supercluster
+    double theSCEta = etaSC[superClusterIndexPho[iPhoton]];
+    if(fabs(theSCEta) < 1.0) return 0.030;
+    else if(fabs(theSCEta) < 1.479) return 0.057;
+    else if(fabs(theSCEta) < 2.0) return 0.039;
+    else if(fabs(theSCEta) < 2.2) return 0.015;
+    else if(fabs(theSCEta) < 2.3) return 0.024;
+    else if(fabs(theSCEta) < 2.4) return 0.039;
+    else return 0.072;
+
+    cout << "Warning in getPhoEffAreaNeuHadrons! Check the code!" << endl;
+    return -9999;
+}
+
+double Vecbos::getPhoEffAreaPhotons(int iPhoton){
+    //returns the effective photon area for computing the neutral EM isolation, using the eta value of the photon's supercluster
+    double theSCEta = etaSC[superClusterIndexPho[iPhoton]];
+    if(fabs(theSCEta) < 1.0) return 0.148;
+    else if(fabs(theSCEta) < 1.479) return 0.130;
+    else if(fabs(theSCEta) < 2.0) return 0.112;
+    else if(fabs(theSCEta) < 2.2) return 0.216;
+    else if(fabs(theSCEta) < 2.3) return 0.262;
+    else if(fabs(theSCEta) < 2.4) return 0.260;
+    else return 0.266;
+
+    cout << "Warning in getPhoEffAreaPhotons! Check the code!" << endl;
+    return -9999;
+}
+
+bool Vecbos::photonMatchesElectron(int iPhoton){
+    //returns true if the given photon matches an electron, false otherwise
+    bool match = false;
+    for(int i=0;i<nEle;i++){ 
+        //copied from  ConversionTools::hasMatchedPromptElectron
+        if(superClusterIndexEle[i] != superClusterIndexPho[iPhoton]) continue;
+        if(hasMatchedConversionEle[i]) continue;
+        if(gsfTrackIndexEle[i]<0 || gsfTrackIndexEle[i] >=nGsfTrack) continue;
+        if(expInnerLayersGsfTrack[gsfTrackIndexEle[i]]>0) continue;
+        match = true;
+        break;    
+    }
+    return match;
+}
+
+bool Vecbos::passesCutsBasedPhotonID(int iPhoton, int iPV, double hOverECut, double sigmaIetaIetaCut, double chHadIsoCut, double neuHadIsoCut, double neuHadIsoSlope, double photIsoCut, double photIsoSlope){
+    //checks whether the given photon passes the 2012 cuts-based photon ID (https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedPhotonID2012) with cuts defined by the input parameters.  
+    //the neutral hadron and neutral EM isolation cuts are of the form PFIsoCorrected < IsoCut + IsoSlope*(photon pt)
+    //where PFIsoCorrected = max(PFIso - rho*effective area, 0.)
+    //iPV is the index of the primary vertex wrt which the ID should be computed
+
+    //conversion safe electron veto
+    if(photonMatchesElectron(iPhoton)) return false;
+
+    //hOverE cut
+    if(hTowOverEPho[iPhoton] > hOverECut) return false;
+
+    //sigmaIetaIeta cut
+    double sigmaIetaIeta = sqrt(covIEtaIEtaSC[superClusterIndexPho[iPhoton]]);
+    if(sigmaIetaIeta > sigmaIetaIetaCut) return false;
+
+    //charged hadron isolation cut
+    double effAreaChHad = getPhoEffAreaChHadrons(iPhoton);
+    int perPVPhoIndex = iPhoton*nPV + iPV; //for each photon, charged iso values are given for each PV
+    double chHadIsoCorrected = max(0., dr03ChargedHadronPFIsoPho[perPVPhoIndex] - rhoJetsFastJet*effAreaChHad);
+    if(chHadIsoCorrected > chHadIsoCut) return false;
+
+    //neutral hadron isolation cut
+    double phoPt = sqrt(pxPho[iPhoton]*pxPho[iPhoton] + pyPho[iPhoton]*pyPho[iPhoton]);
+    double effAreaNeuHad = getPhoEffAreaNeuHadrons(iPhoton);
+    double neuHadIsoCorrected = max(0., dr03NeutralHadronPFIsoPho[iPhoton] - rhoJetsFastJet*effAreaNeuHad);
+    if(neuHadIsoCorrected > neuHadIsoCut + neuHadIsoSlope*phoPt) return false;
+
+    //photon isolation cut
+    double effAreaPhotons = getPhoEffAreaPhotons(iPhoton);
+    double photIsoCorrected = max(0., dr03PhotonPFIsoPho[iPhoton] - rhoJetsFastJet*effAreaPhotons);
+    if(photIsoCorrected > photIsoCut + photIsoSlope*phoPt) return false;
+
+    //photon passes
+    return true;
+}
