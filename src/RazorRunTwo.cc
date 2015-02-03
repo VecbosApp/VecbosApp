@@ -204,13 +204,17 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
   unsigned int lastRun = 0;
   
   std::vector<std::string> maskHLT_Razor; 
-  maskHLT_Razor.push_back("HLT_RsqMR55_Rsq0p09_MR150");
-  maskHLT_Razor.push_back("HLT_RsqMR60_Rsq0p09_MR150");
-  maskHLT_Razor.push_back("HLT_RsqMR65_Rsq0p09_MR150");
+  //normal triggers
+  //maskHLT_Razor.push_back("HLT_RsqMR55_Rsq0p09_MR150");
+  //maskHLT_Razor.push_back("HLT_RsqMR60_Rsq0p09_MR150");
+  //maskHLT_Razor.push_back("HLT_RsqMR65_Rsq0p09_MR150");
   
+  //ParkedTrigger
+  maskHLT_Razor.push_back("HLT_RsqMR45_Rsq0p09");
+  
+  //Prescaled
   std::vector<std::string> maskHLT_Razor_prescaled; 
   maskHLT_Razor_prescaled.push_back("HLT_RsqMR40_Rsq0p04");
-  //maskHLT_Razor_prescaled.push_back("HLT_RsqMR45_Rsq0p09");  
   /*
   std::vector<std::string> maskHLT_Razor;                                         
   maskHLT_Razor.push_back("HLT_Mu17_Mu8");                                         
@@ -288,7 +292,6 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     Npassed_In += weightII;
     
     //HLT and Data Filter
-    //passedHLT = HLT_Razor + HLT_Razor_prescaled;
     passedHLT = HLT_Razor;
     
     if ( _isData == true ) 
@@ -315,7 +318,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     vector<int> i_pfJets;
     int N_pfJets = DoPfSelection(pfJets, i_pfJets);
     // jet ID                                                                 
-    if (N_pfJets <= 0 )  continue;// If any Jet is bad (see loop before) event is rejected
+    if (N_pfJets == 0 )  continue;// If any Jet is bad (see loop before) event is rejected
     
     //////////////////////////////////////////////////////////////
     /////////////////////Selecting Muons//////////////////////////
@@ -362,7 +365,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
 	    break;
 	  }
       }//end loose lepton loop
-      if( matchMuon ) break;//Discard electron if matches a muon
+      if( matchMuon ) continue;//Discard current electron if matches a muon
       
       tmp.index = i;
       tmp.lepton = thisEle;
@@ -388,7 +391,6 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     FillLeptons( LooseLepton );
     SortByPt( LooseLepton );
     FillJetInfo(pfJets, i_pfJets, LooseLepton);
-    
     //Filling MTlepton
     FillMTLep();
     events->tree_->Fill();
@@ -408,9 +410,10 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
   effTree->Branch("Npassed_LepVeto", &Npassed_LepVeto, "Npassed_LepVeto/D");
 
   effTree->Fill();
-  
+
   events->tree_->Write();
   effTree->Write();
+  NEvents->Write();
   file->Close();
 }
 
@@ -575,24 +578,24 @@ int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<
   std::vector< double > PtVec;
   
   bool good_pfjet = false;
-  for(int i = 0; i < nAK5PFNoPUJet; i++){                                                                                     
+  for(int i = 0; i < nAK5PFNoPUJet; i++){                                             
     TLorentzVector jet;
     pfJetStruct aux_pfJetStruct;
-    
-    double px = pxAK5PFNoPUJet[i];                                                                                            
-    double py = pyAK5PFNoPUJet[i];                                                                                            
-    double pz = pzAK5PFNoPUJet[i];                                                                                            
-    double E = sqrt(px*px+py*py+pz*pz);                                                                                       
-    double scale = 1.;                                                                                                        
+    double px = pxAK5PFNoPUJet[i];                                                          
+    double py = pyAK5PFNoPUJet[i];                                                
+    double pz = pzAK5PFNoPUJet[i];                                           
+    double E = sqrt(px*px+py*py+pz*pz);                                                      
+    double scale = 1.;                                                                  
     jet.SetPxPyPzE(scale*px,scale*py,scale*pz,scale*E);
-    good_pfjet = false;                                                                                                       
+    good_pfjet = false;                                                      
     double EU = uncorrEnergyAK5PFNoPUJet[i];
+    
     if( jet.Pt() > 40.0 && fabs(jet.Eta()) < 3.0 )
       {
 	double fHAD = (neutralHadronEnergyAK5PFNoPUJet[i]+chargedHadronEnergyAK5PFNoPUJet[i])/EU;                              
 	if(fHAD > 0.99)
-	  {                                                                                                       
-	    N_pfJets = 0;                                                                                                      
+	  {
+	    N_pfJets = 0;
 	    break;// clean NOISY event
 	  }
 	
@@ -631,8 +634,6 @@ int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<
 	if(good_pfjet)
 	  {
 	    N_pfJets++;
-	    //pfJets.push_back(jet);
-	    //i_pfJets.push_back(i);
 	    aux_pfJetStruct.Jet = jet;
 	    aux_pfJetStruct.index = i;
 	    if( map_pt.find(jet.Pt()) == map_pt.end() )
@@ -665,10 +666,10 @@ int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<
 	else 
 	  {
 	    N_pfJets = 0;
-	    break;//Only takes out the pfJets loop! But good_jet = false
+	    break;//Quits pf loop; if N_pfJets == 0 reject event;
 	  }
       }
-  }
+  }//end pf candidates loop;
   
   std::sort( PtVec.begin(), PtVec.end() );
   std::reverse( PtVec.begin(), PtVec.end() );
