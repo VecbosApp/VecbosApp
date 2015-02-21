@@ -143,7 +143,8 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     std::cout << "-----------INVALID MC NAME-------------------" << std::endl;
   }
 
-  mu_corr_f = new TFile("/afs/cern.ch/user/w/woodson/public/WEIGHT/MuScaleFactorMap_MC53X_2012HZZ4L.root");
+  //mu_corr_f = new TFile("/afs/cern.ch/user/w/woodson/public/WEIGHT/MuScaleFactorMap_MC53X_2012HZZ4L.root");
+  mu_corr_f = new TFile("/home/cmorgoth/RunTwo8TeV_Study/CMSSW_5_3_8/src/VecbosAppMuScaleFactorMap_MC53X_2012HZZ4L.root");
   mu_corr_h = (TH2F*)mu_corr_f->Get("TH2D_ALL_2012");
 
   JetCorrectionUncertainty *jec_un =
@@ -210,18 +211,23 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
   //maskHLT_Razor.push_back("HLT_RsqMR65_Rsq0p09_MR150");
   
   //ParkedTrigger
-  maskHLT_Razor.push_back("HLT_RsqMR45_Rsq0p09");
+  //maskHLT_Razor.push_back("HLT_RsqMR45_Rsq0p09");
+  //DoubleMuon
+  maskHLT_Razor.push_back("HLT_Mu17_Mu8");
+  //maskHLT_Razor.push_back("HLT_Mu17_Mu8_v17");
+  //MuEG
+  //maskHLT_Razor.push_back("HLT_Mu8_Ele17_CaloIdL");
+  //maskHLT_Razor.push_back("HLT_Mu8_Ele17");
+  
   
   //Prescaled
   std::vector<std::string> maskHLT_Razor_prescaled; 
-  maskHLT_Razor_prescaled.push_back("HLT_RsqMR40_Rsq0p04");
-  /*
-  std::vector<std::string> maskHLT_Razor;                                         
-  maskHLT_Razor.push_back("HLT_Mu17_Mu8");                                         
-   
-  std::vector<std::string> maskHLT_Razor_prescaled;                                 
+  //Razor
+  //maskHLT_Razor_prescaled.push_back("HLT_RsqMR40_Rsq0p04");
+  //DoubleMu
   maskHLT_Razor_prescaled.push_back("HLT_Mu17_TkMu8");
-  */
+  //MuEG
+  //maskHLT_Razor_prescaled.push_back("HLT_Mu17_TkMu8");
 
   Long64_t nbytes = 0;
   Long64_t nb = 0;
@@ -271,6 +277,10 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
 	eeBadScFilterFlag = (METFlags >> 8)%2;
 	hcalLaserFilter = (METFlags >> 9)%2;
       }
+    else
+      {
+	setRequiredTriggers(maskHLT_Razor); reloadTriggerMask(true); HLT_Razor = hasPassedHLT();
+      }
     
     //Good Run selection
     if ( _isData && _goodRunLS && !isGoodRunLS() ) 
@@ -289,11 +299,10 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
 	lastLumi = lumiBlock;
       }
     
-    Npassed_In += weightII;
+    Npassed_In += weightII;//Adding Initial Entries
     
     //HLT and Data Filter
     passedHLT = HLT_Razor;
-    
     if ( _isData == true ) 
       {
 	if ( passedHLT == 0 ) continue;//Comment out for getting trigger turn-ons
@@ -301,8 +310,12 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
 	     || (trackerFailureFilterFlag==0) || (BEECALFlag==0) || ( HBHENoiseFilterResultFlag ==0 )
 	     || (ecalLaserFilter == 0) || (eeBadScFilterFlag == 0) || (hcalLaserFilter == 0)) continue;
       }
+    else
+      {
+	if ( passedHLT == 0 ) continue;//Apply Trigger to MC
+      }
     
-    // find highest-pT PV [replace with Sagar's code]
+    // find highest-pT PV
     int iPV = passPV();
     if( iPV < 0 ) continue;//If negative no PV found to pass the cuts
     Npassed_PV += weightII;
@@ -318,7 +331,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     vector<int> i_pfJets;
     int N_pfJets = DoPfSelection(pfJets, i_pfJets);
     // jet ID                                                                 
-    if (N_pfJets == 0 )  continue;// If any Jet is bad (see loop before) event is rejected
+    //if (N_pfJets == 0 )  continue;// If any Jet is bad (see loop before) event is rejected
     
     //////////////////////////////////////////////////////////////
     /////////////////////Selecting Muons//////////////////////////
@@ -329,7 +342,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     for( int i = 0; i < nMuon; i++ ) {
       VecbosLepton tmp;
       TLorentzVector thisMu( pxMuon[i], pyMuon[i], pzMuon[i], energyMuon[i] );
-      if ( thisMu.Pt() < 15.0 || fabs( thisMu.Eta() ) > 2.4 ) continue;
+      if ( thisMu.Pt() < 20.0 || fabs( thisMu.Eta() ) > 2.4 ) continue;
       tmp.index = i;
       tmp.lepton = thisMu;
       tmp.charge = chargeMuon[i];
@@ -386,8 +399,8 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     }//end electron loop
 
     //photons
-    int nGoodPhotons = FillPhotonInfo(iPV);
-    
+    //int nGoodPhotons = FillPhotonInfo(iPV);
+    int nGoodPhotons = 0;
     //Veto Event if there are no muons or electrons, or photons with pt above 20 GeV
     if ( LooseLepton.size() == 0 && nGoodPhotons == 0) continue;
 

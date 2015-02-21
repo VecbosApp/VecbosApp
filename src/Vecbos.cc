@@ -139,7 +139,7 @@ std::string Vecbos::getHLTPathForRun(int runN, std::string fullname) {
 
 bool Vecbos::reloadTriggerMask(bool newVersion)
 {
-  //  std::cout << "[ReloadTriggerMask]::Reloading trigger mask" << std::endl;
+  //std::cout << "[ReloadTriggerMask]::Reloading trigger mask" << std::endl;
   if(newVersion) {
     std::vector<int> triggerMask;
     for (std::vector< std::string >::const_iterator fIter=requiredTriggers.begin();fIter!=requiredTriggers.end();++fIter)
