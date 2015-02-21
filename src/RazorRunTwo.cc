@@ -36,6 +36,7 @@ const int etau_pdgID = 15;
 
 //Default cone matching
 const double genLepton_DR = 0.1;
+const double genPhoton_DR = 0.1;
 
 RazorRunTwo::RazorRunTwo(TTree *tree) : Vecbos(tree) {
   _goodRunLS = false;
@@ -259,6 +260,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     SetGenMuonIndex();//Set muon indixes
     SetGenTauIndex();//Set tau indexes
     SetGenLeptonVector();//Set TLorentz vector for the two leading leptons
+    SetGenPhotonVector(); //Set TLorentz vectors for the two highest pt photons
     
     //IMPORTANT: FOR DATA RELOAD THE TRIGGER MASK PER FILE WHICH IS SUPPOSED TO CONTAIN UNIFORM CONDITIONS X FILE
     if( _isData ) 
@@ -521,6 +523,41 @@ bool RazorRunTwo::SetGenTauIndex()
   
 };
 
+void RazorRunTwo::SetGenPhotonVector(){
+    events->genPhoton1 = TLorentzVector();
+    events->genPhoton2 = TLorentzVector();
+    events->foundGenPhoton1 = false;
+    events->foundGenPhoton2 = false;
+
+    for(int i = 0; i < nMc; i++){
+        if(fabs(idMc[i]) != 22) continue; //require photon
+        if(statusMc[i] != 1) continue; //require final state particle
+        if(fabs(etaMc[i]) > 2.5) continue; //require in tracker range
+        float pt = pMc[i]/cosh(etaMc[i]);
+        if(pt < 20) continue; //require pt > 20 GeV
+
+        //check if the photon is leading/subleading
+        if(pt > events->genPhoton1.Pt()){ 
+            //make leading photon into subleading
+            if(events->foundGenPhoton1){
+                events->genPhoton2 = events->genPhoton1;
+                events->foundGenPhoton2 = true;
+            }
+
+            //make this into the leading photon
+            events->genPhoton1.SetPtEtaPhiM(pt, etaMc[i], phiMc[i], 0.0);
+
+            //mark that we found a leading photon
+            events->foundGenPhoton1 = true;
+        }
+        else if(pt > events->genPhoton2.Pt()){
+            //make this into the subleading photon
+            events->genPhoton2.SetPtEtaPhiM(pt, etaMc[i], phiMc[i], 0.0);
+            events->foundGenPhoton2 = true;
+        }
+    }
+}
+
 void RazorRunTwo::SetGenLeptonVector()
 {
   int i_ledLep  = -99;//Indices for leading lepton
@@ -702,14 +739,12 @@ int RazorRunTwo::FillPhotonInfo(int iPV){ //iPV should be the index of the prima
     //returns the number of selected photons with pt above 20 GeV
     //reset event variables
     events->nPhotonsAbove20 = 0;
-    events->photon1Pt = -999;
-    events->photon1Eta = -999;
-    events->photon1Phi = -999;
+    events->photon1 = TLorentzVector();
     events->photon1SCEta = -999;
-    events->photon2Pt = -999;
-    events->photon2Eta = -999;
-    events->photon2Phi = -999;
+    events->photon2 = TLorentzVector();
     events->photon2SCEta = -999;
+    events->photon1MatchedGenIndex = -2;
+    events->photon2MatchedGenIndex = -2;
 
     //find the two leading photons
     double leadPt = -1;
@@ -739,16 +774,16 @@ int RazorRunTwo::FillPhotonInfo(int iPV){ //iPV should be the index of the prima
     }
 
     if(events->nPhotonsAbove20 > 0){ //fill leading photon info
-        events->photon1Pt = sqrt(pxPho[leadIndex]*pxPho[leadIndex] + pyPho[leadIndex]*pyPho[leadIndex]);
-        events->photon1Eta = etaPho[leadIndex];
-        events->photon1Phi = phiPho[leadIndex];
+        double photon1Pt = sqrt(pxPho[leadIndex]*pxPho[leadIndex] + pyPho[leadIndex]*pyPho[leadIndex]);
+        events->photon1.SetPtEtaPhiM(photon1Pt, etaPho[leadIndex], phiPho[leadIndex], 0.0);
         events->photon1SCEta = etaSC[superClusterIndexPho[leadIndex]];
+        events->photon1MatchedGenIndex = MatchPhotonGenLevel(events->photon1);
     }
     if(events->nPhotonsAbove20 > 1){ //fill subleading photon info
-        events->photon2Pt = sqrt(pxPho[subLeadIndex]*pxPho[subLeadIndex] + pyPho[subLeadIndex]*pyPho[subLeadIndex]);
-        events->photon2Eta = etaPho[subLeadIndex];
-        events->photon2Phi = phiPho[subLeadIndex];
+        double photon2Pt = sqrt(pxPho[subLeadIndex]*pxPho[subLeadIndex] + pyPho[subLeadIndex]*pyPho[subLeadIndex]);
+        events->photon2.SetPtEtaPhiM(photon2Pt, etaPho[subLeadIndex], phiPho[subLeadIndex], 0.0);
         events->photon2SCEta = etaSC[superClusterIndexPho[subLeadIndex]];
+        events->photon2MatchedGenIndex = MatchPhotonGenLevel(events->photon2);
     }   
     return events->nPhotonsAbove20;
 }
@@ -1032,7 +1067,7 @@ int RazorRunTwo::MatchLeptonGenLevel(TLorentzVector lepton)
   //return index to closes gen lepton
   
   //no match
-  if( deltaR_gen1 == 9999.0 && deltaR_gen2 == 9999.0 ) return -1;
+  if( deltaR_gen1 > 9000 && deltaR_gen2 > 9000 ) return -1;
   
   if( deltaR_gen1 < deltaR_gen2 )
     {
@@ -1051,6 +1086,38 @@ int RazorRunTwo::MatchLeptonGenLevel(TLorentzVector lepton)
   return -1;  
 };
 
+int RazorRunTwo::MatchPhotonGenLevel(TLorentzVector photon)
+{
+  double deltaR_gen1 = 9999.0;
+  double deltaR_gen2 = 9999.0;
+  //first gen photon
+  if ( photon.DeltaR( events->genPhoton1 ) < genPhoton_DR )
+  {
+      deltaR_gen1 = photon.DeltaR( events->genPhoton1 );
+  }
+  //second gen photon
+  if ( photon.DeltaR( events->genPhoton2 ) < genPhoton_DR )
+  {
+      deltaR_gen2 = photon.DeltaR( events->genPhoton2 );
+  }
+
+  //return index to closes gen photon
+  
+  //no match
+  if( deltaR_gen1 > 9000 && deltaR_gen2 > 9000) return -1;
+  
+  if( deltaR_gen1 < deltaR_gen2 )
+    {
+      return 1;
+    }
+  else if ( deltaR_gen1 > deltaR_gen2 )
+    {
+      return 2;
+    }
+
+  //if everything fails return no match
+  return -1;  
+}
 void RazorRunTwo::InitGenLeptonVariables()
 {
   events->genlep1.SetPtEtaPhiM(0,0,0,0);

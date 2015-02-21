@@ -40,6 +40,7 @@ public:
   bool SetGenMuonIndex();
   bool SetGenTauIndex();
   void SetGenLeptonVector();
+  void SetGenPhotonVector();
   void ResetGenLeptonIndex();
   int  DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<int>& i_pfJets);
   void FillJetInfo(std::vector<TLorentzVector> GoodJets, std::vector<int> GoodJetIndices, std::vector<VecbosLepton> GoodLeptons);
@@ -47,6 +48,7 @@ public:
   void SortByPt(std::vector<VecbosLepton>& lepton);
   void FillLeptons(std::vector<VecbosLepton> lepton);
   int  MatchLeptonGenLevel(TLorentzVector lepton);
+  int  MatchPhotonGenLevel(TLorentzVector photon);
   void InitGenLeptonVariables();
   void InitLeptonVariables();
   float GetMTLep();

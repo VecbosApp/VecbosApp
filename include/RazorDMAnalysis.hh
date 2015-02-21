@@ -29,6 +29,9 @@ public:
   void Loop(string outFileName, int start, int stop);
   void SetConditions(TTree* treeCond);
   void SetWeight(double);
+  void SetLambdaEntries();
+  void CreateHistoEntries();
+  float GetQtr();
   double _weight;
 
 private:
@@ -39,6 +42,7 @@ private:
   TTree* _treeCond;
   TFile* mu_corr_f;
   TH2F* mu_corr_h;
+  TH1F* h_entries;//Lambda cut on Nentries
   TFile* pu_f;
   TH1D* pu_h;
 };

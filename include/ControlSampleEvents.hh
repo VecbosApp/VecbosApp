@@ -46,6 +46,10 @@
       TLorentzVector          genlep2;
       Int_t                   genlep1Type;
       Int_t                   genlep2Type;
+      TLorentzVector          genPhoton1;
+      TLorentzVector          genPhoton2;
+      Bool_t                  foundGenPhoton1;
+      Bool_t                  foundGenPhoton2;
       TLorentzVector          lep1;
       TLorentzVector          lep2;
       Int_t                   lep1Type;
@@ -98,14 +102,12 @@
       Float_t                 HT;
       Float_t                 lep1MT;
       UInt_t                  nPhotonsAbove20;
-      Float_t                 photon1Pt;
-      Float_t                 photon1Eta;
-      Float_t                 photon1Phi;
+      TLorentzVector          photon1;
       Float_t                 photon1SCEta;
-      Float_t                 photon2Pt;
-      Float_t                 photon2Eta;
-      Float_t                 photon2Phi;
+      Int_t                   photon1MatchedGenIndex;
+      TLorentzVector          photon2;
       Float_t                 photon2SCEta;
+      Int_t                   photon2MatchedGenIndex;
 
     public:
       /// this is the main element
@@ -119,8 +121,12 @@
       ControlSampleEvents()  {
 	genlep1Ptr  = &genlep1;
 	genlep2Ptr  = &genlep2;
+        genPhoton1Ptr = &genPhoton1;
+        genPhoton2Ptr = &genPhoton2;
 	lep1Ptr     = &lep1;
 	lep2Ptr     = &lep2;
+        photon1Ptr  = &photon1;
+        photon2Ptr  = &photon2;
 	bjet1Ptr    = &bjet1;
 	bjet2Ptr    = &bjet2;       
 	jet1Ptr     = &jet1;
@@ -146,6 +152,10 @@
 	genlep2              = TLorentzVector();
 	genlep1Type          = 0.0;
 	genlep2Type          = 0.0;
+        genPhoton1           = TLorentzVector();
+        genPhoton2           = TLorentzVector();
+        foundGenPhoton1      = false;
+        foundGenPhoton2      = false;
 	lep1                 = TLorentzVector();
 	lep2                 = TLorentzVector();
 	lep1Type             = 0.0;
@@ -195,6 +205,13 @@
 	NBJetsTight          = 0.0;
 	HT                   = 0.0;      
 	lep1MT               = 0.0;      
+        nPhotonsAbove20      = 0;
+        photon1              = TLorentzVector();
+        photon1SCEta         = -999;
+        photon1MatchedGenIndex = -1;
+        photon2              = TLorentzVector();
+        photon2SCEta         = -999;
+        photon2MatchedGenIndex = -1;
       }
     
       /// load a ControlSampleEvents
@@ -222,6 +239,8 @@
 	tree_->Branch("NPU_Plus1",&NPU_Plus1,"NPU_Plus1/i");
 	tree_->Branch("genlep1Type",&genlep1Type,"genlep1Type/I");
 	tree_->Branch("genlep2Type",&genlep2Type,"genlep2Type/I");
+        tree_->Branch("foundGenPhoton1", &foundGenPhoton1, "foundGenPhoton1/O");
+        tree_->Branch("foundGenPhoton2", &foundGenPhoton2, "foundGenPhoton2/O");
 	tree_->Branch("lep1Type",&lep1Type,"lep1Type/I");
 	tree_->Branch("lep2Type",&lep2Type,"lep2Type/I");
 	tree_->Branch("lep1MatchedGenLepIndex",&lep1MatchedGenLepIndex,"lep1MatchedGenLepIndex/I");
@@ -232,6 +251,10 @@
 	tree_->Branch("lep2PassVeto",&lep2PassVeto,"lep2PassVeto/O");
 	tree_->Branch("lep2PassLoose",&lep2PassLoose,"lep2PassLoose/O");
 	tree_->Branch("lep2PassTight",&lep2PassTight,"lep2PassTight/O");
+        tree_->Branch("photon1SCEta", &photon1SCEta, "photon1SCEta/F");
+        tree_->Branch("photon2SCEta", &photon2SCEta, "photon2SCEta/F");
+        tree_->Branch("photon1MatchedGenIndex", &photon1MatchedGenIndex, "photon1MatchedGenIndex/I");
+        tree_->Branch("photon2MatchedGenIndex", &photon2MatchedGenIndex, "photon2MatchedGenIndex/I");
 	tree_->Branch("bjet1PassLoose",&bjet1PassLoose,"bjet1PassLoose/O");
 	tree_->Branch("bjet1PassMedium",&bjet1PassMedium,"bjet1PassMedium/O");
 	tree_->Branch("bjet1PassTight",&bjet1PassTight,"bjet1PassTight/O");
@@ -267,8 +290,12 @@
 	tree_->Branch("lep1MT",&lep1MT,"lep1MT/F");
 	tree_->Branch("genlep1", "TLorentzVector", &genlep1Ptr);
 	tree_->Branch("genlep2", "TLorentzVector", &genlep2Ptr);
+        tree_->Branch("genPhoton1", "TLorentzVector", &genPhoton1Ptr);
+        tree_->Branch("genPhoton2", "TLorentzVector", &genPhoton2Ptr);
 	tree_->Branch("lep1",    "TLorentzVector", &lep1Ptr);
 	tree_->Branch("lep2",    "TLorentzVector", &lep2Ptr);
+        tree_->Branch("photon1", "TLorentzVector", &photon1Ptr);
+        tree_->Branch("photon2", "TLorentzVector", &photon2Ptr);
 	tree_->Branch("bjet1",   "TLorentzVector", &bjet1Ptr);
 	tree_->Branch("bjet2",   "TLorentzVector", &bjet2Ptr);
 	tree_->Branch("jet1",    "TLorentzVector", &jet1Ptr);
@@ -294,6 +321,8 @@
 	tree_->SetBranchAddress("NPU_Plus1",&NPU_Plus1);
 	tree_->SetBranchAddress("genlep1Type",&genlep1Type);
 	tree_->SetBranchAddress("genlep2Type",&genlep2Type);
+        tree_->SetBranchAddress("foundGenPhoton1", &foundGenPhoton1);
+        tree_->SetBranchAddress("foundGenPhoton2", &foundGenPhoton2);
 	tree_->SetBranchAddress("lep1Type",&lep1Type);
 	tree_->SetBranchAddress("lep2Type",&lep2Type);
 	tree_->SetBranchAddress("lep1MatchedGenLepIndex",&lep1MatchedGenLepIndex);
@@ -304,6 +333,10 @@
 	tree_->SetBranchAddress("lep2PassVeto",&lep2PassVeto);
 	tree_->SetBranchAddress("lep2PassLoose",&lep2PassLoose);
 	tree_->SetBranchAddress("lep2PassTight",&lep2PassTight);
+        tree_->SetBranchAddress("photon1SCEta", &photon1SCEta);
+        tree_->SetBranchAddress("photon2SCEta", &photon2SCEta);
+        tree_->SetBranchAddress("photon1MatchedGenIndex", &photon1MatchedGenIndex);
+        tree_->SetBranchAddress("photon2MatchedGenIndex", &photon2MatchedGenIndex);
 	tree_->SetBranchAddress("bjet1PassLoose",&bjet1PassLoose);
 	tree_->SetBranchAddress("bjet1PassMedium",&bjet1PassMedium);
 	tree_->SetBranchAddress("bjet1PassTight",&bjet1PassTight);
@@ -339,8 +372,12 @@
 	tree_->SetBranchAddress("lep1MT",&lep1MT);	
 	tree_->SetBranchAddress("genlep1",&genlep1Ptr);
 	tree_->SetBranchAddress("genlep2",&genlep2Ptr);
+        tree_->SetBranchAddress("genPhoton1", &genPhoton1Ptr);
+        tree_->SetBranchAddress("genPhoton2", &genPhoton2Ptr);
 	tree_->SetBranchAddress("lep1",&lep1Ptr);
 	tree_->SetBranchAddress("lep2",&lep2Ptr);
+        tree_->SetBranchAddress("photon1", &photon1Ptr);
+        tree_->SetBranchAddress("photon2", &photon2Ptr);
 	tree_->SetBranchAddress("bjet1",&bjet1Ptr);
 	tree_->SetBranchAddress("bjet2",&bjet2Ptr);
 	tree_->SetBranchAddress("jet1",&jet1Ptr);
@@ -352,8 +389,12 @@
     private:
       TLorentzVector* genlep1Ptr;
       TLorentzVector* genlep2Ptr;
+      TLorentzVector* genPhoton1Ptr;
+      TLorentzVector* genPhoton2Ptr;
       TLorentzVector* lep1Ptr;
       TLorentzVector* lep2Ptr;
+      TLorentzVector* photon1Ptr;
+      TLorentzVector* photon2Ptr;
       TLorentzVector* bjet1Ptr;
       TLorentzVector* bjet2Ptr;
       TLorentzVector* jet1Ptr;

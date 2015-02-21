@@ -36,4 +36,4 @@
 //  34 = RazorHiggsDiPhoton
 //  35 = RazorRunTwo
 
-#define Application 35
+#define Application 31
