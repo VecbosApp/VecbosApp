@@ -45,8 +45,9 @@ RazorRunTwo::RazorRunTwo(TTree *tree) : Vecbos(tree) {
   _isSMS = false;
 }
 
-RazorRunTwo::RazorRunTwo(TTree *tree, string jsonFile,bool goodRunLS, bool isData) : Vecbos(tree) {
-
+RazorRunTwo::RazorRunTwo(TTree *tree, string jsonFile,bool goodRunLS, bool isData) : Vecbos(tree)
+{
+  
   _goodRunLS = goodRunLS;
   _isData = isData;
   _weight=1.0;
@@ -59,7 +60,23 @@ RazorRunTwo::RazorRunTwo(TTree *tree, string jsonFile,bool goodRunLS, bool isDat
   
 }
 
-RazorRunTwo::~RazorRunTwo() {}
+RazorRunTwo::RazorRunTwo(TTree *tree, string jsonFile,bool goodRunLS,
+			 bool isData, bool keepNfiles) : Vecbos(tree)
+{
+  _goodRunLS = goodRunLS;
+  _isData = isData;
+  _keepNfiles = keepNfiles;
+  _weight=1.0;
+  //To read good run list!                                                                   
+  if (goodRunLS && isData) 
+    {
+      setJsonGoodRunList(jsonFile);
+      fillRunLSMap();
+    }
+
+};
+
+RazorRunTwo::~RazorRunTwo() {};
 
 void RazorRunTwo::SetConditions(TTree* treeCond) {
   _treeCond = treeCond;
@@ -233,6 +250,8 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
   Long64_t nbytes = 0;
   Long64_t nb = 0;
   cout << "Number of entries = " << stop << endl;
+  int nfiles = ((TChain*)fChain)->GetListOfFiles()->GetEntries();
+  
   for (Long64_t jentry=start;  jentry<stop;jentry++) {
     Long64_t ientry = LoadTree(jentry);
     if (ientry < 0) break;
@@ -281,6 +300,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
       }
     else
       {
+	/*Set MC Triggers*/
 	setRequiredTriggers(maskHLT_Razor); reloadTriggerMask(true); HLT_Razor = hasPassedHLT();
       }
     
@@ -314,6 +334,8 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
       }
     else
       {
+	/*Comment out the continue statement if you don't want the
+	 trigger to be applied to MC*/
 	if ( passedHLT == 0 ) continue;//Apply Trigger to MC
       }
     
@@ -323,18 +345,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     Npassed_PV += weightII;
     nPV = N_PV_EVENT;
     
-    /////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////
-    //////////////////////// PF JETS + JetID ////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////
-    
-    vector<TLorentzVector> pfJets;
-    vector<int> i_pfJets;
-    int N_pfJets = DoPfSelection(pfJets, i_pfJets);
-    // jet ID                                                                 
-    //if (N_pfJets == 0 )  continue;// If any Jet is bad (see loop before) event is rejected
-    
+
     //////////////////////////////////////////////////////////////
     /////////////////////Selecting Muons//////////////////////////
     //////////////////////////////////////////////////////////////
@@ -344,7 +355,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     for( int i = 0; i < nMuon; i++ ) {
       VecbosLepton tmp;
       TLorentzVector thisMu( pxMuon[i], pyMuon[i], pzMuon[i], energyMuon[i] );
-      if ( thisMu.Pt() < 20.0 || fabs( thisMu.Eta() ) > 2.4 ) continue;
+      if ( thisMu.Pt() < 15.0 || fabs( thisMu.Eta() ) > 2.4 ) continue;
       tmp.index = i;
       tmp.lepton = thisMu;
       tmp.charge = chargeMuon[i];
@@ -371,7 +382,8 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
       VecbosLepton tmp;
       TLorentzVector thisEle( pxEle[i], pyEle[i], pzEle[i], energyEle[i] );
       if ( thisEle.Pt() < 15.0 || fabs( thisEle.Eta() ) > 2.5 ) continue;
-      //Look for matching muon already store in the collection                                                                      
+      //Look for matching muon already store in the collection            
+      
       bool matchMuon = false;
       for ( auto lep : LooseLepton ) {
 	if ( lep.lepton.DeltaR( thisEle ) < 0.1 )
@@ -400,12 +412,27 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
         }
     }//end electron loop
 
-    //photons
-    //int nGoodPhotons = FillPhotonInfo(iPV);
-    int nGoodPhotons = 0;
-    //Veto Event if there are no muons or electrons, or photons with pt above 20 GeV
-    if ( LooseLepton.size() == 0 && nGoodPhotons == 0) continue;
+    ////////////////////////////////////////
+    ///////////photon selection/////////////
+    ////////////////////////////////////////
+    //int nGoodPhotons = FillPhotonInfo(iPV);(problem with setting a three vector, check!)
+    
+    ///////////////////////////////////////
+    ///////////PFjet selection/////////////
+    //////////////////////////////////////
 
+    vector<TLorentzVector> pfJets;
+    vector<int> i_pfJets;
+    events->bad_jet = DoPfSelection(pfJets, i_pfJets, LooseLepton);
+    
+    //Veto Event if there are no muons or electrons, or photons with pt above 15 GeV
+    //if ( LooseLepton.size() == 0 && nGoodPhotons == 0) continue;
+    if ( LooseLepton.size() == 0 ) continue;
+    
+    /////////////////////////////////////
+    /////Filling Variables and Tree/////
+    ////////////////////////////////////
+    
     //Filling Letptons. PT order taken into account automatically
     FillLeptons( LooseLepton );
     SortByPt( LooseLepton );
@@ -418,6 +445,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
 
   // fill efficiency tree
   TTree* effTree = new TTree("effTree", "effTree");
+  if ( _keepNfiles )effTree->Branch("NFiles", &nfiles, "nfiles/I");
   effTree->Branch("Npassed_In", &Npassed_In, "Npassed_In/D");
   effTree->Branch("Npassed_ISR", &w_isr, "Npassed_ISR/D");
   effTree->Branch("Npassed_ISR_up", &w_isr_up, "Npassed_ISR_up/D");
@@ -613,12 +641,10 @@ void RazorRunTwo::ResetGenLeptonIndex()
   genLeptonIndex.clear();
 };
 
-int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<int>& i_pfJets)
+bool RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<int>& i_pfJets, std::vector< VecbosLepton > LooseLepton)
 {
-  vector<double> pfJets_f_photon, pfJets_f_electron, pfJets_f_muon, pfJets_f_neutralhad, pfJets_f_chargedhad, \
-    pfJets_f_hfhad, pfJets_f_hfem;
-  vector<double> pfJets_mult_photon, pfJets_mult_electron, pfJets_mult_muon, pfJets_mult_neutralhad, \
-    pfJets_mult_chargedhad, pfJets_mult_hfhad, pfJets_mult_hfem;
+  vector<double> pfJets_f_photon, pfJets_f_electron, pfJets_f_muon, pfJets_f_neutralhad, pfJets_f_chargedhad, pfJets_f_hfhad, pfJets_f_hfem;
+  vector<double> pfJets_mult_photon, pfJets_mult_electron, pfJets_mult_muon, pfJets_mult_neutralhad, pfJets_mult_chargedhad, pfJets_mult_hfhad, pfJets_mult_hfem;
   bool bad_pfJet = false;
   int N_pfJets = 0, pfBtags = 0;
   double pfHT, pfMHTx, pfMHTy;
@@ -632,6 +658,8 @@ int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<
   std::vector< double > PtVec;
   
   bool good_pfjet = false;
+  bool bad_jet = false;
+  
   for(int i = 0; i < nAK5PFNoPUJet; i++){                                             
     TLorentzVector jet;
     pfJetStruct aux_pfJetStruct;
@@ -643,14 +671,25 @@ int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<
     jet.SetPxPyPzE(scale*px,scale*py,scale*pz,scale*E);
     good_pfjet = false;                                                      
     double EU = uncorrEnergyAK5PFNoPUJet[i];
+
+    
+    //check overlap with leptons                               
+    bool isLeptonOverlap = false;
+    for (int j=0; j<LooseLepton.size(); ++j) {
+      if (jet.DeltaR( LooseLepton[j].lepton) < 0.4) isLeptonOverlap = true;
+    }
+    if (isLeptonOverlap) continue;
+    
     
     if( jet.Pt() > 40.0 && fabs(jet.Eta()) < 3.0 )
       {
 	double fHAD = (neutralHadronEnergyAK5PFNoPUJet[i]+chargedHadronEnergyAK5PFNoPUJet[i])/EU;                              
 	if(fHAD > 0.99)
 	  {
-	    N_pfJets = 0;
-	    break;// clean NOISY event
+	    //N_pfJets = 0;
+	    //break;// clean NOISY event
+	    bad_jet = true;
+	    continue;
 	  }
 	
 	int nConstituents = chargedHadronMultiplicityAK5PFNoPUJet[i]+neutralHadronMultiplicityAK5PFNoPUJet[i]+
@@ -719,8 +758,10 @@ int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<
 	  }
 	else 
 	  {
-	    N_pfJets = 0;
-	    break;//Quits pf loop; if N_pfJets == 0 reject event;
+	    bad_jet = true;
+            continue;
+	    //N_pfJets = 0;
+	    //break;//Quits pf loop; if N_pfJets == 0 reject event;
 	  }
       }
   }//end pf candidates loop;
@@ -731,7 +772,7 @@ int RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<
     pfJets.push_back( map_pt[tmp].Jet );
     i_pfJets.push_back( map_pt[tmp].index );
   }
-  return N_pfJets;
+  return bad_jet;
   
 };
 

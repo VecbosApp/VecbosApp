@@ -72,6 +72,7 @@
       Bool_t                  bjet2PassTight;
       TLorentzVector          jet1;
       TLorentzVector          jet2;      
+      Bool_t                  bad_jet;
       Bool_t                  jet1PassCSVLoose;
       Bool_t                  jet1PassCSVMedium;
       Bool_t                  jet1PassCSVTight;
@@ -178,6 +179,7 @@
 	bjet2PassTight       = 0.0;
 	jet1                 = TLorentzVector();
 	jet2                 = TLorentzVector();
+	bad_jet              = false;
 	jet1PassCSVLoose     = 0.0;
 	jet1PassCSVMedium    = 0.0;
 	jet1PassCSVTight     = 0.0;
@@ -261,6 +263,7 @@
 	tree_->Branch("bjet2PassLoose",&bjet2PassLoose,"bjet2PassLoose/O");
 	tree_->Branch("bjet2PassMedium",&bjet2PassMedium,"bjet2PassMedium/O");
 	tree_->Branch("bjet2PassTight",&bjet2PassTight,"bjet2PassTight/O");
+	tree_->Branch("bad_jet",&bad_jet,"bad_jet/O");
 	tree_->Branch("jet1PassCSVLoose",&jet1PassCSVLoose,"jet1PassCSVLoose/O");
 	tree_->Branch("jet1PassCSVMedium",&jet1PassCSVMedium,"jet1PassCSVMedium/O");
 	tree_->Branch("jet1PassCSVTight",&jet1PassCSVTight,"jet1PassCSVTight/O");
@@ -343,6 +346,7 @@
 	tree_->SetBranchAddress("bjet2PassLoose",&bjet2PassLoose);
 	tree_->SetBranchAddress("bjet2PassMedium",&bjet2PassMedium);
 	tree_->SetBranchAddress("bjet2PassTight",&bjet2PassTight);
+	tree_->SetBranchAddress("bad_jet", &bad_jet);
 	tree_->SetBranchAddress("jet1PassCSVLoose",&jet1PassCSVLoose);
 	tree_->SetBranchAddress("jet1PassCSVMedium",&jet1PassCSVMedium);
 	tree_->SetBranchAddress("jet1PassCSVTight",&jet1PassCSVTight);
