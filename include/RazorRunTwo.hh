@@ -30,8 +30,11 @@ using namespace std;
 class RazorRunTwo : public Vecbos{
 public:
 
-  RazorRunTwo(TTree *tree=0); /// Class Constructor
-  RazorRunTwo(TTree *tree=0, string jsonFile=string("none"), bool goodRunLS=false, bool isData=false); /// Class Constructor
+  RazorRunTwo(TTree *tree = 0); /// Class Constructor
+  RazorRunTwo(TTree *tree = 0, string jsonFile = string("none"), bool goodRunLS = false,
+	      bool isData = false); /// Class Constructor
+  RazorRunTwo(TTree *tree = 0, string jsonFile = string("none"), bool goodRunLS = false,
+	      bool isData = false, bool keepNfiles = false);
   virtual ~RazorRunTwo();     /// Class Destructor
   void Loop(string outFileName, int start, int stop);
   void SetConditions(TTree* treeCond);
@@ -42,7 +45,7 @@ public:
   void SetGenLeptonVector();
   void SetGenPhotonVector();
   void ResetGenLeptonIndex();
-  int  DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<int>& i_pfJets);
+  bool  DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<int>& i_pfJets, std::vector< VecbosLepton > LooseLepton);
   void FillJetInfo(std::vector<TLorentzVector> GoodJets, std::vector<int> GoodJetIndices, std::vector<VecbosLepton> GoodLeptons);
   int FillPhotonInfo(int iPV);
   void SortByPt(std::vector<VecbosLepton>& lepton);
@@ -61,6 +64,7 @@ private:
   bool _isSMS;
   bool _isData;
   bool _goodRunLS;
+  bool _keepNfiles;
   TTree* _treeCond;
   TFile* mu_corr_f;
   TH2F* mu_corr_h;

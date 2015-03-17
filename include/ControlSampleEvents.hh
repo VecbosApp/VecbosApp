@@ -42,6 +42,14 @@
       UInt_t                  NPU_0;
       UInt_t                  NPU_Minus1;
       UInt_t                  NPU_Plus1;
+      Bool_t                  Trigger;
+      Bool_t                  NoiseFilter;
+      Float_t                 lep1Iso;
+      Float_t                 lep1Iso_2;
+      //float                 lep1KinkMuon;
+      Float_t                 lep2Iso;
+      Float_t                 lep2Iso_2;
+      //float                 lep2KinkMuon;
       TLorentzVector          genlep1;
       TLorentzVector          genlep2;
       Int_t                   genlep1Type;
@@ -72,6 +80,7 @@
       Bool_t                  bjet2PassTight;
       TLorentzVector          jet1;
       TLorentzVector          jet2;      
+      Bool_t                  bad_jet;
       Bool_t                  jet1PassCSVLoose;
       Bool_t                  jet1PassCSVMedium;
       Bool_t                  jet1PassCSVTight;
@@ -84,6 +93,12 @@
       Float_t                 Rsq_LeadLeptonsAsMET;
       Float_t                 MR_LeptonsAsMET;
       Float_t                 Rsq_LeptonsAsMET;
+      Float_t                 MR_lep;
+      Float_t                 MRT_lep;
+      Float_t                 Rsq_lep;
+      Float_t                 MR_res;
+      Float_t                 MRT_res;
+      Float_t                 Rsq_res;
       Float_t                 MET;
       Float_t                 MET_LeadLeptonsAsMET;
       Float_t                 MET_LeptonsAsMET;
@@ -94,6 +109,7 @@
       Float_t                 dPhiHemHem;
       Float_t                 dPhiHemHem_LeptonsAsMET;
       Float_t                 dPhiHemHem_LeadLeptonsAsMET;
+      UInt_t                  NJets30;
       UInt_t                  NJets40;
       UInt_t                  NJets80;
       UInt_t                  NBJetsLoose;
@@ -148,6 +164,14 @@
 	NPU_0                = 0.0;
 	NPU_Minus1           = 0.0;
 	NPU_Plus1            = 0.0;
+        Trigger              = false;
+        NoiseFilter          = false;
+	lep1Iso              = -999.0;
+	lep1Iso_2            = -999.0;
+	//lep1KinkMuon         = -999.0;
+	lep2Iso              = -999.0;
+        lep2Iso_2            = -999.0;
+        //lep2KinkMuon         = -999.0;
 	genlep1              = TLorentzVector();
 	genlep2              = TLorentzVector();
 	genlep1Type          = 0.0;
@@ -178,6 +202,7 @@
 	bjet2PassTight       = 0.0;
 	jet1                 = TLorentzVector();
 	jet2                 = TLorentzVector();
+	bad_jet              = false;
 	jet1PassCSVLoose     = 0.0;
 	jet1PassCSVMedium    = 0.0;
 	jet1PassCSVTight     = 0.0;
@@ -190,6 +215,12 @@
 	Rsq_LeadLeptonsAsMET       = 0.0;
 	MR_LeptonsAsMET         = 0.0;
 	Rsq_LeptonsAsMET        = 0.0;
+	MR_lep                  = 0.0;
+	MRT_lep                 = 0.0;
+	Rsq_lep                 = 0.0;
+	MR_res                  = 0.0;
+	MRT_res                 = 0.0;
+	Rsq_res                 = 0.0;
 	MET                  = 0.0;
 	MET_LeadLeptonsAsMET       = 0.0;
 	MET_LeptonsAsMET        = 0.0;
@@ -198,6 +229,7 @@
         dPhiHemHem           = -1.0;
         dPhiHemHem_LeptonsAsMET          = -1.0;
         dPhiHemHem_LeadLeptonsAsMET           = -1.0;
+	NJets30              = 0.0;
 	NJets40              = 0.0;
 	NJets80              = 0.0;
 	NBJetsLoose          = 0.0;
@@ -237,6 +269,16 @@
 	tree_->Branch("NPU_0",&NPU_0,"NPU_0/i");
 	tree_->Branch("NPU_Minus1",&NPU_Minus1,"NPU_Minus1/i");
 	tree_->Branch("NPU_Plus1",&NPU_Plus1,"NPU_Plus1/i");
+	tree_->Branch("Trigger", &Trigger, "Trigger/O");
+	tree_->Branch("NoiseFilter", &NoiseFilter, "NoiseFilter/O");
+	
+	//tree_->Branch("lep1KinkMuon", &lep1KinkMuon, "lep1KinkMuon/F");
+	tree_->Branch("lep1Iso", &lep1Iso, "lep1Iso/F");
+	tree_->Branch("lep1Iso_2", &lep1Iso_2, "lep1Iso_2/F");
+	//tree_->Branch("lep2KinkMuon", &lep2KinkMuon, "lep2KinkMuon/F");
+        tree_->Branch("lep2Iso", &lep2Iso, "lep2Iso/F");
+        tree_->Branch("lep2Iso_2", &lep2Iso_2, "lep2Iso_2/F");
+	
 	tree_->Branch("genlep1Type",&genlep1Type,"genlep1Type/I");
 	tree_->Branch("genlep2Type",&genlep2Type,"genlep2Type/I");
         tree_->Branch("foundGenPhoton1", &foundGenPhoton1, "foundGenPhoton1/O");
@@ -261,6 +303,7 @@
 	tree_->Branch("bjet2PassLoose",&bjet2PassLoose,"bjet2PassLoose/O");
 	tree_->Branch("bjet2PassMedium",&bjet2PassMedium,"bjet2PassMedium/O");
 	tree_->Branch("bjet2PassTight",&bjet2PassTight,"bjet2PassTight/O");
+	tree_->Branch("bad_jet",&bad_jet,"bad_jet/O");
 	tree_->Branch("jet1PassCSVLoose",&jet1PassCSVLoose,"jet1PassCSVLoose/O");
 	tree_->Branch("jet1PassCSVMedium",&jet1PassCSVMedium,"jet1PassCSVMedium/O");
 	tree_->Branch("jet1PassCSVTight",&jet1PassCSVTight,"jet1PassCSVTight/O");
@@ -273,6 +316,12 @@
 	tree_->Branch("Rsq_LeadLeptonsAsMET",&Rsq_LeadLeptonsAsMET,"Rsq_LeadLeptonsAsMET/F");
 	tree_->Branch("MR_LeptonsAsMET",&MR_LeptonsAsMET,"MR_LeptonsAsMET/F");
 	tree_->Branch("Rsq_LeptonsAsMET",&Rsq_LeptonsAsMET,"Rsq_LeptonsAsMET/F");
+	tree_->Branch("MR_lep",&MR_lep,"MR_lep/F");
+	tree_->Branch("MRT_lep",&MRT_lep,"MRT_lep/F");
+        tree_->Branch("Rsq_lep",&Rsq_lep,"Rsq_lep/F");
+	tree_->Branch("MR_res",&MR_res,"MR_res/F");
+	tree_->Branch("MRT_res",&MRT_res,"MRT_res/F");
+	tree_->Branch("Rsq_res",&Rsq_res,"Rsq_res/F");
 	tree_->Branch("MET",&MET,"MET/F");
 	tree_->Branch("MET_LeadLeptonsAsMET",&MET_LeadLeptonsAsMET,"MET_LeadLeptonsAsMET/F");
 	tree_->Branch("MET_LeptonsAsMET",&MET_LeptonsAsMET,"MET_LeptonsAsMET/F");
@@ -281,6 +330,7 @@
 	tree_->Branch("dPhiHemHem",&dPhiHemHem,"dPhiHemHem/F");
 	tree_->Branch("dPhiHemHem_LeptonsAsMET",&dPhiHemHem_LeptonsAsMET,"dPhiHemHem_LeptonsAsMET/F");
 	tree_->Branch("dPhiHemHem_LeadLeptonsAsMET",&dPhiHemHem_LeadLeptonsAsMET,"dPhiHemHem_LeadLeptonsAsMET/F");
+	tree_->Branch("NJets30",&NJets30,"NJets30/i");
 	tree_->Branch("NJets40",&NJets40,"NJets40/i");
 	tree_->Branch("NJets80",&NJets80,"NJets80/i");
 	tree_->Branch("NBJetsLoose",&NBJetsLoose,"NBJetsLoose/i");
@@ -319,6 +369,17 @@
 	tree_->SetBranchAddress("NPU_0",&NPU_0);
 	tree_->SetBranchAddress("NPU_Minus1",&NPU_Minus1);
 	tree_->SetBranchAddress("NPU_Plus1",&NPU_Plus1);
+	tree_->SetBranchAddress("Trigger", &Trigger);
+	tree_->SetBranchAddress("NoiseFilter", &NoiseFilter);
+	
+	//tree_->SetBranchAddress("lep1KinkMuon", &lep1KinkMuon);
+	tree_->SetBranchAddress("lep1Iso", &lep1Iso);
+	tree_->SetBranchAddress("lep1Iso_2", &lep1Iso_2);
+	
+	//tree_->SetBranchAddress("lep2KinkMuon", &lep2KinkMuon);
+        tree_->SetBranchAddress("lep2Iso", &lep2Iso);
+        tree_->SetBranchAddress("lep2Iso_2", &lep2Iso_2);
+
 	tree_->SetBranchAddress("genlep1Type",&genlep1Type);
 	tree_->SetBranchAddress("genlep2Type",&genlep2Type);
         tree_->SetBranchAddress("foundGenPhoton1", &foundGenPhoton1);
@@ -343,6 +404,7 @@
 	tree_->SetBranchAddress("bjet2PassLoose",&bjet2PassLoose);
 	tree_->SetBranchAddress("bjet2PassMedium",&bjet2PassMedium);
 	tree_->SetBranchAddress("bjet2PassTight",&bjet2PassTight);
+	tree_->SetBranchAddress("bad_jet", &bad_jet);
 	tree_->SetBranchAddress("jet1PassCSVLoose",&jet1PassCSVLoose);
 	tree_->SetBranchAddress("jet1PassCSVMedium",&jet1PassCSVMedium);
 	tree_->SetBranchAddress("jet1PassCSVTight",&jet1PassCSVTight);
@@ -355,6 +417,12 @@
 	tree_->SetBranchAddress("Rsq_LeadLeptonsAsMET",&Rsq_LeadLeptonsAsMET);
 	tree_->SetBranchAddress("MR_LeptonsAsMET",&MR_LeptonsAsMET);
 	tree_->SetBranchAddress("Rsq_LeptonsAsMET",&Rsq_LeptonsAsMET);
+	tree_->SetBranchAddress("MR_lep",&MR_lep);
+	tree_->SetBranchAddress("MRT_lep",&MRT_lep);
+        tree_->SetBranchAddress("Rsq_lep",&Rsq_lep);
+	tree_->SetBranchAddress("MR_res",&MR_res);
+	tree_->SetBranchAddress("MRT_res",&MRT_res);
+        tree_->SetBranchAddress("Rsq_res",&Rsq_res);
 	tree_->SetBranchAddress("MET",&MET);
 	tree_->SetBranchAddress("MET_LeadLeptonsAsMET",&MET_LeadLeptonsAsMET);
 	tree_->SetBranchAddress("MET_LeptonsAsMET",&MET_LeptonsAsMET);
@@ -363,6 +431,7 @@
 	tree_->SetBranchAddress("dPhiHemHem",&dPhiHemHem);
 	tree_->SetBranchAddress("dPhiHemHem_LeptonsAsMET",&dPhiHemHem_LeptonsAsMET);
 	tree_->SetBranchAddress("dPhiHemHem_LeadLeptonsAsMET",&dPhiHemHem_LeadLeptonsAsMET);
+	tree_->SetBranchAddress("NJets30",&NJets30);
 	tree_->SetBranchAddress("NJets40",&NJets40);
 	tree_->SetBranchAddress("NJets80",&NJets80);
 	tree_->SetBranchAddress("NBJetsLoose",&NBJetsLoose);

@@ -161,6 +161,7 @@ int main(int argc, char* argv[]) {
     cout << "-signal=N 0=W(prompt),1=Z(prompt),2=W(other),3=Z(other), 4= no mctruth" << endl; 
     cout << "--isData to run on good runs on data" << endl; 
     cout << "-json=file path of the json file" << endl;
+    cout << "--keepNfiles to keep track of files ran over" << endl;
     return 1;
   }
 
@@ -217,6 +218,7 @@ int main(int argc, char* argv[]) {
   float lumi = -999.;
   float xsec = -999.;
   float weight = 1.;
+  bool keepNfiles = false;
   for (int i=1;i<argc;i++){
     if (strncmp(argv[i],"-start",6)==0) sscanf(argv[i],"-start=%i",&start);
     if (strncmp(argv[i],"-stop",5)==0)  sscanf(argv[i],"-stop=%i",&stop);
@@ -226,6 +228,7 @@ int main(int argc, char* argv[]) {
     if (strncmp(argv[i],"-lumi",5)==0)  sscanf(argv[i],"-lumi=%f",&lumi);
     if (strncmp(argv[i],"-xsec",5)==0)  sscanf(argv[i],"-xsec=%f",&xsec);
     if (strncmp(argv[i],"-json",5)==0)  sscanf(argv[i],"-json=%s",&json);
+    if (strncmp(argv[i],"--keepNfiles",12)==0) keepNfiles = true;
   }
 
   
@@ -781,7 +784,8 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if Application == 35
-  RazorRunTwo vecbos(theChain, json, isData, isData);
+  //RazorRunTwo vecbos(theChain, json, isData, isData);
+  RazorRunTwo vecbos(theChain, json, isData, isData, keepNfiles);
   vecbos.SetWeight(double(weight));
   vecbos.Loop(string(outFileName), start, stop);
 #endif

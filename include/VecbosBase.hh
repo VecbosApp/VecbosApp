@@ -696,6 +696,8 @@ public :
    Float_t         pfCandChargedDirIso04Muon[50];   //[nMuon]
    Float_t         pfCandNeutralDirIso04Muon[50];   //[nMuon]
    Float_t         pfCandPhotonDirIso04Muon[50];   //[nMuon]
+   Float_t         pfIsolationSumPUPtR03Muon[50];   //[nMuon]                  
+   Float_t         pfIsolationSumPUPtR04Muon[50];   //[nMuon]
    Float_t         kinkMuon[50];   //[nMuon]
    Float_t         EcalExpDepoMuon[50];   //[nMuon]
    Float_t         HcalExpDepoMuon[50];   //[nMuon]
@@ -1741,6 +1743,8 @@ public :
    TBranch        *b_pfCandChargedDirIso04Muon;   //!
    TBranch        *b_pfCandNeutralDirIso04Muon;   //!
    TBranch        *b_pfCandPhotonDirIso04Muon;   //!
+   TBranch        *b_pfIsolationSumPUPtR03Muon;
+   TBranch        *b_pfIsolationSumPUPtR04Muon;
    TBranch        *b_kinkMuon;   //!
    TBranch        *b_EcalExpDepoMuon;   //!
    TBranch        *b_HcalExpDepoMuon;   //!
@@ -2858,6 +2862,8 @@ void VecbosBase::Init(TTree *tree)
    fChain->SetBranchAddress("pfCandChargedDirIso04Muon", pfCandChargedDirIso04Muon, &b_pfCandChargedDirIso04Muon);
    fChain->SetBranchAddress("pfCandNeutralDirIso04Muon", pfCandNeutralDirIso04Muon, &b_pfCandNeutralDirIso04Muon);
    fChain->SetBranchAddress("pfCandPhotonDirIso04Muon", pfCandPhotonDirIso04Muon, &b_pfCandPhotonDirIso04Muon);
+   fChain->SetBranchAddress("pfIsolationSumPUPtR03Muon", pfIsolationSumPUPtR03Muon, &b_pfIsolationSumPUPtR03Muon);
+   fChain->SetBranchAddress("pfIsolationSumPUPtR04Muon", pfIsolationSumPUPtR04Muon, &b_pfIsolationSumPUPtR04Muon);
    fChain->SetBranchAddress("kinkMuon", kinkMuon, &b_kinkMuon);
    fChain->SetBranchAddress("EcalExpDepoMuon", EcalExpDepoMuon, &b_EcalExpDepoMuon);
    fChain->SetBranchAddress("HcalExpDepoMuon", HcalExpDepoMuon, &b_HcalExpDepoMuon);

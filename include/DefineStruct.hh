@@ -33,6 +33,9 @@ struct VecbosLepton{
   int pdgID;//absolute value
   bool _isLoose;
   bool _isTight;
+  double iso;
+  double iso_2;
+  float kinkMuon;
 };
 
 #endif

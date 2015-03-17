@@ -405,8 +405,11 @@ protected:
   void isMuonID2012(int muonIndex, bool *muonIdOutput);
   bool isTightMuon(int iMu, bool CorrectingIsoforMuons = false);
   bool isLooseMuon(int iMu, bool CorrectingIsoforMuons = false);
+  float GetMuonIsolation(int iMu, bool CorrectingIsoforMuons = false);
+  float GetMuonDeltaBetaIsolation(int iMu);
   double CorrrectIsoforMuons(double pt);
   double CorrrectIsoforMuons(int iMu, TVector3 MuP);
+  
   double ILV(int);
   double GetISR(double, const char*);
   std::pair<double, double> GetPDF(double*, int);
