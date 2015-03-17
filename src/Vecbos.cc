@@ -3018,7 +3018,7 @@ void Vecbos::isMuonID2012(int muonIndex, bool *muonIdOutput) {
 
   if( (numberOfValidPixelBarrelHitsTrack[track]+numberOfValidPixelEndcapHitsTrack[track])<1 ) *muonIdOutput = false; 
 
-  if(kinkMuon[muonIndex]>=20) *muonIdOutput = false;
+  //if(kinkMuon[muonIndex]>=20) *muonIdOutput = false;
 
   //if(pfmuonIdMuon[muonIndex]==0) *muonIdOutput = false;
 
@@ -3043,16 +3043,36 @@ bool Vecbos::isLooseMuon(int iMu, bool CorrectingIsoforMuons){
   bool MuID = true;
 
   isMuonID2012(iMu,&MuID);
-  //float pt = GetPt(pxMuon[iMu],pyMuon[iMu]);
   TVector3 MuP(pxMuon[iMu], pyMuon[iMu], pzMuon[iMu]);
-  float iso = pfCombinedIsoMuon[iMu]/MuP.Pt();
-  //if(CorrectingIsoforMuons) iso -= CorrrectIsoforMuons(pt);
-  if(CorrectingIsoforMuons) iso -= CorrrectIsoforMuons(iMu, MuP);
+  //float iso = pfCombinedIsoMuon[iMu]/MuP.Pt();
+  //if(CorrectingIsoforMuons) iso -= CorrrectIsoforMuons(iMu, MuP);//(never use)
+  float iso = GetMuonDeltaBetaIsolation( iMu );
   
-  if(MuID && iso < 0.4) return true;
+  if(MuID && iso < 0.2) return true;
 
   return false;
-}
+};
+
+float Vecbos::GetMuonIsolation(int iMu, bool CorrectingIsoforMuons){
+  
+  TVector3 MuP(pxMuon[iMu], pyMuon[iMu], pzMuon[iMu]);
+  double iso = pfCombinedIsoMuon[iMu]/MuP.Pt();
+  if(CorrectingIsoforMuons) iso -= CorrrectIsoforMuons(iMu, MuP);
+  return iso;
+  
+};
+
+float Vecbos::GetMuonDeltaBetaIsolation(int iMu)
+{
+
+  TVector3 MuP(pxMuon[iMu], pyMuon[iMu], pzMuon[iMu]);
+  double iso =  ( pfCandChargedIso04Muon[iMu] 
+		  + max( 0.0, pfCandNeutralIso04Muon[iMu]
+			 + pfCandPhotonIso04Muon[iMu] 
+			 -0.5*pfIsolationSumPUPtR04Muon[iMu] ) )/MuP.Pt();
+  return iso;
+
+};
 
 bool Vecbos::isTrigElectron(int iEle){
 
