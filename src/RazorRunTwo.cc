@@ -850,6 +850,7 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
 
     //reset event variables
     events->HT = 0;
+    events->NJets30 = 0;
     events->NJets40 = 0;
     events->NJets80 = 0;
     events->NBJetsLoose = 0;
@@ -882,6 +883,12 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
 
     if(GoodJets.size() == 0) return;
 
+    //GoodJet+2leadingLepton Collection
+    vector<TLorentzVector> GoodJetandLeptons;
+    //GoodJet+(2leadingLeptons as one Object);
+    vector<TLorentzVector> GoodJetandResonance;
+    TLorentzVector Resonance_4vect(0.0, 0.0, 0.0, 0.0);
+    
     //get the PF MET as a TVector3
     TVector3 PFMET(pxPFMet[2], pyPFMet[2], 0);
     events->MET = PFMET.Pt();
@@ -896,9 +903,15 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
         if(nLepsAddedToMET < 2){
             PFMETWithLeadingLeptons = PFMETWithLeadingLeptons + lep.lepton.Vect();
             PFMETWithLeadingLeptons.SetZ(0.0);
+	    
+	    GoodJetandLeptons.push_back(lep.lepton);
+	    Resonance_4vect += lep.lepton;
             nLepsAddedToMET++;
         }
     }
+    
+    GoodJetandResonance.push_back(Resonance_4vect);//Adding Resonance 4-momentum to collection
+
     events->MET_LeptonsAsMET = PFMETWithLeptons.Pt();
     events->MET_LeadLeptonsAsMET = PFMETWithLeadingLeptons.Pt();
 
@@ -916,17 +929,20 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
             if(dR < 0 || thisDR < dR) dR = thisDR;
         }
         if(dR > 0 && dR < 0.5){ //a selected lepton is inside this jet
-            //if we already have identified two leptons in the jet collection, add the jet to GoodJetsWithoutLeadingLeptons
-            if(nLepsFoundInJetCollection >= 2) GoodJetsWithoutLeadingLeptons.push_back(GoodJets[j]);
-            nLepsFoundInJetCollection++;
-            continue; 
+	  //if we already have identified two leptons in the jet collection, add the jet to GoodJetsWithoutLeadingLeptons
+	  if(nLepsFoundInJetCollection >= 2) GoodJetsWithoutLeadingLeptons.push_back(GoodJets[j]);
+	  nLepsFoundInJetCollection++;
+	  continue; 
         }
 
         GoodJetsWithoutLeptons.push_back(GoodJets[j]);
         GoodJetsWithoutLeadingLeptons.push_back(GoodJets[j]);
-
-        if(GoodJets[j].Pt() > 40) events->NJets40++;
-        if(GoodJets[j].Pt() > 80) events->NJets80++;
+	GoodJetandLeptons.push_back( GoodJets[j] );
+	GoodJetandResonance.push_back( GoodJets[j] );
+	
+	if(GoodJets[j].Pt() > 30.) events->NJets30++;
+        if(GoodJets[j].Pt() > 40.) events->NJets40++;
+        if(GoodJets[j].Pt() > 80.) events->NJets80++;
         events->HT += GoodJets[j].Pt();
         if(pfJetPassCSVL(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->NBJetsLoose++;
         if(pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->NBJetsMedium++;
@@ -1012,6 +1028,24 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
     //compute the transverse angle between the two hemispheres
     events->dPhiHemHem_LeadLeptonsAsMET = hemispheresNoLeadLeps[0].DeltaPhi(hemispheresNoLeadLeps[1]);
 
+    
+    //(For MuEle BOX)
+    //MR and Rsq with the two leading leptons
+    vector<TLorentzVector> hemLep = CombineJets( GoodJetandLeptons );
+    events->MR_lep = CalcGammaMRstar( hemLep[0], hemLep[1] );
+    events->MRT_lep = CalcMTR( hemLep[0], hemLep[1], PFMET ); 
+    double R_lep = -999.0;
+    if ( events->MR_lep > .0 ) R_lep = events->MRT_lep/events->MR_lep;
+    events->Rsq_lep = R_lep*R_lep;
+
+    //MR and Rsq with the two leptons resonance                                                                           
+    vector<TLorentzVector> hemRes = CombineJets( GoodJetandResonance );
+    events->MR_res = CalcGammaMRstar( hemRes[0], hemRes[1] );
+    events->MRT_res = CalcMTR( hemRes[0], hemRes[1], PFMET );
+    double R_res = -999.0;
+    if ( events->MR_res > .0 ) R_res = events->MRT_res/events->MR_res;
+    events->Rsq_res = R_res*R_res;
+    
     //compute minDeltaPhiN (see Appendix D in CMS note AN-2011-409)
     for(int i = 0; i < GoodJetsWithoutLeptons.size(); i++){
         //compute deltaPhi between jet and MET

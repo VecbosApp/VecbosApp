@@ -93,6 +93,12 @@
       Float_t                 Rsq_LeadLeptonsAsMET;
       Float_t                 MR_LeptonsAsMET;
       Float_t                 Rsq_LeptonsAsMET;
+      Float_t                 MR_lep;
+      Float_t                 MRT_lep;
+      Float_t                 Rsq_lep;
+      Float_t                 MR_res;
+      Float_t                 MRT_res;
+      Float_t                 Rsq_res;
       Float_t                 MET;
       Float_t                 MET_LeadLeptonsAsMET;
       Float_t                 MET_LeptonsAsMET;
@@ -103,6 +109,7 @@
       Float_t                 dPhiHemHem;
       Float_t                 dPhiHemHem_LeptonsAsMET;
       Float_t                 dPhiHemHem_LeadLeptonsAsMET;
+      UInt_t                  NJets30;
       UInt_t                  NJets40;
       UInt_t                  NJets80;
       UInt_t                  NBJetsLoose;
@@ -208,6 +215,12 @@
 	Rsq_LeadLeptonsAsMET       = 0.0;
 	MR_LeptonsAsMET         = 0.0;
 	Rsq_LeptonsAsMET        = 0.0;
+	MR_lep                  = 0.0;
+	MRT_lep                 = 0.0;
+	Rsq_lep                 = 0.0;
+	MR_res                  = 0.0;
+	MRT_res                 = 0.0;
+	Rsq_res                 = 0.0;
 	MET                  = 0.0;
 	MET_LeadLeptonsAsMET       = 0.0;
 	MET_LeptonsAsMET        = 0.0;
@@ -216,6 +229,7 @@
         dPhiHemHem           = -1.0;
         dPhiHemHem_LeptonsAsMET          = -1.0;
         dPhiHemHem_LeadLeptonsAsMET           = -1.0;
+	NJets30              = 0.0;
 	NJets40              = 0.0;
 	NJets80              = 0.0;
 	NBJetsLoose          = 0.0;
@@ -302,6 +316,12 @@
 	tree_->Branch("Rsq_LeadLeptonsAsMET",&Rsq_LeadLeptonsAsMET,"Rsq_LeadLeptonsAsMET/F");
 	tree_->Branch("MR_LeptonsAsMET",&MR_LeptonsAsMET,"MR_LeptonsAsMET/F");
 	tree_->Branch("Rsq_LeptonsAsMET",&Rsq_LeptonsAsMET,"Rsq_LeptonsAsMET/F");
+	tree_->Branch("MR_lep",&MR_lep,"MR_lep/F");
+	tree_->Branch("MRT_lep",&MRT_lep,"MRT_lep/F");
+        tree_->Branch("Rsq_lep",&Rsq_lep,"Rsq_lep/F");
+	tree_->Branch("MR_res",&MR_res,"MR_res/F");
+	tree_->Branch("MRT_res",&MRT_res,"MRT_res/F");
+	tree_->Branch("Rsq_res",&Rsq_res,"Rsq_res/F");
 	tree_->Branch("MET",&MET,"MET/F");
 	tree_->Branch("MET_LeadLeptonsAsMET",&MET_LeadLeptonsAsMET,"MET_LeadLeptonsAsMET/F");
 	tree_->Branch("MET_LeptonsAsMET",&MET_LeptonsAsMET,"MET_LeptonsAsMET/F");
@@ -310,6 +330,7 @@
 	tree_->Branch("dPhiHemHem",&dPhiHemHem,"dPhiHemHem/F");
 	tree_->Branch("dPhiHemHem_LeptonsAsMET",&dPhiHemHem_LeptonsAsMET,"dPhiHemHem_LeptonsAsMET/F");
 	tree_->Branch("dPhiHemHem_LeadLeptonsAsMET",&dPhiHemHem_LeadLeptonsAsMET,"dPhiHemHem_LeadLeptonsAsMET/F");
+	tree_->Branch("NJets30",&NJets30,"NJets30/i");
 	tree_->Branch("NJets40",&NJets40,"NJets40/i");
 	tree_->Branch("NJets80",&NJets80,"NJets80/i");
 	tree_->Branch("NBJetsLoose",&NBJetsLoose,"NBJetsLoose/i");
@@ -396,6 +417,12 @@
 	tree_->SetBranchAddress("Rsq_LeadLeptonsAsMET",&Rsq_LeadLeptonsAsMET);
 	tree_->SetBranchAddress("MR_LeptonsAsMET",&MR_LeptonsAsMET);
 	tree_->SetBranchAddress("Rsq_LeptonsAsMET",&Rsq_LeptonsAsMET);
+	tree_->SetBranchAddress("MR_lep",&MR_lep);
+	tree_->SetBranchAddress("MRT_lep",&MRT_lep);
+        tree_->SetBranchAddress("Rsq_lep",&Rsq_lep);
+	tree_->SetBranchAddress("MR_res",&MR_res);
+	tree_->SetBranchAddress("MRT_res",&MRT_res);
+        tree_->SetBranchAddress("Rsq_res",&Rsq_res);
 	tree_->SetBranchAddress("MET",&MET);
 	tree_->SetBranchAddress("MET_LeadLeptonsAsMET",&MET_LeadLeptonsAsMET);
 	tree_->SetBranchAddress("MET_LeptonsAsMET",&MET_LeptonsAsMET);
@@ -404,6 +431,7 @@
 	tree_->SetBranchAddress("dPhiHemHem",&dPhiHemHem);
 	tree_->SetBranchAddress("dPhiHemHem_LeptonsAsMET",&dPhiHemHem_LeptonsAsMET);
 	tree_->SetBranchAddress("dPhiHemHem_LeadLeptonsAsMET",&dPhiHemHem_LeadLeptonsAsMET);
+	tree_->SetBranchAddress("NJets30",&NJets30);
 	tree_->SetBranchAddress("NJets40",&NJets40);
 	tree_->SetBranchAddress("NJets80",&NJets80);
 	tree_->SetBranchAddress("NBJetsLoose",&NBJetsLoose);
