@@ -233,13 +233,13 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
   //maskHLT_Razor.push_back("HLT_RsqMR45_Rsq0p09");
   
   //DoubleMuon
-  maskHLT_Razor.push_back("HLT_Mu17_Mu8");
-  maskHLT_Razor.push_back("HLT_Mu17_TkMu8");
+  //maskHLT_Razor.push_back("HLT_Mu17_Mu8");
+  //maskHLT_Razor.push_back("HLT_Mu17_TkMu8");
   
   //MuEG
   //maskHLT_Razor.push_back("HLT_Mu8_Ele17_CaloIdL");
-  //maskHLT_Razor.push_back("HLT_Mu8_Ele17");
-  //maskHLT_Razor.push_back("HLT_Mu17_Ele8");
+  maskHLT_Razor.push_back("HLT_Mu8_Ele17");
+  maskHLT_Razor.push_back("HLT_Mu17_Ele8");
   
   //Prescaled
   //std::vector<std::string> maskHLT_Razor_prescaled; 
@@ -260,6 +260,9 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
     if (jentry%1000 == 0) cout << ">>> Processing event # " << jentry << endl;
+    
+    SyncExcercise();
+    continue;
     
     //Filling Normalization Histogram
     NEvents->Fill(1.0);
@@ -1248,4 +1251,51 @@ float RazorRunTwo::GetMTLep()
 void RazorRunTwo::FillMTLep()
 {
   events->lep1MT = GetMTLep();
+};
+
+void RazorRunTwo::SyncExcercise()
+{
+  std::cout << "****************************************************************" << std::endl;
+  std::cout << "Event : " << runNumber << " " << lumiBlock << " " << eventNumber << std::endl;
+  for( int i = 0; i < nMuon; i++ ) 
+    {
+      TLorentzVector thisMu( pxMuon[i], pyMuon[i], pzMuon[i], energyMuon[i] );
+      if ( thisMu.Pt() > 5.0 )
+	{
+	  std::cout << "muon " << i << " " << thisMu.Pt() << " " << thisMu.Eta() << " " 
+		    << thisMu.Phi() << " "  << isTightMuon(i, false) << " " 
+		    << isLooseMuon(i, false) << std::endl;
+	}
+    }
+  
+  for( int i = 0; i < nEle; i++ )
+    {
+      TLorentzVector thisEle( pxEle[i], pyEle[i], pzEle[i], energyEle[i] );
+      if ( thisEle.Pt() > 5.0 )
+	{
+	  std::cout << "ele " << i << " " << thisEle.Pt() << " " << thisEle.Eta() << " "
+                    << thisEle.Phi() << " "  << isTightElectron(i) << " "
+                    << isLooseElectron(i) << std::endl;
+	}
+    }
+  
+  for ( int i = 0; i < nAK5PFNoPUJet; i++ ) 
+    {
+      TLorentzVector jet;
+      double px = pxAK5PFNoPUJet[i];
+      double py = pyAK5PFNoPUJet[i];
+      double pz = pzAK5PFNoPUJet[i];
+      //double E = sqrt(px*px+py*py+pz*pz);
+      double E = energyAK5PFNoPUJet[i];
+      double scale = 1.;
+      jet.SetPxPyPzE(scale*px,scale*py,scale*pz,scale*E);
+      //good_pfjet = false;
+      //double EU = uncorrEnergyAK5PFNoPUJet[i];
+      std::cout << "jet " << i << " " << jet.Pt() << " " << jet.Eta() << " " << jet.Phi() << " "
+		<< "*" << " " << "*ID" << " " << "*PU" << " "
+		<< pfJetPassCSVL( combinedSecondaryVertexBJetTagsAK5PFNoPUJet[i] ) << " "
+		<< pfJetPassCSVM( combinedSecondaryVertexBJetTagsAK5PFNoPUJet[i] ) << " "
+		<< std::endl;
+    }
+  
 };

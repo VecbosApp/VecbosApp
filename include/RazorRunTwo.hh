@@ -56,6 +56,7 @@ public:
   void InitLeptonVariables();
   float GetMTLep();
   void FillMTLep();
+  void SyncExcercise();
   double _weight;
   ControlSampleEvents* events;
 
