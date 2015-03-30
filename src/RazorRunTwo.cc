@@ -233,13 +233,13 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
   //maskHLT_Razor.push_back("HLT_RsqMR45_Rsq0p09");
   
   //DoubleMuon
-  maskHLT_Razor.push_back("HLT_Mu17_Mu8");
-  maskHLT_Razor.push_back("HLT_Mu17_TkMu8");
+  //maskHLT_Razor.push_back("HLT_Mu17_Mu8");
+  //maskHLT_Razor.push_back("HLT_Mu17_TkMu8");
   
   //MuEG
   //maskHLT_Razor.push_back("HLT_Mu8_Ele17_CaloIdL");
-  //maskHLT_Razor.push_back("HLT_Mu8_Ele17");
-  //maskHLT_Razor.push_back("HLT_Mu17_Ele8");
+  maskHLT_Razor.push_back("HLT_Mu8_Ele17");
+  maskHLT_Razor.push_back("HLT_Mu17_Ele8");
   
   //Prescaled
   //std::vector<std::string> maskHLT_Razor_prescaled; 
@@ -260,6 +260,12 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
     if (jentry%1000 == 0) cout << ">>> Processing event # " << jentry << endl;
+    
+    /*
+      next two line are for sync purposes only comment out when running the full analysis
+     */
+    //SyncExcercise();
+    //continue;
     
     //Filling Normalization Histogram
     NEvents->Fill(1.0);
@@ -383,6 +389,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
       if ( tmp._isLoose ) 
 	{                                            
 	  LooseLepton.push_back(tmp);
+	  //std::cout << "[DEBUG]: muon " << i << " " << thisMu.Pt() << " " << thisMu.Eta()  << " " << thisMu.Eta() << std::endl;   
 	}
       
       if ( tmp._isTight )
@@ -440,7 +447,8 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
 
     vector<TLorentzVector> pfJets;
     vector<int> i_pfJets;
-    events->bad_jet = DoPfSelection(pfJets, i_pfJets, LooseLepton);
+    //events->bad_jet = DoPfSelection(pfJets, i_pfJets, LooseLepton);
+    events->bad_jet = DoPFcorrSelection(pfJets, i_pfJets, LooseLepton);
     
     //Veto Event if there are no muons or electrons, or photons with pt above 15 GeV
     //if ( LooseLepton.size() == 0 && nGoodPhotons == 0) continue;
@@ -792,6 +800,191 @@ bool RazorRunTwo::DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector
   
 };
 
+/*
+JetID based in recommendations for 8TeV data analyses:
+https://twiki.cern.ch/twiki/bin/view/CMS/JetID#Recommendations_for_8_TeV_data_a 
+*/
+bool RazorRunTwo::DoPFcorrSelection(std::vector<TLorentzVector>& pfJets, std::vector<int>& i_pfJets, std::vector< VecbosLepton > LooseLepton)
+{
+  struct pfJetStruct{
+    TLorentzVector Jet;
+    int index;
+  };
+  
+  std::map< double, pfJetStruct > map_pt;
+  std::vector< double > PtVec;
+
+  bool good_pfjet = false;
+  bool bad_jet = false;
+  
+  for( int i = 0; i < nAK5PFPUcorrJet; i++ ){
+    TLorentzVector jet;
+    pfJetStruct aux_pfJetStruct;
+    double px = pxAK5PFPUcorrJet[i];
+    double py = pyAK5PFPUcorrJet[i];
+    double pt = sqrt( px*px + py*py );
+    jet.SetPtEtaPhiE(pt, etaAK5PFPUcorrJet[i], phiAK5PFPUcorrJet[i], energyAK5PFPUcorrJet[i]);
+    
+    good_pfjet = false;
+    //check overlap with leptons                                                                  
+    bool isLeptonOverlap = false;
+    for ( int j = 0; j < LooseLepton.size(); j++ ) {
+      if ( jet.DeltaR( LooseLepton[j].lepton ) < 0.4 ) isLeptonOverlap = true;
+    }
+    if ( isLeptonOverlap ) continue;
+    
+    //Jet within acceptance
+    if( jet.Pt() > 30.0 && fabs(jet.Eta()) < 3.0 ){
+      good_pfjet = isLoosePFPUcorrJet( i );
+      if(good_pfjet)
+	{
+	  aux_pfJetStruct.Jet = jet;
+	  aux_pfJetStruct.index = i;
+	  if( map_pt.find(jet.Pt()) == map_pt.end() )
+	    {
+	      map_pt[jet.Pt()] = aux_pfJetStruct;
+	      PtVec.push_back(jet.Pt());
+	    }
+	  else{
+	    std::cerr << "Identical Jet PT!" << std::endl;
+	  }
+	}//end good_pfjet check
+      else
+	{
+	  //std::cout << "[DEBUG]: Failed JetID" << std::endl;
+	  bad_jet = true;
+	}
+    }//end acceptance loop
+  }//end jet collection loop
+  
+  std::sort( PtVec.begin(), PtVec.end() );
+  std::reverse( PtVec.begin(), PtVec.end() );
+  for( double tmp : PtVec){
+    pfJets.push_back( map_pt[tmp].Jet );
+    i_pfJets.push_back( map_pt[tmp].index );
+  }
+  
+  return bad_jet;
+};
+
+bool RazorRunTwo::isLoosePFPUcorrJet(int i)
+{
+  
+  double px = pxAK5PFPUcorrJet[i];
+  double py = pyAK5PFPUcorrJet[i];
+  double pt = sqrt( px*px + py*py );
+  float UE = uncorrenergyAK5PFPUcorrJet[i];
+  float eta = etaAK5PFPUcorrJet[i];
+  
+  float neutralHadFrac = neutralHadronEnergyAK5PFPUcorrJet[i]/UE;
+  float neutralEMFrac = photonEnergyAK5PFPUcorrJet[i]/UE;
+  int nConstituents = chargedHadronMultiplicityAK5PFPUcorrJet[i] + neutralHadronMultiplicityAK5PFNoPUJet[i]+
+    photonMultiplicityAK5PFPUcorrJet[i] + electronMultiplicityAK5PFPUcorrJet[i] +
+    muonMultiplicityAK5PFPUcorrJet[i] + HFHadronMultiplicityAK5PFPUcorrJet[i] +
+    HFEMMultiplicityAK5PFPUcorrJet[i];
+  float muonFrac = muonEnergyAK5PFPUcorrJet[i]/UE;
+  float chargedEMFrac = electronEnergyAK5PFPUcorrJet[i]/UE;
+  float chargedHadFrac = chargedHadronEnergyAK5PFPUcorrJet[i]/UE;
+  int chargedMult = chargedHadronMultiplicityAK5PFPUcorrJet[i]+
+    electronMultiplicityAK5PFPUcorrJet[i]+
+    muonMultiplicityAK5PFPUcorrJet[i];
+  if ( neutralHadFrac < 0.99 && neutralEMFrac < 0.99 && nConstituents > 1 && muonFrac < 0.8  && chargedEMFrac < 0.9 )
+    {
+      if ( fabs(eta) > 2.4 )
+        {
+          return true;
+        }
+      else if ( fabs(eta) < 2.4 && chargedHadFrac > .0 && chargedMult > 0 && chargedEMFrac < 0.99)
+        {
+          return true;
+        }
+      else
+        {
+          return false;
+        }
+    }
+  /*
+  std::cout << "[DEBUG]: " << UE << " " << pt << " " << eta << " " << neutralHadFrac << " " << neutralEMFrac << " " 
+	    << nConstituents << " " << muonFrac << " " << chargedEMFrac
+	    << " " << chargedHadFrac << " " << chargedMult << std::endl;
+  */
+  return false;
+};
+
+bool RazorRunTwo::isMediumPFPUcorrJet(int i)
+{
+
+  float UE = uncorrenergyAK5PFPUcorrJet[i];
+  float eta = etaAK5PFPUcorrJet[i];
+
+  float neutralHadFrac = neutralHadronEnergyAK5PFPUcorrJet[i]/UE;
+  float neutralEMFrac = photonEnergyAK5PFPUcorrJet[i]/UE;
+  int nConstituents = chargedHadronMultiplicityAK5PFPUcorrJet[i] + neutralHadronMultiplicityAK5PFNoPUJet[i]+
+    photonMultiplicityAK5PFPUcorrJet[i] + electronMultiplicityAK5PFPUcorrJet[i] +
+    muonMultiplicityAK5PFPUcorrJet[i] + HFHadronMultiplicityAK5PFPUcorrJet[i] +
+    HFEMMultiplicityAK5PFPUcorrJet[i];
+  float muonFrac = muonEnergyAK5PFPUcorrJet[i]/UE;
+  float chargedEMFrac = electronEnergyAK5PFPUcorrJet[i]/UE;
+  float chargedHadFrac = chargedHadronEnergyAK5PFPUcorrJet[i]/UE;
+  int chargedMult = chargedHadronMultiplicityAK5PFPUcorrJet[i]+
+    electronMultiplicityAK5PFPUcorrJet[i]+
+    muonMultiplicityAK5PFPUcorrJet[i];
+  if ( neutralHadFrac < 0.95 && neutralEMFrac < 0.95 && nConstituents > 1 && muonFrac < 0.8  && chargedEMFrac < 0.9 )
+    {
+      if ( fabs(eta) > 2.4 )
+        {
+          return true;
+        }
+      else if ( fabs(eta) < 2.4 && chargedHadFrac > .0 && chargedMult > 0 && chargedEMFrac < 0.99)
+        {
+          return true;
+        }
+      else
+        {
+          return false;
+	}
+    }
+
+  return false;
+};
+
+bool RazorRunTwo::isTightPFPUcorrJet(int i)
+{
+
+  float UE = uncorrenergyAK5PFPUcorrJet[i];
+  float eta = etaAK5PFPUcorrJet[i];
+
+  float neutralHadFrac = neutralHadronEnergyAK5PFPUcorrJet[i]/UE;
+  float neutralEMFrac = photonEnergyAK5PFPUcorrJet[i]/UE;
+  int nConstituents = chargedHadronMultiplicityAK5PFPUcorrJet[i] + neutralHadronMultiplicityAK5PFNoPUJet[i]+
+    photonMultiplicityAK5PFPUcorrJet[i] + electronMultiplicityAK5PFPUcorrJet[i] +
+    muonMultiplicityAK5PFPUcorrJet[i] + HFHadronMultiplicityAK5PFPUcorrJet[i] +
+    HFEMMultiplicityAK5PFPUcorrJet[i];
+  float muonFrac = muonEnergyAK5PFPUcorrJet[i]/UE;
+  float chargedEMFrac = electronEnergyAK5PFPUcorrJet[i]/UE;
+  float chargedHadFrac = chargedHadronEnergyAK5PFPUcorrJet[i]/UE;
+  int chargedMult = chargedHadronMultiplicityAK5PFPUcorrJet[i]+
+    electronMultiplicityAK5PFPUcorrJet[i]+
+    muonMultiplicityAK5PFPUcorrJet[i];
+  if ( neutralHadFrac < 0.90 && neutralEMFrac < 0.90 && nConstituents > 1 && muonFrac < 0.8  && chargedEMFrac < 0.9 )
+    {
+      if ( fabs(eta) > 2.4 )
+        {
+          return true;
+        }
+      else if ( fabs(eta) < 2.4 && chargedHadFrac > .0 && chargedMult > 0 && chargedEMFrac < 0.99)
+        {
+          return true;
+        }
+      else
+        {
+          return false;
+	}
+    }
+
+  return false;
+};
+
 int RazorRunTwo::FillPhotonInfo(int iPV){ //iPV should be the index of the primary vertex in the vertex collection
     //returns the number of selected photons with pt above 20 GeV
     //reset event variables
@@ -944,9 +1137,15 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
         if(GoodJets[j].Pt() > 40.) events->NJets40++;
         if(GoodJets[j].Pt() > 80.) events->NJets80++;
         events->HT += GoodJets[j].Pt();
-        if(pfJetPassCSVL(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->NBJetsLoose++;
+        /*
+	if(pfJetPassCSVL(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->NBJetsLoose++;
         if(pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->NBJetsMedium++;
         if(pfJetPassCSVT(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->NBJetsTight++;
+	*/
+	//Changing default to PFPUcorr
+	if(pfJetPassCSVL(combinedSecondaryVertexBJetTagsAK5PFPUcorrJet[GoodJetIndices[j]])) events->NBJetsLoose++;
+        if(pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFPUcorrJet[GoodJetIndices[j]])) events->NBJetsMedium++;
+        if(pfJetPassCSVT(combinedSecondaryVertexBJetTagsAK5PFPUcorrJet[GoodJetIndices[j]])) events->NBJetsTight++;
         //minDPhiN: min phi angle between jet and MET
         double thisDPhi = fabs(GoodJets[j].Vect().DeltaPhi(PFMET));
         double thisFoldedDPhi = min(thisDPhi, fabs(3.14159 - thisDPhi)); // we want the jet closest to being aligned OR anti-aligned with the MET
@@ -956,43 +1155,43 @@ void RazorRunTwo::FillJetInfo(vector<TLorentzVector> GoodJets, vector<int> GoodJ
         //fill info on first two jets
         if(!gotLeadJet){
             events->jet1 = GoodJets[j];
-            if(pfJetPassCSVL(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->jet1PassCSVLoose = true;
+            if(pfJetPassCSVL(combinedSecondaryVertexBJetTagsAK5PFPUcorrJet[GoodJetIndices[j]])) events->jet1PassCSVLoose = true;
             else events->jet1PassCSVLoose = false;
-            if(pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->jet1PassCSVMedium = true;
+            if(pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFPUcorrJet[GoodJetIndices[j]])) events->jet1PassCSVMedium = true;
             else events->jet1PassCSVMedium = false;
-            if(pfJetPassCSVT(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->jet1PassCSVTight = true;
+            if(pfJetPassCSVT(combinedSecondaryVertexBJetTagsAK5PFPUcorrJet[GoodJetIndices[j]])) events->jet1PassCSVTight = true;
             else events->jet1PassCSVTight = false;
             gotLeadJet = true;
         }
         else if(!gotSubLeadJet){
             events->jet2 = GoodJets[j];
-            if(pfJetPassCSVL(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->jet2PassCSVLoose = true;
+            if(pfJetPassCSVL(combinedSecondaryVertexBJetTagsAK5PFPUcorrJet[GoodJetIndices[j]])) events->jet2PassCSVLoose = true;
             else events->jet2PassCSVLoose = false;
-            if(pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->jet2PassCSVMedium = true;
+            if(pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFPUcorrJet[GoodJetIndices[j]])) events->jet2PassCSVMedium = true;
             else events->jet2PassCSVMedium = false;
-            if(pfJetPassCSVT(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->jet2PassCSVTight = true;
+            if(pfJetPassCSVT(combinedSecondaryVertexBJetTagsAK5PFPUcorrJet[GoodJetIndices[j]])) events->jet2PassCSVTight = true;
             else events->jet2PassCSVTight = false;
             gotSubLeadJet = true;
         }
 
         //fill info on first two b-jets (CSVM)
-        if(!gotLeadBJet && pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])){
+        if(!gotLeadBJet && pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFPUcorrJet[GoodJetIndices[j]])){
             events->bjet1 = GoodJets[j];
-            if(pfJetPassCSVL(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet1PassLoose = true;
+            if(pfJetPassCSVL(combinedSecondaryVertexBJetTagsAK5PFPUcorrJet[GoodJetIndices[j]])) events->bjet1PassLoose = true;
             else events->bjet1PassLoose = false;
-            if(pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet1PassMedium = true;
+            if(pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFPUcorrJet[GoodJetIndices[j]])) events->bjet1PassMedium = true;
             else events->bjet1PassMedium = false;
-            if(pfJetPassCSVT(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet1PassTight = true;
+            if(pfJetPassCSVT(combinedSecondaryVertexBJetTagsAK5PFPUcorrJet[GoodJetIndices[j]])) events->bjet1PassTight = true;
             else events->bjet1PassTight = false;
             gotLeadBJet = true;
         }
-        else if(!gotSubLeadBJet && pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])){
+        else if(!gotSubLeadBJet && pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFPUcorrJet[GoodJetIndices[j]])){
             events->bjet2 = GoodJets[j];
-            if(pfJetPassCSVL(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet2PassLoose = true;
+            if(pfJetPassCSVL(combinedSecondaryVertexBJetTagsAK5PFPUcorrJet[GoodJetIndices[j]])) events->bjet2PassLoose = true;
             else events->bjet2PassLoose = false;
-            if(pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet2PassMedium = true;
+            if(pfJetPassCSVM(combinedSecondaryVertexBJetTagsAK5PFPUcorrJet[GoodJetIndices[j]])) events->bjet2PassMedium = true;
             else events->bjet2PassMedium = false;
-            if(pfJetPassCSVT(combinedSecondaryVertexBJetTagsAK5PFNoPUJet[GoodJetIndices[j]])) events->bjet2PassTight = true;
+            if(pfJetPassCSVT(combinedSecondaryVertexBJetTagsAK5PFPUcorrJet[GoodJetIndices[j]])) events->bjet2PassTight = true;
             else events->bjet2PassTight = false;
             gotSubLeadBJet = true;
         }
@@ -1248,4 +1447,51 @@ float RazorRunTwo::GetMTLep()
 void RazorRunTwo::FillMTLep()
 {
   events->lep1MT = GetMTLep();
+};
+
+void RazorRunTwo::SyncExcercise()
+{
+  std::cout << "****************************************************************" << std::endl;
+  std::cout << "Event : " << runNumber << " " << lumiBlock << " " << eventNumber << std::endl;
+  for( int i = 0; i < nMuon; i++ ) 
+    {
+      TLorentzVector thisMu( pxMuon[i], pyMuon[i], pzMuon[i], energyMuon[i] );
+      if ( thisMu.Pt() > 5.0 )
+	{
+	  std::cout << "muon " << i << " " << thisMu.Pt() << " " << thisMu.Eta() << " " 
+		    << thisMu.Phi() << " "  << isTightMuon(i, false) << " " 
+		    << isLooseMuon(i, false) << std::endl;
+	}
+    }
+  
+  for( int i = 0; i < nEle; i++ )
+    {
+      TLorentzVector thisEle( pxEle[i], pyEle[i], pzEle[i], energyEle[i] );
+      if ( thisEle.Pt() > 5.0 )
+	{
+	  std::cout << "ele " << i << " " << thisEle.Pt() << " " << thisEle.Eta() << " "
+                    << thisEle.Phi() << " "  << isTightElectron(i) << " "
+                    << isLooseElectron(i) << std::endl;
+	}
+    }
+  
+  for ( int i = 0; i < nAK5PFNoPUJet; i++ ) 
+    {
+      TLorentzVector jet;
+      double px = pxAK5PFNoPUJet[i];
+      double py = pyAK5PFNoPUJet[i];
+      double pz = pzAK5PFNoPUJet[i];
+      //double E = sqrt(px*px+py*py+pz*pz);
+      double E = energyAK5PFNoPUJet[i];
+      double scale = 1.;
+      jet.SetPxPyPzE(scale*px,scale*py,scale*pz,scale*E);
+      //good_pfjet = false;
+      //double EU = uncorrEnergyAK5PFNoPUJet[i];
+      std::cout << "jet " << i << " " << jet.Pt() << " " << jet.Eta() << " " << jet.Phi() << " "
+		<< "*" << " " << "*ID" << " " << "*PU" << " "
+		<< pfJetPassCSVL( combinedSecondaryVertexBJetTagsAK5PFNoPUJet[i] ) << " "
+		<< pfJetPassCSVM( combinedSecondaryVertexBJetTagsAK5PFNoPUJet[i] ) << " "
+		<< std::endl;
+    }
+  
 };

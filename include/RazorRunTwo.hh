@@ -5,7 +5,7 @@
 // Aimed to create the input of the data-driven
 // prediction for RunII including the possibility of
 // defining control and signal regions
-// Authors:Cristian Pen~a
+// Authors:Cristian Pen~a && Dustin Anderson
 //
 //-------------------------------------------------------
 
@@ -46,7 +46,13 @@ public:
   void SetGenPhotonVector();
   void ResetGenLeptonIndex();
   bool  DoPfSelection(std::vector<TLorentzVector>& pfJets, std::vector<int>& i_pfJets, std::vector< VecbosLepton > LooseLepton);
+  bool  DoPFcorrSelection(std::vector<TLorentzVector>& pfJets, std::vector<int>& i_pfJets, std::vector< VecbosLepton > LooseLepton);
   void FillJetInfo(std::vector<TLorentzVector> GoodJets, std::vector<int> GoodJetIndices, std::vector<VecbosLepton> GoodLeptons);
+  
+  bool isLoosePFPUcorrJet(int i);
+  bool isMediumPFPUcorrJet(int i);
+  bool isTightPFPUcorrJet(int i);
+  
   int FillPhotonInfo(int iPV);
   void SortByPt(std::vector<VecbosLepton>& lepton);
   void FillLeptons(std::vector<VecbosLepton> lepton);
@@ -56,6 +62,7 @@ public:
   void InitLeptonVariables();
   float GetMTLep();
   void FillMTLep();
+  void SyncExcercise();
   double _weight;
   ControlSampleEvents* events;
 
