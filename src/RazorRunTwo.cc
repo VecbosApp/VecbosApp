@@ -452,7 +452,7 @@ void RazorRunTwo::Loop(string outFileName, int start, int stop) {
     
     //Veto Event if there are no muons or electrons, or photons with pt above 15 GeV
     //if ( LooseLepton.size() == 0 && nGoodPhotons == 0) continue;
-    //if ( LooseLepton.size() == 0 ) continue;
+    if ( LooseLepton.size() == 0 ) continue;
     /////////////////////////////////////
     /////Filling Variables and Tree/////
     ////////////////////////////////////
